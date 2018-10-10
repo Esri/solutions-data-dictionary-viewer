@@ -1,0 +1,11 @@
+export declare const QUADRANT_ON_SCROLL_UNNECESSARILY_DEFINED: string;
+export declare const TABLE_EXPAND_FOCUSED_REGION_MULTI_COLUMN_REGION: string;
+export declare const TABLE_EXPAND_FOCUSED_REGION_MULTI_ROW_REGION: string;
+export declare const TABLE_NON_COLUMN_CHILDREN_WARNING: string;
+export declare const TABLE_NUM_FROZEN_COLUMNS_BOUND_WARNING: string;
+export declare const TABLE_NUM_FROZEN_COLUMNS_NEGATIVE: string;
+export declare const TABLE_NUM_FROZEN_ROWS_BOUND_WARNING: string;
+export declare const TABLE_NUM_FROZEN_ROWS_NEGATIVE: string;
+export declare const TABLE_NUM_ROWS_ROW_HEIGHTS_MISMATCH: string;
+export declare const TABLE_NUM_ROWS_NEGATIVE: string;
+export declare const TABLE_NUM_COLUMNS_COLUMN_WIDTHS_MISMATCH: string;

@@ -1,0 +1,54 @@
+/*
+ * Copyright 2016 Palantir Technologies, Inc. All rights reserved.
+ *
+ * Licensed under the terms of the LICENSE file distributed with this project.
+ */
+import * as tslib_1 from "tslib";
+import classNames from "classnames";
+import * as React from "react";
+import { Classes, DISPLAYNAME_PREFIX } from "../../common";
+import { Icon } from "../icon/icon";
+import { normalizeKeyCombo } from "./hotkeyParser";
+var KeyIcons = {
+    alt: "key-option",
+    cmd: "key-command",
+    ctrl: "key-control",
+    delete: "key-delete",
+    down: "arrow-down",
+    enter: "key-enter",
+    left: "arrow-left",
+    meta: "key-command",
+    right: "arrow-right",
+    shift: "key-shift",
+    up: "arrow-up",
+};
+var KeyCombo = /** @class */ (function (_super) {
+    tslib_1.__extends(KeyCombo, _super);
+    function KeyCombo() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.renderKey = function (key, index) {
+            var icon = KeyIcons[key];
+            var reactKey = "key-" + index;
+            return icon == null ? (React.createElement("kbd", { className: Classes.KEY, key: reactKey }, key)) : (React.createElement("kbd", { className: classNames(Classes.KEY, Classes.MODIFIER_KEY), key: reactKey },
+                React.createElement(Icon, { icon: icon }),
+                " ",
+                key));
+        };
+        _this.renderMinimalKey = function (key, index) {
+            var icon = KeyIcons[key];
+            return icon == null ? key : React.createElement(Icon, { icon: icon, key: "key-" + index });
+        };
+        return _this;
+    }
+    KeyCombo.prototype.render = function () {
+        var _a = this.props, className = _a.className, combo = _a.combo, minimal = _a.minimal;
+        var keys = normalizeKeyCombo(combo)
+            .map(function (key) { return (key.length === 1 ? key.toUpperCase() : key); })
+            .map(minimal ? this.renderMinimalKey : this.renderKey);
+        return React.createElement("span", { className: classNames(Classes.KEY_COMBO, className) }, keys);
+    };
+    KeyCombo.displayName = DISPLAYNAME_PREFIX + ".KeyCombo";
+    return KeyCombo;
+}(React.Component));
+export { KeyCombo };
+//# sourceMappingURL=keyCombo.js.map

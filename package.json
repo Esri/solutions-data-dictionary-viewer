@@ -1,0 +1,28 @@
+{
+  "name": "data_dictionary_viewer",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@blueprintjs/core": "^3.6.1",
+    "@blueprintjs/docs-theme": "^3.0.1",
+    "@blueprintjs/icons": "^3.1.0",
+    "@blueprintjs/select": "^3.2.0",
+    "@blueprintjs/table": "^3.1.1",
+    "@types/arcgis-js-api": "^4.9.0",
+    "esri-loader": "^2.5.0",
+    "react": "^16.5.2",
+    "react-addons-css-transition-group": "^15.6.2",
+    "react-dom": "^16.5.2",
+    "react-redux": "^5.0.7",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.5",
+    "react-transition-group": "^2.5.0",
+    "redux": "^4.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}

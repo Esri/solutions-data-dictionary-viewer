@@ -1,0 +1,72 @@
+// Copyright 2016 Palantir Technologies, Inc. All rights reserved.
+
+@import "../common/variables";
+@import "../cell/common";
+
+$region-default-color: $gray3 !default;
+$region-selected-color: $pt-intent-primary !default;
+
+.#{$ns}-table-overlay-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: $region-layer-z-index;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.#{$ns}-table-overlay {
+  position: absolute;
+}
+
+.#{$ns}-table-region {
+  border: $cell-border-width solid $region-default-color;
+  background-color: rgba($region-default-color, 0.1);
+}
+
+.#{$ns}-table-selection-region {
+  border: $cell-border-width solid $region-selected-color;
+  background-color: rgba($region-selected-color, 0.1);
+
+  .#{$ns}-table-column-headers & {
+    // Issue #120 - Don't actually overlay a color since it causes artifacts.
+    background-color: transparent;
+  }
+
+  .#{$ns}-table-row-headers & {
+    // Issue #120
+    background-color: transparent;
+  }
+}
+
+.#{$ns}-table-focus-region {
+  border: 2px solid $blue3;
+}
+
+.#{$ns}-table-column-headers .#{$ns}-table-region {
+  border-bottom: none;
+}
+
+.#{$ns}-table-row-headers .#{$ns}-table-region {
+  border-right: none;
+}
+
+.#{$ns}-table-vertical-guide {
+  top: 0;
+  bottom: 0;
+}
+
+.#{$ns}-table-horizontal-guide {
+  right: 0;
+  left: 0;
+}
+
+.#{$ns}-table-reordering-cursor-overlay {
+  cursor: grabbing;
+
+  .#{$ns}-table-reordering & {
+    pointer-events: all;
+  }
+}

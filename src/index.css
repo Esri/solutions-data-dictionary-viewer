@@ -1,0 +1,40 @@
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 5px;
+  height: 100%;
+  width: 100%;
+}
+
+#leftPanel {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 400px;
+}
+
+#rightPanel {
+  position: absolute;
+  top: 5px;
+  left: 415px;
+  width: 100%;
+}
+
+#map {
+  height: 350px;
+  width: 350px;
+}
+
+#toc {
+  padding-top: 5px;
+  width: 350px;
+  height: 95%;
+}
+
+#breadCrumb {
+  height: 50px;
+}
+
+#infoDiv {
+  width: 100%;
+  height: 95%;
+}
