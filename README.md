@@ -28,4 +28,4 @@ USAGE
 
 The application loads a default feature service.  You can load your own by adding a url parameter.
 at the end of the url, type:
-* ?lookup=<url to your feature service>
+* ?lookup=url to your feature service
