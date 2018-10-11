@@ -1,8 +1,6 @@
 body {
   font: 14px "Century Gothic", Futura, sans-serif;
   margin: 5px;
-  height: 100%;
-  width: 100%;
 }
 
 #leftPanel {
@@ -15,8 +13,7 @@ body {
 #rightPanel {
   position: absolute;
   top: 5px;
-  left: 415px;
-  width: 100%;
+  left: 365px;
 }
 
 #map {

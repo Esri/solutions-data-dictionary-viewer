@@ -7,7 +7,7 @@ import './index.css';
 import App from './App';
 import TreeToc from './Tree';
 //import MapComponent from './Map';
-//import TableSortableExample from './Table';
+import DetailsTable from './Details';
 import { connect } from 'react-redux';
 import { mapStateToProps, mapDispatchToProps } from './StoreHelper';
 
@@ -34,4 +34,5 @@ ReactDOM.render(<Provider store={store}><Index /></Provider>, document.getElemen
 ReactDOM.render(<Provider store={store}><App /></Provider>, document.getElementById('map'));
 ReactDOM.render(<Provider store={store}><TreeToc /></Provider>, document.getElementById('toc'));
 
+ReactDOM.render(<Provider store={store}><DetailsTable columns={[]} data={[]} /></Provider>, document.getElementById('details'));
 registerServiceWorker();

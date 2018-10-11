@@ -69,7 +69,8 @@ class TreeToc extends React.Component {
             this.forEachNode(this.state.nodes, n => (n.isSelected = false));
         }
         nodeData.isSelected = originallySelected == null ? true : !originallySelected;
-
+        console.log(nodeData);
+        store.dispatch({type:'DETAILS', payload:nodeData});
         this.setState(this.state);
     };
 
@@ -193,6 +194,7 @@ class TreeToc extends React.Component {
       for(let i=0; i< dataList.length; i++) {
         this.forEachNode(this.state.nodes, n => {
           if(n.id === dataList[i].layerId) {
+            n.details = dataList[i];
             n.childNodes = [];
             if(typeof(dataList[i].dataElement.subtypes) !== "undefined") {
               if(dataList[i].dataElement.subtypes.length > 0) {
@@ -201,7 +203,8 @@ class TreeToc extends React.Component {
                   hasCaret: true,
                   icon: "multi-select",
                   label: dataList[i].dataElement.subtypeFieldName,
-                  childNodes: this.loadDESubTypes({"nodeData":n})
+                  childNodes: this.loadDESubTypes({"nodeData":n}),
+                  details: dataList[i].dataElement.subtypes
                 };
                 n.childNodes.push(subTypeNode);
               }
@@ -211,7 +214,8 @@ class TreeToc extends React.Component {
                 let attrRulesNode = {
                   id: n.id+"-0",
                   icon: "document",
-                  label: "Attribute Rules"
+                  label: "Attribute Rules",
+                  details: dataList[i].dataElement.attributeRules
                 };
                 n.childNodes.push(attrRulesNode);
               }
@@ -219,7 +223,8 @@ class TreeToc extends React.Component {
             let fieldsNode = {
               id: n.id+"-1",
               icon: "document",
-              label: "Fields"
+              label: "Fields",
+              details: dataList[i].dataElement.fields
             };
             n.childNodes.push(fieldsNode);
           }
@@ -238,7 +243,8 @@ class TreeToc extends React.Component {
         subTypeList.push({
           id: args.nodeData.id+"-2-"+subtype.subtypeCode,
           icon: "layer",
-          label: subtype.subtypeName
+          label: subtype.subtypeName,
+          details: subtype
         });
       });
       return subTypeList;
@@ -287,6 +293,7 @@ class TreeToc extends React.Component {
 
     //START Store Changes
     storeChange = () => {
+      console.log(store.getState().state.filterWords);
       let storeVal = store.getState().state.filterWords;
       if(storeVal.length > 0) {
         this.setState({filter:storeVal});

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import esriLoader from 'esri-loader';
 import './App.css';
+import { Collapse, Button } from "@blueprintjs/core";
 import { store } from './store/index';
 import { connect } from 'react-redux';
 import { mapStateToProps, mapDispatchToProps } from './StoreHelper';
@@ -13,6 +14,9 @@ const options = {
 export default class App extends Component {
   constructor() {
     super();
+    this.state = {
+      isOpen: false
+    }
 
     esriLoader.loadModules([
       'esri/Map',
@@ -21,6 +25,7 @@ export default class App extends Component {
       'esri/layers/FeatureLayer'
     ], options)
         .then(([Map, WebMap, MapView, FeatureLayer]) => {
+
           var webmap = new WebMap({
             portalItem: { // autocasts as new PortalItem()
               id: "690f6848940c46c9be701e25aab3023f"
@@ -29,7 +34,6 @@ export default class App extends Component {
 
           requestHelper.parseURL();
           requestHelper.request().then((result) => {
-            console.log(result);
             let layerList = [];
             for(let i=0; i < result.layers.length; i++) {
               if(result.layers[i].hasOwnProperty("type")) {
@@ -74,12 +78,10 @@ export default class App extends Component {
 
           });
 ;
-
           let checkFeature = (args) => {
             if(args.popup.features.length === 0) {
               setTimeout(() => {checkFeature(args)},200);
             } else {
-              connect(mapStateToProps, mapDispatchToProps)(App);
               let firstFeature = args.popup.features[0];
               if(firstFeature.attributes.hasOwnProperty("assetgroup")) {
                 //UN services
@@ -111,13 +113,14 @@ export default class App extends Component {
 
   createHandlers = (data) => {
     console.log(store.getState());
+    //connect(mapStateToProps, mapDispatchToProps)(App);
     store.dispatch({type:'FILTER', payload:data});
     console.log(store.getState());
   };
 
   render() {
     return (
-        <div id="mapContainer"/>
+      <div id="mapContainer"/>
     );
   }
 }
