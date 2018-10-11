@@ -38,7 +38,7 @@ This repo already did this.  But for reference, I used a react create esri app, 
 
 ## Resources
 
-## USAGE
+## Usage
 
 The application loads a default feature service.  You can load your own by adding a url parameter.
 at the end of the url, type:
