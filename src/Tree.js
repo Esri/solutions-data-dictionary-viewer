@@ -69,8 +69,13 @@ class TreeToc extends React.Component {
             this.forEachNode(this.state.nodes, n => (n.isSelected = false));
         }
         nodeData.isSelected = originallySelected == null ? true : !originallySelected;
+        if(nodeData.hasOwnProperty("childNodes")) {
+          nodeData.isSelected = false;
+          store.dispatch({type:'DETAILS', payload:nodeData});
+        } else {
+          store.dispatch({type:'DETAILS', payload:nodeData});
+        }
         console.log(nodeData);
-        store.dispatch({type:'DETAILS', payload:nodeData});
         this.setState(this.state);
     };
 
@@ -180,7 +185,8 @@ class TreeToc extends React.Component {
             let fieldsNode = {
               id: n.id+"-1",
               icon: "document",
-              label: "Fields"
+              label: "Fields",
+              details: d.fields
             };
             n.childNodes.push(fieldsNode);
           }
@@ -196,6 +202,7 @@ class TreeToc extends React.Component {
           if(n.id === dataList[i].layerId) {
             n.details = dataList[i];
             n.childNodes = [];
+            n.isSelected
             if(typeof(dataList[i].dataElement.subtypes) !== "undefined") {
               if(dataList[i].dataElement.subtypes.length > 0) {
                 let subTypeNode = {
@@ -293,7 +300,6 @@ class TreeToc extends React.Component {
 
     //START Store Changes
     storeChange = () => {
-      console.log(store.getState().state.filterWords);
       let storeVal = store.getState().state.filterWords;
       if(storeVal.length > 0) {
         this.setState({filter:storeVal});

@@ -13,6 +13,7 @@ import {
     Utils,
 } from "@blueprintjs/table";
 import { store } from './store/index';
+import SubDetailsTable from './SubDetails';
 
 class DetailsTable extends Component {
   constructor(props) {
@@ -20,10 +21,28 @@ class DetailsTable extends Component {
     this.state = {
         columns: props.columns,
         data: props.data,
+        header: props.header,
         sortedIndexMap: []
     }
     store.subscribe(()=> {
-      this.rebuildTable();
+      let tables = this.rebuildTable({
+        details: store.getState().state.detailData[0].details,
+        table:"main",
+        header: "Details"
+      });
+      if(tables.length > 0) {
+        let elem = document.getElementById("subDetails");
+        while( elem.hasChildNodes() ){
+          elem.removeChild(elem.lastChild);
+        }
+        for (let i=0; i<tables.length; i++) {
+          if(tables[i].table === "main") {
+            this.setState({columns: tables[i].columns, data: tables[i].data, header: "Details"});
+          } else {
+            this.createSubTable(tables[i]);
+          }
+        }
+      }
     });
   }
 
@@ -31,54 +50,104 @@ class DetailsTable extends Component {
       const numRows = this.state.data.length;
       const columns = this.createColumns();
       return (
-              <Table
-                  bodyContextMenuRenderer={this.renderBodyContextMenu}
-                  numRows={numRows}
-                  selectionModes={SelectionModes.COLUMNS_AND_CELLS}
-                  >
-                  {columns}
-              </Table>
+        <div>
+          <h1>{this.state.header}</h1>
+          <Table
+              bodyContextMenuRenderer={this.renderBodyContextMenu}
+              numRows={numRows}
+              selectionModes={SelectionModes.COLUMNS_AND_CELLS}
+              >
+              {columns}
+          </Table>
+        </div>
       );
   };
 
-  rebuildTable = () => {
-    let details = store.getState().state.detailData[0].details;
-    let newColumns = [];
-    let newData = [];
-    let tempList = [];
-    if(Array.isArray(details)) {
-      for(let key in details[0]) {
-        newColumns.push({
-          "name":key, "index":key
-        });
-      }
-      for(let i=0; i<details.length; i++) {
-        for(let key in details[i]) {
-          if(Array.isArray(details[i][key])) {
-            this.createSubTable({key:key, data:details[i][key]})
+  //#TODO: manually create column list cuz of differences in possible properties
+  rebuildTable = (args) => {
+    let totalTables = [];
+    let subTables = [];
+    let recurseLookup = (args) => {
+      let details = args.details;
+      let newColumns = [];
+      let newData = [];
+      let tempList = [];
+      if(Array.isArray(details)) {
+        for(let i=0; i<details.length; i++) {
+          for(let key in details[i]) {
+            if(i === 1) {
+              //use the second row for column heading, skip first row OBJECTID
+              newColumns.push({"name":key, "index":key});
+            }
+            if(typeof(details[i][key]) !== "object" ) {
+              tempList.push(details[i][key].toString());
+            } else {
+              let uniqueID = "";
+              if(details[i][key] !== null ) {
+                //seeing if there is some name like 'name', domainName, subtypename, that can add uniqueness to subtables
+                if(Object.keys(details[i][key]).join().indexOf("name") > -1) {
+                  let availableName = Object.keys(details[i][key]).join();
+                  let newSegment = availableName.substring(Object.keys(details[i][key]).join().indexOf("name"));
+                  let foundSegment = newSegment.substring(0, newSegment.indexOf(","));
+                  if(details[i][key].hasOwnProperty(foundSegment)) {
+                    tempList.push(details[i][key][foundSegment]);
+                  }
+                  uniqueID = key + " : " + details[i][key][foundSegment];
+                } else {
+                  uniqueID = key
+                }
+                subTables.push({details: details[i][key], table:"subTable", header:uniqueID});
+              }
+            }
+          }
+          newData.push(tempList);
+          tempList = [];
+        }
+      } else {
+        for(let key in details) {
+          if(typeof(details[key]) !== "object") {
+            newColumns.push({
+              "name":key, "index":key
+            });
+            tempList.push(details[key].toString());
           } else {
-            tempList.push(details[i][key].toString());
+            //if there are sub levels of Objects or Array, send it to SubDetails
+            let uniqueID = "";
+            if(details[key] !== null ) {
+              if(Object.keys(details).join().indexOf("name")) {
+                let availableName = Object.keys(details).join();
+                let newSegment = availableName.substring(Object.keys(details).join().indexOf("name"));
+                let foundSegment = newSegment.substring(0, newSegment.indexOf(","));
+                if(details.hasOwnProperty(foundSegment)) {
+                  uniqueID = key + " : " + details[foundSegment];
+                } else {
+                  uniqueID = key
+                }
+              }
+              subTables.push({details: details[key], table:"subTable", header:uniqueID});
+            }
           }
         }
         newData.push(tempList);
-        tempList = [];
       }
-    } else {
-      for(let key in details) {
-        newColumns.push({
-          "name":key, "index":key
-        });
-        tempList.push(details[key].toString());
-      }
-      newData.push(tempList);
+      totalTables.push({columns: newColumns, data: newData, table: args.table, header:args.header});
     }
 
-    this.setState({columns: newColumns, data: newData});
+    recurseLookup(args);
+    while(subTables.length > 0) {
+      recurseLookup(subTables[0]);
+      subTables.shift();
+    }
+
+    return totalTables;
+  };
+
+  parsedata = (args) => {
+
   };
 
   createColumns = () => {
     let columns = [];
-    console.log(this.state.data);
     for(let i=0; i< this.state.columns.length; i++) {
       columns.push(<Column key={this.state.columns[i].name} name={this.state.columns[i].name}  cellRenderer={this.cellRenderer} />);
     }
@@ -99,12 +168,16 @@ class DetailsTable extends Component {
 
   //handle subElements (basically x level of arrays)
   createSubTable = (args) => {
-    console.log(args);
+    let elem = document.getElementById(args.header);
+    if(elem) {
+      elem.remove();
+    }
     let newSlot = document.createElement("div");
-    newSlot.id = "test"
+    newSlot.id = args.header
     document.getElementById("subDetails").appendChild(newSlot);
 
-    ReactDOM.render(<Provider store={store}><DetailsTable columns={[args.key]} data={[]} /></Provider>, document.getElementById('test'));
+    ReactDOM.render(<Provider store={store}><SubDetailsTable columns={args.columns} data={args.data} header={args.header} /></Provider>, document.getElementById(newSlot.id));
+
   }
 
 }
