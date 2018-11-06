@@ -3,7 +3,7 @@ export const filterAction = (sampleData) => ({
   payload: sampleData
 })
 
-export const exampleActionTwo = (sampleData) => ({
-  type: 'EXAMPLE-TWO',
+export const detailsAction = (sampleData) => ({
+  type: 'DETAILS',
   payload: sampleData
 })

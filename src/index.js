@@ -34,5 +34,5 @@ ReactDOM.render(<Provider store={store}><Index /></Provider>, document.getElemen
 ReactDOM.render(<Provider store={store}><App /></Provider>, document.getElementById('map'));
 ReactDOM.render(<Provider store={store}><TreeToc /></Provider>, document.getElementById('toc'));
 
-ReactDOM.render(<Provider store={store}><DetailsTable columns={[]} data={[]} header={"Details"} /></Provider>, document.getElementById('details'));
+//ReactDOM.render(<Provider store={store}><DetailsTable columns={[]} data={[]} header={"Details"} /></Provider>, document.getElementById('details'));
 registerServiceWorker();

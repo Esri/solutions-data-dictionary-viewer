@@ -5,9 +5,14 @@
  */
 
 import * as React from "react";
+import ReactDOM from 'react-dom';
 import { requestHelper, FSurl } from './RemoteRequest';
-import { Classes, Tooltip, Tree, TagInput, Button } from "@blueprintjs/core";
+import { Classes, Tooltip, Tree, TagInput, Button, Icon } from "@blueprintjs/core";
+import { Provider } from "react-redux";
 import { store } from './store/index';
+//import SyntaxHighlighter from 'react-syntax-highlighter';
+//import { docco } from 'react-syntax-highlighter/styles/hljs';
+import DetailCard from './Card';
 
 // use Component so it re-renders everytime: `nodes` are not a primitive type
 // and therefore aren't included in shallow prop comparison
@@ -70,12 +75,17 @@ class TreeToc extends React.Component {
         }
         nodeData.isSelected = originallySelected == null ? true : !originallySelected;
         if(nodeData.hasOwnProperty("childNodes")) {
-          nodeData.isSelected = false;
+          //nodeData.isSelected = false;
           store.dispatch({type:'DETAILS', payload:nodeData});
         } else {
           store.dispatch({type:'DETAILS', payload:nodeData});
         }
-        console.log(nodeData);
+
+        let newSlot = document.createElement("div");
+        newSlot.id = nodeData.id;
+        document.getElementById("details").appendChild(newSlot);
+
+        ReactDOM.render(<Provider store={store}><DetailCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
         this.setState(this.state);
     };
 
@@ -111,10 +121,12 @@ class TreeToc extends React.Component {
           isExpanded: false,
           icon: "layers",
           label: result.layers[i].name,
+          title: result.layers[i].name,
           childNodes:[],
           queryDataElements: ((result.supportsQueryDataElements) ? result.supportsQueryDataElements : false),
           queryDomains: ((result.supportsQueryDomains) ? result.supportsQueryDomains : false),
-          nodeType: "layer"
+          nodeType: "layer",
+          details: result.layers[i]
         }
         nodeList.push(item);
       }
@@ -125,10 +137,12 @@ class TreeToc extends React.Component {
           isExpanded: false,
           icon: "th-list",
           label: result.tables[i].name,
+          title: result.tables[i].name,
           childNodes:[],
           queryDataElements: ((result.supportsQueryDataElements) ? result.supportsQueryDataElements : false),
           queryDomains: ((result.supportsQueryDomains) ? result.supportsQueryDomains : false),
-          nodeType: "table"
+          nodeType: "table",
+          details: result.tables[i]
         }
         nodeList.push(item);
       }
@@ -206,11 +220,12 @@ class TreeToc extends React.Component {
             if(typeof(dataList[i].dataElement.subtypes) !== "undefined") {
               if(dataList[i].dataElement.subtypes.length > 0) {
                 let subTypeNode = {
-                  id: n.id+"-2",
+                  id: n.id+"-"+dataList[i].dataElement.subtypeFieldName,
                   hasCaret: true,
                   icon: "multi-select",
                   label: dataList[i].dataElement.subtypeFieldName,
-                  childNodes: this.loadDESubTypes({"nodeData":n}),
+                  title: n.title+"-"+dataList[i].dataElement.subtypeFieldName,
+                  childNodes: this.loadDESubTypes({"nodeData":n, "title":n.title+"-"+dataList[i].dataElement.subtypeFieldName, "subTypeField":dataList[i].dataElement.subtypeFieldName}),
                   details: dataList[i].dataElement.subtypes
                 };
                 n.childNodes.push(subTypeNode);
@@ -219,21 +234,30 @@ class TreeToc extends React.Component {
             if(typeof(dataList[i].dataElement.attributeRules) !== "undefined") {
               if(dataList[i].dataElement.attributeRules.length > 0) {
                 let attrRulesNode = {
-                  id: n.id+"-0",
-                  icon: "document",
+                  id: n.id+"-Attribute Rules",
+                  icon: "multi-select",
+                  hasCaret: true,
                   label: "Attribute Rules",
+                  title: n.title+"-Attribute Rules",
+                  childNodes: this.loadDEAttributeRules({"node":n.id+"-Attribute Rules-", "title":n.title+"-Attribute Rules", "data":dataList[i].dataElement.attributeRules}),
                   details: dataList[i].dataElement.attributeRules
                 };
                 n.childNodes.push(attrRulesNode);
               }
             }
-            let fieldsNode = {
-              id: n.id+"-1",
-              icon: "document",
-              label: "Fields",
-              details: dataList[i].dataElement.fields
-            };
-            n.childNodes.push(fieldsNode);
+            if(typeof(dataList[i].dataElement.fields) !== "undefined") {
+              let fieldsNode = {
+                id: n.id+"-Fields",
+                icon: "multi-select",
+                label: "Fields",
+                title: n.title+"-Fields",
+                details: dataList[i].dataElement.fields.fieldArray
+              };
+              if(dataList[i].dataElement.fields.fieldArray.length > 0) {
+                fieldsNode["childNodes"] = this.loadDEFields({"node":n.id+"-Fields-", "title": n.title+"-Fields", "data":dataList[i].dataElement.fields.fieldArray});
+              }
+              n.childNodes.push(fieldsNode);
+            }
           }
         });
       }
@@ -248,13 +272,40 @@ class TreeToc extends React.Component {
       });
       found.dataElement.subtypes.forEach((subtype) => {
         subTypeList.push({
-          id: args.nodeData.id+"-2-"+subtype.subtypeCode,
+          id: args.nodeData.id+"-"+args.subTypeField+"-"+subtype.subtypeName,
           icon: "layer",
           label: subtype.subtypeName,
+          title: args.title+"-"+subtype.subtypeName,
           details: subtype
         });
       });
       return subTypeList;
+    };
+    loadDEAttributeRules = (args) => {
+      let attrRulesList = [];
+      args.data.forEach((ar) => {
+        attrRulesList.push({
+          id: args.node+ar.name,
+          icon: "document",
+          label: ar.name,
+          title: args.title+"-"+ar.name,
+          details: ar
+        });
+      });
+      return attrRulesList;
+    };
+    loadDEFields = (args) => {
+      let fieldsList = [];
+      args.data.forEach((field) => {
+        fieldsList.push({
+          id: args.node+field.name,
+          icon: "document",
+          label: field.aliasName,
+          title: args.title+"-"+field.aliasName,
+          details: field
+        });
+      });
+      return fieldsList;
     };
     //END Request and process nodes functions
 
@@ -270,13 +321,18 @@ class TreeToc extends React.Component {
                 this.forEachNode(mutable, m => {
                   if((m.id).toString().indexOf("-") === -1) {
                     if(n.id.indexOf(m.id) > -1) {
+                      n.secondaryLabel = (<Icon icon="tick" />);
                       if (filteredList.filter(e => e.id === m.id).length === 0) {
+                        m.secondaryLabel = (<Icon icon="tick" />);
+                        m.isSelected = false;
                         filteredList.push(m);
                       }
                     }
                   }
                 });
               } else {
+                n.secondaryLabel = (<Icon icon="tick" />);
+                n.isSelected = false;
                 filteredList.push(n);
               }
           }
@@ -294,7 +350,11 @@ class TreeToc extends React.Component {
     };
 
     handleClear = () => {
-      this.setState({ filter: [], nodes: this.state.nodeStatic });
+      this.forEachNode(this.state.nodeStatic, n => {
+        n.secondaryLabel = "";
+        n.isSelected = false;
+      });
+      this.setState({ filter: [], nodes: [...this.state.nodeStatic] });
     };
     //END FIltering functions
 

@@ -1,5 +1,6 @@
 let defaultState = {
-  filterWords: []
+  filterWords: [],
+  detailData: null
 };
 
 const reducers = (state = defaultState, action) => {
@@ -8,6 +9,11 @@ const reducers = (state = defaultState, action) => {
       return {
         ...state,
         filterWords: [action.payload]
+      }
+    case 'DETAILS':
+      return {
+        ...state,
+        detailData: [action.payload]
       }
     default:
       return state;

@@ -25,21 +25,23 @@ class DetailsTable extends Component {
         sortedIndexMap: []
     }
     store.subscribe(()=> {
-      let tables = this.rebuildTable({
-        details: store.getState().state.detailData[0].details,
-        table:"main",
-        header: "Details"
-      });
-      if(tables.length > 0) {
-        let elem = document.getElementById("subDetails");
-        while( elem.hasChildNodes() ){
-          elem.removeChild(elem.lastChild);
-        }
-        for (let i=0; i<tables.length; i++) {
-          if(tables[i].table === "main") {
-            this.setState({columns: tables[i].columns, data: tables[i].data, header: "Details"});
-          } else {
-            this.createSubTable(tables[i]);
+      if(store.getState().state.detailData !== null) {
+        let tables = this.rebuildTable({
+          details: store.getState().state.detailData[0].details,
+          table:"main",
+          header: "Details"
+        });
+        if(tables.length > 0) {
+          let elem = document.getElementById("subDetails");
+          while( elem.hasChildNodes() ){
+            elem.removeChild(elem.lastChild);
+          }
+          for (let i=0; i<tables.length; i++) {
+            if(tables[i].table === "main") {
+              this.setState({columns: tables[i].columns, data: tables[i].data, header: "Details"});
+            } else {
+              this.createSubTable(tables[i]);
+            }
           }
         }
       }
@@ -47,20 +49,32 @@ class DetailsTable extends Component {
   }
 
   render() {
-      const numRows = this.state.data.length;
-      const columns = this.createColumns();
-      return (
+    const numRows = this.state.data.length;
+    const columns = this.createColumns();
+    if(this.state.data.length > 0) {
+      if(document.getElementById("detailsTable")) {
+        document.getElementById("detailsTable").style.display = "block";
+      }
+    } else {
+      if(document.getElementById("detailsTable")) {
+        document.getElementById("detailsTable").style.display = "none";
+      }
+    }
+    return (
+      <div>
+        <h1>{this.state.header}</h1>
         <div>
-          <h1>{this.state.header}</h1>
-          <Table
-              bodyContextMenuRenderer={this.renderBodyContextMenu}
-              numRows={numRows}
-              selectionModes={SelectionModes.COLUMNS_AND_CELLS}
-              >
-              {columns}
-          </Table>
+        <Table
+            bodyContextMenuRenderer={this.renderBodyContextMenu}
+            numRows={numRows}
+            selectionModes={SelectionModes.CELLS}
+            onSelection={this.showPopOver}
+            >
+            {columns}
+        </Table>
         </div>
-      );
+      </div>
+    );
   };
 
   //#TODO: manually create column list cuz of differences in possible properties
@@ -178,6 +192,12 @@ class DetailsTable extends Component {
 
     ReactDOM.render(<Provider store={store}><SubDetailsTable columns={args.columns} data={args.data} header={args.header} /></Provider>, document.getElementById(newSlot.id));
 
+  }
+
+
+  //SHow detail cell data in a pop up
+  showPopOver = (args) => {
+    console.log(this.getCellData(args[0].rows[0], args[0].cols[0]));
   }
 
 }

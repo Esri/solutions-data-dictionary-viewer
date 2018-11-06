@@ -39,3 +39,78 @@ body {
 #details {
   padding-bottom: 25px;
 }
+
+/* start react draggable */
+.react-draggable, .cursor {
+  cursor: move;
+}
+.no-cursor {
+  cursor: auto;
+}
+.cursor-y {
+  cursor: ns-resize;
+}
+.cursor-x {
+  cursor: ew-resize;
+}
+.react-draggable strong {
+  background: #ddd;
+  border: 1px solid #999;
+  border-radius: 3px;
+  display: block;
+  margin-bottom: 10px;
+  padding: 3px 5px;
+  text-align: center;
+}
+.box {
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+  width: 180px;
+  height: 180px;
+  margin: 10px;
+  padding: 10px;
+  float: left;
+}
+/* end react draggable */
+
+.scriptExpBg {
+  background-color: rgb(241, 241, 241);
+}
+
+
+.card-holder {
+  background-color: rgb(255, 255, 255);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+  border-color:#e1e1e1;
+}
+
+.card-table-style {
+  width: 100%;
+}
+
+.card-close-holder {
+  width: 100%;
+  text-align: right;
+  padding-right: 5px;
+  padding-top: 5px;
+}
+
+.card-nav-header {
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+.card-nav-style {
+  width: 100%;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+  border-color:#999;
+}
+
+.card-close-holder :hover {
+  cursor: hand !important;
+}

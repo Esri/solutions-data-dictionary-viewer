@@ -35,9 +35,19 @@ export default class App extends Component {
           requestHelper.parseURL();
           requestHelper.request().then((result) => {
             let layerList = [];
-            for(let i=0; i < result.layers.length; i++) {
-              if(result.layers[i].hasOwnProperty("type")) {
-                if(result.layers[i].type === "Feature Layer" && result.layers[i].name !== "Service Territory") {
+            if(typeof(result.layers) !== "undefined") {
+              for(let i=0; i < result.layers.length; i++) {
+                if(result.layers[i].hasOwnProperty("type")) {
+                  if(result.layers[i].type === "Feature Layer" && result.layers[i].name !== "Service Territory") {
+                    let fl = new FeatureLayer(FSurl+ "/"+result.layers[i].id);
+                    let template = {
+                      title: "Map Filter",
+                      content: "Filter dictionary by Feature"
+                    };
+                    fl.popupTemplate = template;
+                    layerList.push(fl);
+                  }
+                } else {
                   let fl = new FeatureLayer(FSurl+ "/"+result.layers[i].id);
                   let template = {
                     title: "Map Filter",
@@ -46,14 +56,6 @@ export default class App extends Component {
                   fl.popupTemplate = template;
                   layerList.push(fl);
                 }
-              } else {
-                let fl = new FeatureLayer(FSurl+ "/"+result.layers[i].id);
-                let template = {
-                  title: "Map Filter",
-                  content: "Filter dictionary by Feature"
-                };
-                fl.popupTemplate = template;
-                layerList.push(fl);
               }
             }
             let map = new Map({
@@ -67,8 +69,12 @@ export default class App extends Component {
               zoom: 16
             });
 
-            view.on("click", async (event) => {
-              checkFeature(view);
+            view.on("click", (event) => {
+              view.popup.clear();
+              checkFeature({
+                popup: view.popup,
+                attempts: 1
+              });
             })
 
             this.setState({
@@ -79,29 +85,47 @@ export default class App extends Component {
           });
 ;
           let checkFeature = (args) => {
-            if(args.popup.features.length === 0) {
-              setTimeout(() => {checkFeature(args)},200);
-            } else {
-              let firstFeature = args.popup.features[0];
-              if(firstFeature.attributes.hasOwnProperty("assetgroup")) {
-                //UN services
-                let typeList = firstFeature.layer.types;
-                let flag = "";
-                typeList.forEach(type => {
-                  if(type.id === firstFeature.attributes.assetgroup) {
-                    flag = type.name;
-                  }
-                });
-                if(flag !== "") {
-                  this.createHandlers(flag);
-                } else {
-                  this.createHandlers(firstFeature.layer.title);
-                }
+            //need to put an attempt count since popup selected features is async, but
+            //there is no event to hook into it to check when it is populated.
+            //if 3 attempts, then end, there is no feature where user clicked.
+            if(args.attempts <= 3) {
+              if(args.popup.selectedFeature === null) {
+                args.attempt++;
+                setTimeout(() => {checkFeature(args)},500);
               } else {
-                //regular service
-                this.createHandlers(firstFeature.layer.title);
+                let firstFeature = args.popup.selectedFeature;
+                if(firstFeature.attributes.hasOwnProperty("assetgroup")) {
+                  //UN services
+                  let typeList = firstFeature.layer.types;
+                  let title = "";
+                  typeList.forEach(type => {
+                    if(type.id === firstFeature.attributes.assetgroup) {
+                      title = type.name;
+                    }
+                  });
+                  if(title !== "") {
+                    this.createHandlers(title);
+                  } else {
+                    this.createHandlers(firstFeature.layer.title);
+                  }
+                } else {
+                  //regular service
+                  var title = "";
+                  if(firstFeature.layer.title.indexOf("-") > -1) {
+                    //check if there are dashes, if so, see if before the dash is the pre-appended service name by comparing to URL
+                    //if it is, remove and only use the tail.  If it not service name, then it's a legit dash.
+                    var leftOfDash = (firstFeature.layer.title).substring(0, (firstFeature.layer.title.indexOf("-") -1));
+                    if(FSurl.indexOf(leftOfDash) > -1) {
+                      title = ((firstFeature.layer.title).substring((leftOfDash.length + 2))).trim();
+                    } else {
+                      title = firstFeature.layer.title;
+                    }
+                  } else {
+                    title = firstFeature.layer.title;
+                  }
+                  this.createHandlers(title);
+                }
               }
-              console.log(args.popup.features);
             }
           };
 
@@ -112,10 +136,8 @@ export default class App extends Component {
   }
 
   createHandlers = (data) => {
-    console.log(store.getState());
     //connect(mapStateToProps, mapDispatchToProps)(App);
     store.dispatch({type:'FILTER', payload:data});
-    console.log(store.getState());
   };
 
   render() {
