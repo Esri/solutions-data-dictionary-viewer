@@ -114,3 +114,42 @@ body {
 .card-close-holder :hover {
   cursor: hand !important;
 }
+
+.jsonOdd {
+  background: #eee;
+}
+
+.Collapsible__trigger {
+  width: 100%;
+  background-color: #e1e1e1;
+  display: block;
+  color: #000;
+}
+
+.collapse-open {
+  width: 100%;
+  background: url(./images/arrow_up.png) no-repeat top right;
+  background-color: #e1e1e1;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.collapse-close {
+  width: 100%;
+  background: url(./images/arrow_down.png) no-repeat top right;
+  background-color: #e1e1e1;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.vertical-spacer {
+  height: 10px;
+}
+
+.padding {
+  padding-left: 15px;
+}
+
+.popup-link {
+  color: blue;
+}

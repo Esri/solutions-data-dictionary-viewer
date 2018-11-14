@@ -1,5 +1,27 @@
 {
+  "serviceInfo": {
+    "show": ["all"],
+    "summarize": [
+      {"layers": "count"},
+      {"tables": "count"}
+    ]
+  },
+  "layers": {
+    "show": ["all"],
+    "summarize": [
+      {"features": "count"}
+    ]
+  },
   "fields": {
-    "devices":
+    "show": ["all"],
+    "summarize": [
+      {"fieldType": "count"}
+    ]
+  },
+  "field": {
+    "show": ["all"],
+    "summarize": [
+      {"fieldType": "count"}
+    ]
   }
 }

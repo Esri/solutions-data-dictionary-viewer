@@ -13,6 +13,7 @@ import { store } from './store/index';
 //import SyntaxHighlighter from 'react-syntax-highlighter';
 //import { docco } from 'react-syntax-highlighter/styles/hljs';
 import DetailCard from './Card';
+import ServiceInfoCard from './cards/ServiceInfoCard';
 
 // use Component so it re-renders everytime: `nodes` are not a primitive type
 // and therefore aren't included in shallow prop comparison
@@ -28,7 +29,7 @@ class TreeToc extends React.Component {
     }
     this.state.req.parseURL();
     this.state.req.request().then((result) => {
-      this.setState({nodes: this.loadInitalLayerView(result)});
+      this.setState({nodes: this.loadServiceView(result)});
       if(result.supportsQueryDataElements) {
         this.requestDataElements();
       } else {
@@ -69,24 +70,31 @@ class TreeToc extends React.Component {
     }
 
     handleNodeClick = (nodeData, _nodePath, e) => {
-        const originallySelected = nodeData.isSelected;
-        if (!e.shiftKey) {
-            this.forEachNode(this.state.nodes, n => (n.isSelected = false));
-        }
-        nodeData.isSelected = originallySelected == null ? true : !originallySelected;
-        if(nodeData.hasOwnProperty("childNodes")) {
-          //nodeData.isSelected = false;
-          store.dispatch({type:'DETAILS', payload:nodeData});
-        } else {
-          store.dispatch({type:'DETAILS', payload:nodeData});
-        }
+      console.log(nodeData);
+      const originallySelected = nodeData.isSelected;
+      if (!e.shiftKey) {
+          this.forEachNode(this.state.nodes, n => (n.isSelected = false));
+      }
+      nodeData.isSelected = originallySelected == null ? true : !originallySelected;
+      if(nodeData.hasOwnProperty("childNodes")) {
+        //nodeData.isSelected = false;
+        store.dispatch({type:'DETAILS', payload:JSON.parse(JSON.stringify(nodeData))});
+      } else {
+        store.dispatch({type:'DETAILS', payload:JSON.parse(JSON.stringify(nodeData))});
+      }
 
-        let newSlot = document.createElement("div");
-        newSlot.id = nodeData.id;
-        document.getElementById("details").appendChild(newSlot);
-
-        ReactDOM.render(<Provider store={store}><DetailCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
-        this.setState(this.state);
+      let newSlot = document.createElement("div");
+      newSlot.id = nodeData.id;
+      document.getElementById("details").appendChild(newSlot);
+      switch(nodeData.nodeType) {
+        case "serviceInfo":
+          ReactDOM.render(<Provider store={store}><ServiceInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          break;
+        default:
+          ReactDOM.render(<Provider store={store}><ServiceInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          break;
+      }
+      this.setState(this.state);
     };
 
     handleNodeCollapse = (nodeData) => {
@@ -109,6 +117,34 @@ class TreeToc extends React.Component {
             callback(node);
             this.forEachNode(node.childNodes, callback);
         }
+    };
+
+    loadServiceView = (result) => {
+      let title = "";
+      let label = "";
+      if(result.hasOwnProperty("documentInfo")) {
+        title = result.documentInfo.Title;
+        label = result.documentInfo.Title;
+      } else {
+        title = result.serviceDescription;
+        label = result.serviceDescription;
+      }
+      let nodeList = [];
+      let item = {
+        id: title,
+        hasCaret: true,
+        isExpanded: true,
+        icon: "layers",
+        label: label,
+        title: title,
+        childNodes: this.loadInitalLayerView(result),
+        queryDataElements: ((result.supportsQueryDataElements) ? result.supportsQueryDataElements : false),
+        queryDomains: ((result.supportsQueryDomains) ? result.supportsQueryDomains : false),
+        nodeType: "serviceInfo",
+        details: result
+      }
+      nodeList.push(item);
+      return nodeList;
     };
 
     //START Request and process nodes functions
@@ -226,7 +262,8 @@ class TreeToc extends React.Component {
                   label: dataList[i].dataElement.subtypeFieldName,
                   title: n.title+"-"+dataList[i].dataElement.subtypeFieldName,
                   childNodes: this.loadDESubTypes({"nodeData":n, "title":n.title+"-"+dataList[i].dataElement.subtypeFieldName, "subTypeField":dataList[i].dataElement.subtypeFieldName}),
-                  details: dataList[i].dataElement.subtypes
+                  details: dataList[i].dataElement.subtypes,
+                  nodeType: "subtypes"
                 };
                 n.childNodes.push(subTypeNode);
               }
@@ -240,7 +277,8 @@ class TreeToc extends React.Component {
                   label: "Attribute Rules",
                   title: n.title+"-Attribute Rules",
                   childNodes: this.loadDEAttributeRules({"node":n.id+"-Attribute Rules-", "title":n.title+"-Attribute Rules", "data":dataList[i].dataElement.attributeRules}),
-                  details: dataList[i].dataElement.attributeRules
+                  details: dataList[i].dataElement.attributeRules,
+                  nodeType: "attributeRules"
                 };
                 n.childNodes.push(attrRulesNode);
               }
@@ -251,7 +289,8 @@ class TreeToc extends React.Component {
                 icon: "multi-select",
                 label: "Fields",
                 title: n.title+"-Fields",
-                details: dataList[i].dataElement.fields.fieldArray
+                details: dataList[i].dataElement.fields.fieldArray,
+                nodeType: "fields"
               };
               if(dataList[i].dataElement.fields.fieldArray.length > 0) {
                 fieldsNode["childNodes"] = this.loadDEFields({"node":n.id+"-Fields-", "title": n.title+"-Fields", "data":dataList[i].dataElement.fields.fieldArray});
@@ -276,7 +315,8 @@ class TreeToc extends React.Component {
           icon: "layer",
           label: subtype.subtypeName,
           title: args.title+"-"+subtype.subtypeName,
-          details: subtype
+          details: subtype,
+          nodeType: "subtype"
         });
       });
       return subTypeList;
@@ -289,7 +329,8 @@ class TreeToc extends React.Component {
           icon: "document",
           label: ar.name,
           title: args.title+"-"+ar.name,
-          details: ar
+          details: ar,
+          nodeType: "attributeRule"
         });
       });
       return attrRulesList;
@@ -302,7 +343,8 @@ class TreeToc extends React.Component {
           icon: "document",
           label: field.aliasName,
           title: args.title+"-"+field.aliasName,
-          details: field
+          details: field,
+          nodeType: "field"
         });
       });
       return fieldsList;
