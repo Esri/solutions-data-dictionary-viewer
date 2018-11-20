@@ -6,10 +6,28 @@
       {"tables": "count"}
     ]
   },
-  "layers": {
+  "layer": {
     "show": ["all"],
     "summarize": [
       {"features": "count"}
+    ]
+  },
+  "table": {
+    "show": ["all"],
+    "summarize": [
+      {"features": "count"}
+    ]
+  },
+  "subtypes": {
+    "show": ["all"],
+    "summarize": [
+      {"fieldType": "count"}
+    ]
+  },
+  "subtype": {
+    "show": ["all"],
+    "summarize": [
+      {"fieldType": "count"}
     ]
   },
   "fields": {

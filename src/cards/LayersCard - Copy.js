@@ -180,26 +180,169 @@ class LayersInfoCardDetails extends React.Component {
     return (
       <div className={this.props.title}>
         <div id={this.state.uniqueIdDetails}>
-        {this.createTable()}
-        <div id={this.state.uniqueIdSubDetails}></div>
+          {this.processData2({data: this.props.data})}
         </div>
+        <div id={this.state.uniqueIdSubDetails}></div>
+
       </div>
     );
   }
 
-  createTable =(args) => {
-    let rowHeader =(args) => {
-      return (<thead><tr><td>Attribute</td><td>Value</td></tr></thead>);
-    };
-    return (
-      <table className="bp3-html-table bp3-interactive card-table-style">
-        {rowHeader()}
-        <tbody>
-        {this.processData({data: this.props.data})}
-        </tbody>
-      </table>
-    );
+  processData2 =(args) => {
+
+    let list = [];
+    if(matchTemplate.hasOwnProperty(this.props.detailType)) {
+      if(matchTemplate[this.props.detailType].show[0] !== "all") {
+        let showList = matchTemplate[this.props.detailType].show;
+        for(let i=0; i<showList.length; i++) {
+          //for(let key in args.data) {
+            let key = showList[i].attribute;
+            if((args.data).hasOwnProperty(key)) {
+              this._dataHandler(args, key, list);
+            }
+          //}
+        }
+      } else {
+        for(let key in args.data) {
+          this._dataHandler(args, key, list);
+        }
+      }
+    } else {
+      for(let key in args.data) {
+        this._dataHandler(args, key, list);
+      }
+    }
+    return list;
+
   }
+
+  _dataHandler =(args, key, list) => {
+    let internal = [];
+    let uniqueId = "card-" + this.props.id + "-" + key;
+    if(typeof(args.data[key]) === "object" && args.data[key] !== null) {
+      if(Array.isArray(args.data[key])) {
+        this._recursiveArray(internal, args.data[key], uniqueId, key);
+        list.push(<div key={uniqueId} className="padding table-size"><Collapsible trigger={key} triggerOpenedClassName="collapse-open" triggerClassName ="collapse-close">{internal}</Collapsible></div>);
+        internal = [];
+        //list.push(<tr key={uniqueId}><td colSpan="2"><Collapsible trigger={key} triggerOpenedClassName="collapse-open" triggerClassName ="collapse-close"><table className="card-table-style"><tbody>{internal}</tbody></table></Collapsible></td></tr>);
+        //recursiveArray(internal, args.data[key], uniqueId, key);
+      } else {
+        this._recursiveNode(internal, args.data[key], uniqueId, key);
+        list.push(<div key={uniqueId} className="padding"><Collapsible trigger={key} triggerOpenedClassName="collapse-open" triggerClassName ="collapse-close">{internal}</Collapsible></div>);
+        internal = [];
+      }
+    } else {
+      if((JSON.stringify(args.data[key])).length > 100) {
+        list.push(<div key={uniqueId} className="padding"><div className="leftSideNode">{key}</div>
+        <div className="rightSideNode">
+        <Popover popoverClassName="bp3-popover-content-sizing" content={(JSON.stringify(args.data[key])).replace(/,/g, ", ")}>
+          <div className="popup-link">{(JSON.stringify(args.data[key])).substring(0,100)  + "..."}</div>
+        </Popover>
+        </div>
+        </div>);
+      } else {
+        list.push(<div key={uniqueId} className="padding"><div className="leftSideNode">{key}</div><div className="rightSideNode">{JSON.stringify(args.data[key])}</div></div>);
+      }
+    }
+  }
+
+  _recursiveNode =(internal, node, uniqueId, parent) => {
+    //list.push(<tr key={uniqueId}><td className="padding">{parent}</td><td></td></tr>);
+    for(let key in node) {
+      let id = uniqueId + "-" + key;
+      if(typeof(node[key]) === "object" && node[key] !== null) {
+        if(Array.isArray(node[key])) {
+          internal.push(<div key={id} className="padding"><div className="leftSideNode">{key}</div></div>);
+          //this._recursiveArray(internal, node[key], id, key);
+        } else {
+          this._recursiveNode(internal, node[key], id, key);
+        }
+      } else {
+        if((JSON.stringify(node[key])).length > 100) {
+          internal.push(<div key={id} className="padding"><div className="leftSideNode">{key}</div>
+          <div className="rightSideNode">
+          <Popover popoverClassName="bp3-popover-content-sizing" content={(JSON.stringify(node[key])).replace(/,/g, ", ")}>
+            <div className="popup-link">{(JSON.stringify(node[key])).substring(0,100)  + "..."}</div>
+          </Popover>
+          </div>
+          </div>);
+        } else {
+          internal.push(<div key={id} className="padding"><div className="leftSideNode">{key}</div><div className="rightSideNode">{(JSON.stringify(node[key])).substring(0,100)}</div></div>);
+          //internal.push(<tr key={id}><td><div className="padding">{key}</div></td><td>{(JSON.stringify(node[key])).substring(0,100)}</td></tr>);
+        }
+      }
+    }
+  }
+
+  _recursiveArray =(internal, node, uniqueId, container) => {
+    //header
+    let columnHeaders = [];
+    let rows = [];
+    let headerUnique = uniqueId;
+    let keyList = [];
+    for(let key in node[0]) {
+      headerUnique = uniqueId + "column" + key;
+      columnHeaders.push(<div className="rowNode" key={headerUnique}>{key}</div>);
+      keyList.push(key);
+    }
+    headerUnique = uniqueId + "_header";
+    internal.push(<div key={headerUnique} className="padding">{columnHeaders}</div>);
+    for(let i=0;i< node.length;i++) {
+      let recordUnique = uniqueId + "_row_" + i;
+      for(let key in keyList) {
+        let recordUnique = uniqueId + "_" + i + "_" + key;
+        if(node[i].hasOwnProperty(keyList[key])) {
+          let data = node[i];
+          let property = keyList[key];
+          if(typeof(data[property]) === "object" && data[property] !== null) {
+
+            if(Array.isArray(data[property])) {
+              //if first value in array is another object, then recurse, otherwise just a list of values, so output it.
+              if(typeof(data[property][0]) === "object" && data[property][0] !== null) {
+                if(Array.isArray(data[property][0])) {
+                  this._recursiveArray(internal, data[property], recordUnique, container);
+                } else {
+                  this._recursiveArray(internal, data[property], recordUnique, container);
+                }
+              } else {
+                if((JSON.stringify(data[property])).length > 100) {
+                  rows.push(
+                  <div className="rowNode">
+                  <Popover popoverClassName="bp3-popover-content-sizing" content={(JSON.stringify(data[property])).replace(/,/g, ", ")}>
+                    <div className="popup-link rowNode">{(JSON.stringify(data[property])).substring(0,100)  + "..."}</div>
+                  </Popover>
+                  </div>);
+                } else {
+                  rows.push(<div className="rowNode">{JSON.stringify(data[property])}</div>);
+                }
+              }
+            } else {
+              this._recursiveNode(internal, data[property], recordUnique, container);
+            }
+
+            rows.push(<div className="rowNode">{JSON.stringify(data[property],null,5)}</div>);
+          } else {
+            if((JSON.stringify(data[property])).length > 100) {
+              rows.push(
+              <div className="rowNode">
+              <Popover popoverClassName="bp3-popover-content-sizing" content={(JSON.stringify(data[property])).replace(/,/g, ", ")}>
+                <div className="popup-link rowNode">{(JSON.stringify(data[property])).substring(0,100)  + "..."}</div>
+              </Popover>
+              </div>);
+            } else {
+                rows.push(<div className="rowNode">{JSON.stringify(data[property])}</div>);
+            }
+          }
+        } else {
+          rows.push(<div className="rowNode">Null</div>);
+        }
+      }
+      console.log(rows);
+      internal.push(<div key={recordUnique} className="padding flex-table">{rows}</div>);
+      rows = [];
+    }
+  }
+
 
   processData =(args) => {
     let recursiveNode =(internal, node, uniqueId, parent) => {
@@ -209,7 +352,7 @@ class LayersInfoCardDetails extends React.Component {
         if(typeof(node[key]) === "object" && node[key] !== null) {
           if(Array.isArray(node[key])) {
             internal.push(<tr key={id}><td colSpan="2"><div className="padding">{key}</div></td></tr>);
-            recursiveArray(internal, node[key], id, key);
+            recursiveArray(internal, node[key], id, "");
           } else {
             recursiveNode(internal, node[key], id, key);
           }
@@ -230,6 +373,7 @@ class LayersInfoCardDetails extends React.Component {
     }
 
     let recursiveArray =(internal, node, uniqueId, parent) => {
+      console.log(node);
       //header
       let columnHeaders = [];
       let rows = [];

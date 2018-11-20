@@ -127,19 +127,23 @@ body {
 }
 
 .collapse-open {
-  width: 100%;
+  width: 98%;
   background: url(./images/arrow_up.png) no-repeat top right;
   background-color: #e1e1e1;
-  margin-top: 10px;
-  margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  margin-right: 20px;
+  margin-left: 10px;
 }
 
 .collapse-close {
-  width: 100%;
+  width: 98%;
   background: url(./images/arrow_down.png) no-repeat top right;
   background-color: #e1e1e1;
-  margin-top: 10px;
-  margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  margin-right: 20px;
+  margin-left: 10px;
 }
 
 .vertical-spacer {
@@ -147,9 +151,60 @@ body {
 }
 
 .padding {
-  padding-left: 15px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 25px;
+}
+
+.padding20 {
+  padding-left: 20px;
+  padding-right: 10px;
+  padding-bottom: 25px;
+}
+
+.leftSideNode {
+  text-align: left;
+  float: left;
+  top: 0px;
+  left: 0px;
+  width: 50%;
+}
+
+.rightSideNode {
+  text-align: left;
+  float: right;
+  top: 0px;
+  right: 0px;
+  width: 50%;
+}
+
+.rowNode {
+  text-align: left;
+  top: 0px;
+  display: inline-block;
+  width: 150px;
+  word-wrap: break-word;
+}
+
+.flex-table {
+  display: flex;
+  justify-content: space-between;
+}
+
+.overflow-handle {
+  width: 500px;
+  overflow-x: auto;
+}
+
+.table-size {
+  min-width: 300px;
+  overflow-x: auto;
 }
 
 .popup-link {
   color: blue;
+}
+
+.half {
+  width: 50%;
 }

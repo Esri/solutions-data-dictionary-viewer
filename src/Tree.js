@@ -14,6 +14,8 @@ import { store } from './store/index';
 //import { docco } from 'react-syntax-highlighter/styles/hljs';
 import DetailCard from './Card';
 import ServiceInfoCard from './cards/ServiceInfoCard';
+import LayersInfoCard from './cards/LayersCard';
+import SubTypesCard from './cards/SubTypesCard';
 
 // use Component so it re-renders everytime: `nodes` are not a primitive type
 // and therefore aren't included in shallow prop comparison
@@ -90,8 +92,11 @@ class TreeToc extends React.Component {
         case "serviceInfo":
           ReactDOM.render(<Provider store={store}><ServiceInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
           break;
+        case "subtypes":
+          ReactDOM.render(<Provider store={store}><SubTypesCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          break;
         default:
-          ReactDOM.render(<Provider store={store}><ServiceInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
           break;
       }
       this.setState(this.state);
