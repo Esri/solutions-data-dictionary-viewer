@@ -80,10 +80,10 @@ class SubTypesCard extends React.Component {
   }
 
   closeCard =() => {
-    let subs = document.getElementById(this.props.title + "_subDetails").childNodes;
-    for (let i=0; i<subs.length; i++) {
-      ReactDOM.unmountComponentAtNode(document.getElementById(subs[i].id));
-    }
+    //let subs = document.getElementById(this.props.title + "_subDetails").childNodes;
+    //for (let i=0; i<subs.length; i++) {
+    //  ReactDOM.unmountComponentAtNode(document.getElementById(subs[i].id));
+    //}
     ReactDOM.unmountComponentAtNode(document.getElementById(this.props.id));
   }
 
@@ -112,16 +112,18 @@ class SubTypesCard extends React.Component {
   }
 
   cardResize =(e, direction, ref, delta, position) => {
-    let options = {
-      width: ref.offsetWidth,
-      height: ref.offsetHeight
+    if(this.state.collapseIcon !== "chevron-down") {
+      let options = {
+        width: ref.offsetWidth,
+        height: ref.offsetHeight
+      }
+      //check to see if it's smaller than initial size height, if it is, set it to initial size height.
+      if(ref.offsetHeight < this.state.initialSize.height) {
+        //let tableSize = titleNode.getBoundingClientRect();
+        options.height = this.state.initialSize.height;
+      }
+      this.setState({cardSize: options});
     }
-    //check to see if it's smaller than initial size height, if it is, set it to initial size height.
-    if(ref.offsetHeight < this.state.initialSize.height) {
-      //let tableSize = titleNode.getBoundingClientRect();
-      options.height = this.state.initialSize.height;
-    }
-    this.setState({cardSize: options});
   }
 
   getData =() => {
@@ -160,7 +162,6 @@ class SubTypesCardDetails extends React.Component {
     this.state = {
       subDetails: [],
       uniqueIdDetails: this.props.title + "_details",
-      uniqueIdSubDetails: this.props.title + "_subDetails"
     }
   };
 
@@ -173,8 +174,6 @@ class SubTypesCardDetails extends React.Component {
         <div id={this.state.uniqueIdDetails}>
           {this.processData({data: this.props.data})}
         </div>
-        <div id={this.state.uniqueIdSubDetails}></div>
-
       </div>
     );
   }
@@ -187,7 +186,7 @@ class SubTypesCardDetails extends React.Component {
         let showList = matchTemplate[this.props.detailType].show;
         for(let i=0; i<showList.length; i++) {
           //for(let key in args.data) {
-            let key = showList[i].attribute;
+            let key = showList[i];
             if((args.data).hasOwnProperty(key)) {
               this._dataHandler(args, key, list);
             }
@@ -425,7 +424,6 @@ class SubTypesCardDetails extends React.Component {
       </div>);
 
   }
-
 
 
 };

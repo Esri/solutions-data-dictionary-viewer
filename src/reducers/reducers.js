@@ -1,6 +1,8 @@
 let defaultState = {
   filterWords: [],
-  detailData: null
+  detailData: null,
+  metaData: null,
+  nodes: null,
 };
 
 const reducers = (state = defaultState, action) => {
@@ -14,6 +16,16 @@ const reducers = (state = defaultState, action) => {
       return {
         ...state,
         detailData: [action.payload]
+      }
+    case 'METADATA':
+      return {
+        ...state,
+        metaData: [action.payload]
+      }
+    case 'NODES':
+      return {
+        ...state,
+        nodes: [action.payload]
       }
     default:
       return state;

@@ -16,6 +16,8 @@ import DetailCard from './Card';
 import ServiceInfoCard from './cards/ServiceInfoCard';
 import LayersInfoCard from './cards/LayersCard';
 import SubTypesCard from './cards/SubTypesCard';
+import { slide as Menu } from 'react-burger-menu';
+import MapApp from './Map';
 
 // use Component so it re-renders everytime: `nodes` are not a primitive type
 // and therefore aren't included in shallow prop comparison
@@ -29,25 +31,47 @@ class TreeToc extends React.Component {
       data: null,
       filter: []
     }
-    this.state.req.parseURL();
-    this.state.req.request().then((result) => {
-      this.setState({nodes: this.loadServiceView(result)});
-      if(result.supportsQueryDataElements) {
-        this.requestDataElements();
-      } else {
-        this.setState({data : []});
-        this.requestServiceDetails({layers:result.layers});
-      }
-    });
     store.subscribe(()=> {
       this.storeChange();
     });
   };
 
+    componentWillMount =() => {
+      this.state.req.parseURL();
+      this.state.req.request().then((result) => {
+        this.setState({nodes: this.loadServiceView(result)});
+        if(result.supportsQueryDataElements) {
+          this.requestDataElements();
+        } else {
+          this.setState({data : []});
+          this.requestServiceDetails({layers:result.layers});
+        }
+        //query domains
+        let layerList = ((result.layers).filter((layer) => {
+          if(layer.parentLayerId === -1) {
+            if(layer.subLayerIds === null) {
+              return layer.id;
+            }
+          }
+        })).map((layer) => {
+          return layer.id;
+        });
+        this.requestDomains({"searchLayers": layerList});
+        this.requestMetadata({"searchLayers": layerList});
+
+      });
+    }
+
     render() {
 
       return (
         <div>
+          <span>
+            <Menu noOverlay>
+              <a onClick={ this.launchMap } className="menu-item--small">Launch Map</a>
+            </Menu>
+          </span>
+          <span>
           <TagInput
           leftIcon={"search"}
           placeholder="Separate values with commas..."
@@ -59,7 +83,9 @@ class TreeToc extends React.Component {
             onClick={this.handleClear}
           />}
           values={this.state.filter}
+          className="search-bar"
           />
+          </span>
           <Tree
               contents={this.state.nodes}
               onNodeClick={this.handleNodeClick}
@@ -72,10 +98,12 @@ class TreeToc extends React.Component {
     }
 
     handleNodeClick = (nodeData, _nodePath, e) => {
-      console.log(nodeData);
+      //console.log(nodeData);
       const originallySelected = nodeData.isSelected;
-      if (!e.shiftKey) {
-          this.forEachNode(this.state.nodes, n => (n.isSelected = false));
+      if(e !== null) {
+        if (!e.shiftKey) {
+            this.forEachNode(this.state.nodes, n => (n.isSelected = false));
+        }
       }
       nodeData.isSelected = originallySelected == null ? true : !originallySelected;
       if(nodeData.hasOwnProperty("childNodes")) {
@@ -89,14 +117,16 @@ class TreeToc extends React.Component {
       newSlot.id = nodeData.id;
       document.getElementById("details").appendChild(newSlot);
       switch(nodeData.nodeType) {
-        case "serviceInfo":
-          ReactDOM.render(<Provider store={store}><ServiceInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
-          break;
+        case "attributeRules":
         case "subtypes":
-          ReactDOM.render(<Provider store={store}><SubTypesCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+        case "fields":
+        case "domains":
+        console.log(nodeData);
+          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} data={nodeData} /></Provider>, document.getElementById(newSlot.id));
+          //ReactDOM.render(<Provider store={store}><SubTypesCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
           break;
         default:
-          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} data={nodeData} /></Provider>, document.getElementById(newSlot.id));
           break;
       }
       this.setState(this.state);
@@ -190,6 +220,7 @@ class TreeToc extends React.Component {
       return nodeList;
     };
 
+    //Remote Request To process REST enpoints
     requestServiceDetails = (args) => {
       let currRecord = 0;
       if(typeof(args.currRecord) !== "undefined") {
@@ -232,6 +263,41 @@ class TreeToc extends React.Component {
         });
     };
 
+    requestDomains = (args) => {
+      let qDE_url = FSurl + "/queryDomains?layers=[" + args.searchLayers +"]&f=pjson";
+      fetch(qDE_url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.json()})
+      .then((data) => {
+        this.loadDomains(data);
+      });
+    };
+
+    requestMetadata = (args) => {
+      let metaDataList = [];
+      args.searchLayers.forEach((layer) => {
+        metaDataList.push(FSurl + "/"+ layer +"/metadata");
+      });
+
+      let requests = metaDataList.map(url => fetch(url));
+
+      Promise.all(requests)
+      .then((response) => {
+        Promise.all(response.map(res => res.text()))
+        .then(text => {
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(text,"text/xml");
+          store.dispatch({type:'METADATA', payload:xmlDoc});
+        })
+      })
+      .catch((err) => {
+          console.log(err);
+      });
+
+    };
+    //Remote Request To process REST enpoints
+
     loadRegularNodes = (args) => {
       this.forEachNode(this.state.nodes, n => {
         this.forEachNode(this.state.data, d => {
@@ -248,6 +314,7 @@ class TreeToc extends React.Component {
         });
       });
       this.setState({nodeStatic: [...this.state.nodes]});
+      this.handleNodeClick(this.state.nodes[0], null, null);
     };
 
     loadDESubNodes = () => {
@@ -306,6 +373,7 @@ class TreeToc extends React.Component {
         });
       }
       this.setState({nodeStatic: [...this.state.nodes]});
+      this.handleNodeClick(this.state.nodes[0], null, null);
     };
 
     loadDESubTypes = (args) => {
@@ -354,6 +422,39 @@ class TreeToc extends React.Component {
       });
       return fieldsList;
     };
+
+    loadDomains =(args) => {
+      //get top level node, add to that node.
+      let item = {
+        id: "domains",
+        hasCaret: true,
+        isExpanded: false,
+        icon: "multi-select",
+        label: "Domains",
+        title: "Domains",
+        childNodes:[],
+        nodeType: "domains",
+        details: args.domains
+      }
+      let subDomainList =[];
+      for(let i=0; i< args.domains.length; i++) {
+        let domainItem = {
+          id: args.domains[i].name,
+          hasCaret: false,
+          icon: "document",
+          label: args.domains[i].name,
+          title: args.domains[i].name,
+          nodeType: "domain",
+          details: args.domains[i]
+        }
+        subDomainList.push(domainItem);
+      }
+      item.childNodes = subDomainList;
+      this.state.nodes[0].childNodes.push(item);
+      store.dispatch({type:'NODES', payload:JSON.parse(JSON.stringify(this.state.nodes))});
+      this.setState({nodeStatic: [...this.state.nodes]});
+    }
+
     //END Request and process nodes functions
 
     //START filtering functions
@@ -414,6 +515,14 @@ class TreeToc extends React.Component {
       }
     }
     //END Store Changes
+
+    //open map to filter by map
+    launchMap =() => {
+      let newSlot = document.createElement("div");
+      newSlot.id = "MapObject";
+      document.getElementById("details").appendChild(newSlot);
+      ReactDOM.render(<Provider store={store}><MapApp id={newSlot.id} /></Provider>, document.getElementById(newSlot.id));
+    }
 }
 
 
