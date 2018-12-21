@@ -1,0 +1,12 @@
+@import "https://js.arcgis.com/4.6/esri/css/main.css";
+
+#root {
+  height: 350px;
+  width: 350px;
+}
+
+/* Map view */
+#mapContainer {
+  width: "auto";
+  height: "auto";
+}

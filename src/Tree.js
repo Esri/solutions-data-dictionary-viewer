@@ -13,6 +13,11 @@ import { store } from './store/index';
 //import SyntaxHighlighter from 'react-syntax-highlighter';
 //import { docco } from 'react-syntax-highlighter/styles/hljs';
 import DetailCard from './Card';
+import ServiceInfoCard from './cards/ServiceInfoCard';
+import LayersInfoCard from './cards/LayersCard';
+import SubTypesCard from './cards/SubTypesCard';
+import { slide as Menu } from 'react-burger-menu';
+import MapApp from './Map';
 
 // use Component so it re-renders everytime: `nodes` are not a primitive type
 // and therefore aren't included in shallow prop comparison
@@ -26,25 +31,47 @@ class TreeToc extends React.Component {
       data: null,
       filter: []
     }
-    this.state.req.parseURL();
-    this.state.req.request().then((result) => {
-      this.setState({nodes: this.loadInitalLayerView(result)});
-      if(result.supportsQueryDataElements) {
-        this.requestDataElements();
-      } else {
-        this.setState({data : []});
-        this.requestServiceDetails({layers:result.layers});
-      }
-    });
     store.subscribe(()=> {
       this.storeChange();
     });
   };
 
+    componentWillMount =() => {
+      this.state.req.parseURL();
+      this.state.req.request().then((result) => {
+        this.setState({nodes: this.loadServiceView(result)});
+        if(result.supportsQueryDataElements) {
+          this.requestDataElements();
+        } else {
+          this.setState({data : []});
+          this.requestServiceDetails({layers:result.layers});
+        }
+        //query domains
+        let layerList = ((result.layers).filter((layer) => {
+          if(layer.parentLayerId === -1) {
+            if(layer.subLayerIds === null) {
+              return layer.id;
+            }
+          }
+        })).map((layer) => {
+          return layer.id;
+        });
+        this.requestDomains({"searchLayers": layerList});
+        this.requestMetadata({"searchLayers": layerList});
+
+      });
+    }
+
     render() {
 
       return (
         <div>
+          <span>
+            <Menu noOverlay>
+              <a onClick={ this.launchMap } className="menu-item--small">Launch Map</a>
+            </Menu>
+          </span>
+          <span>
           <TagInput
           leftIcon={"search"}
           placeholder="Separate values with commas..."
@@ -56,7 +83,9 @@ class TreeToc extends React.Component {
             onClick={this.handleClear}
           />}
           values={this.state.filter}
+          className="search-bar"
           />
+          </span>
           <Tree
               contents={this.state.nodes}
               onNodeClick={this.handleNodeClick}
@@ -69,24 +98,38 @@ class TreeToc extends React.Component {
     }
 
     handleNodeClick = (nodeData, _nodePath, e) => {
-        const originallySelected = nodeData.isSelected;
+      //console.log(nodeData);
+      const originallySelected = nodeData.isSelected;
+      if(e !== null) {
         if (!e.shiftKey) {
             this.forEachNode(this.state.nodes, n => (n.isSelected = false));
         }
-        nodeData.isSelected = originallySelected == null ? true : !originallySelected;
-        if(nodeData.hasOwnProperty("childNodes")) {
-          //nodeData.isSelected = false;
-          store.dispatch({type:'DETAILS', payload:nodeData});
-        } else {
-          store.dispatch({type:'DETAILS', payload:nodeData});
-        }
+      }
+      nodeData.isSelected = originallySelected == null ? true : !originallySelected;
+      if(nodeData.hasOwnProperty("childNodes")) {
+        //nodeData.isSelected = false;
+        store.dispatch({type:'DETAILS', payload:JSON.parse(JSON.stringify(nodeData))});
+      } else {
+        store.dispatch({type:'DETAILS', payload:JSON.parse(JSON.stringify(nodeData))});
+      }
 
-        let newSlot = document.createElement("div");
-        newSlot.id = nodeData.id;
-        document.getElementById("details").appendChild(newSlot);
-
-        ReactDOM.render(<Provider store={store}><DetailCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
-        this.setState(this.state);
+      let newSlot = document.createElement("div");
+      newSlot.id = nodeData.id;
+      document.getElementById("details").appendChild(newSlot);
+      switch(nodeData.nodeType) {
+        case "attributeRules":
+        case "subtypes":
+        case "fields":
+        case "domains":
+        console.log(nodeData);
+          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} data={nodeData} /></Provider>, document.getElementById(newSlot.id));
+          //ReactDOM.render(<Provider store={store}><SubTypesCard id={newSlot.id} title={nodeData.title} /></Provider>, document.getElementById(newSlot.id));
+          break;
+        default:
+          ReactDOM.render(<Provider store={store}><LayersInfoCard id={newSlot.id} title={nodeData.title} data={nodeData} /></Provider>, document.getElementById(newSlot.id));
+          break;
+      }
+      this.setState(this.state);
     };
 
     handleNodeCollapse = (nodeData) => {
@@ -109,6 +152,34 @@ class TreeToc extends React.Component {
             callback(node);
             this.forEachNode(node.childNodes, callback);
         }
+    };
+
+    loadServiceView = (result) => {
+      let title = "";
+      let label = "";
+      if(result.hasOwnProperty("documentInfo")) {
+        title = result.documentInfo.Title;
+        label = result.documentInfo.Title;
+      } else {
+        title = result.serviceDescription;
+        label = result.serviceDescription;
+      }
+      let nodeList = [];
+      let item = {
+        id: title,
+        hasCaret: true,
+        isExpanded: true,
+        icon: "layers",
+        label: label,
+        title: title,
+        childNodes: this.loadInitalLayerView(result),
+        queryDataElements: ((result.supportsQueryDataElements) ? result.supportsQueryDataElements : false),
+        queryDomains: ((result.supportsQueryDomains) ? result.supportsQueryDomains : false),
+        nodeType: "serviceInfo",
+        details: result
+      }
+      nodeList.push(item);
+      return nodeList;
     };
 
     //START Request and process nodes functions
@@ -149,6 +220,7 @@ class TreeToc extends React.Component {
       return nodeList;
     };
 
+    //Remote Request To process REST enpoints
     requestServiceDetails = (args) => {
       let currRecord = 0;
       if(typeof(args.currRecord) !== "undefined") {
@@ -191,6 +263,41 @@ class TreeToc extends React.Component {
         });
     };
 
+    requestDomains = (args) => {
+      let qDE_url = FSurl + "/queryDomains?layers=[" + args.searchLayers +"]&f=pjson";
+      fetch(qDE_url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.json()})
+      .then((data) => {
+        this.loadDomains(data);
+      });
+    };
+
+    requestMetadata = (args) => {
+      let metaDataList = [];
+      args.searchLayers.forEach((layer) => {
+        metaDataList.push(FSurl + "/"+ layer +"/metadata");
+      });
+
+      let requests = metaDataList.map(url => fetch(url));
+
+      Promise.all(requests)
+      .then((response) => {
+        Promise.all(response.map(res => res.text()))
+        .then(text => {
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(text,"text/xml");
+          store.dispatch({type:'METADATA', payload:xmlDoc});
+        })
+      })
+      .catch((err) => {
+          console.log(err);
+      });
+
+    };
+    //Remote Request To process REST enpoints
+
     loadRegularNodes = (args) => {
       this.forEachNode(this.state.nodes, n => {
         this.forEachNode(this.state.data, d => {
@@ -207,6 +314,7 @@ class TreeToc extends React.Component {
         });
       });
       this.setState({nodeStatic: [...this.state.nodes]});
+      this.handleNodeClick(this.state.nodes[0], null, null);
     };
 
     loadDESubNodes = () => {
@@ -226,7 +334,8 @@ class TreeToc extends React.Component {
                   label: dataList[i].dataElement.subtypeFieldName,
                   title: n.title+"-"+dataList[i].dataElement.subtypeFieldName,
                   childNodes: this.loadDESubTypes({"nodeData":n, "title":n.title+"-"+dataList[i].dataElement.subtypeFieldName, "subTypeField":dataList[i].dataElement.subtypeFieldName}),
-                  details: dataList[i].dataElement.subtypes
+                  details: dataList[i].dataElement.subtypes,
+                  nodeType: "subtypes"
                 };
                 n.childNodes.push(subTypeNode);
               }
@@ -240,7 +349,8 @@ class TreeToc extends React.Component {
                   label: "Attribute Rules",
                   title: n.title+"-Attribute Rules",
                   childNodes: this.loadDEAttributeRules({"node":n.id+"-Attribute Rules-", "title":n.title+"-Attribute Rules", "data":dataList[i].dataElement.attributeRules}),
-                  details: dataList[i].dataElement.attributeRules
+                  details: dataList[i].dataElement.attributeRules,
+                  nodeType: "attributeRules"
                 };
                 n.childNodes.push(attrRulesNode);
               }
@@ -251,7 +361,8 @@ class TreeToc extends React.Component {
                 icon: "multi-select",
                 label: "Fields",
                 title: n.title+"-Fields",
-                details: dataList[i].dataElement.fields.fieldArray
+                details: dataList[i].dataElement.fields.fieldArray,
+                nodeType: "fields"
               };
               if(dataList[i].dataElement.fields.fieldArray.length > 0) {
                 fieldsNode["childNodes"] = this.loadDEFields({"node":n.id+"-Fields-", "title": n.title+"-Fields", "data":dataList[i].dataElement.fields.fieldArray});
@@ -262,6 +373,7 @@ class TreeToc extends React.Component {
         });
       }
       this.setState({nodeStatic: [...this.state.nodes]});
+      this.handleNodeClick(this.state.nodes[0], null, null);
     };
 
     loadDESubTypes = (args) => {
@@ -276,7 +388,8 @@ class TreeToc extends React.Component {
           icon: "layer",
           label: subtype.subtypeName,
           title: args.title+"-"+subtype.subtypeName,
-          details: subtype
+          details: subtype,
+          nodeType: "subtype"
         });
       });
       return subTypeList;
@@ -289,7 +402,8 @@ class TreeToc extends React.Component {
           icon: "document",
           label: ar.name,
           title: args.title+"-"+ar.name,
-          details: ar
+          details: ar,
+          nodeType: "attributeRule"
         });
       });
       return attrRulesList;
@@ -302,11 +416,45 @@ class TreeToc extends React.Component {
           icon: "document",
           label: field.aliasName,
           title: args.title+"-"+field.aliasName,
-          details: field
+          details: field,
+          nodeType: "field"
         });
       });
       return fieldsList;
     };
+
+    loadDomains =(args) => {
+      //get top level node, add to that node.
+      let item = {
+        id: "domains",
+        hasCaret: true,
+        isExpanded: false,
+        icon: "multi-select",
+        label: "Domains",
+        title: "Domains",
+        childNodes:[],
+        nodeType: "domains",
+        details: args.domains
+      }
+      let subDomainList =[];
+      for(let i=0; i< args.domains.length; i++) {
+        let domainItem = {
+          id: args.domains[i].name,
+          hasCaret: false,
+          icon: "document",
+          label: args.domains[i].name,
+          title: args.domains[i].name,
+          nodeType: "domain",
+          details: args.domains[i]
+        }
+        subDomainList.push(domainItem);
+      }
+      item.childNodes = subDomainList;
+      this.state.nodes[0].childNodes.push(item);
+      store.dispatch({type:'NODES', payload:JSON.parse(JSON.stringify(this.state.nodes))});
+      this.setState({nodeStatic: [...this.state.nodes]});
+    }
+
     //END Request and process nodes functions
 
     //START filtering functions
@@ -367,6 +515,14 @@ class TreeToc extends React.Component {
       }
     }
     //END Store Changes
+
+    //open map to filter by map
+    launchMap =() => {
+      let newSlot = document.createElement("div");
+      newSlot.id = "MapObject";
+      document.getElementById("details").appendChild(newSlot);
+      ReactDOM.render(<Provider store={store}><MapApp id={newSlot.id} /></Provider>, document.getElementById(newSlot.id));
+    }
 }
 
 
