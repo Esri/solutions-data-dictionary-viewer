@@ -1,0 +1,16 @@
+{
+  "name": "datadictionary",
+  "type": "widget",
+  "version": "0.0.1",
+  "jimuVersion": "0.0.1",
+  "author": "Esri R&D Center Beijing",
+  "description": "This is the widget used in developer guide",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {},
+  "supportedLocales": ["en", "zh-cn"],
+  "defaultSize": {
+    "width": 800,
+    "height": 500
+  }
+}
