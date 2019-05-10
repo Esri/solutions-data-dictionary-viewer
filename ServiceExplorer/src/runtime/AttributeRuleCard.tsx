@@ -1,33 +1,30 @@
 /** @jsx jsx */
-import {BaseWidget, React, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage, IMDataSourceInfo, DataSource, DataSourceComponent} from 'jimu-core';
+import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Navbar, Nav, NavItem, NavLink, NavbarBrand, Button, Image, ListGroup, ListGroupItem, ListGroupItemHeading, ListGroupItemText, Badge, Input, Collapse, Icon,
-  Card, CardImg, CardText, CardBody, CardTitle, CardSubtitle, Table
-} from 'jimu-ui';
-import defaultMessages from './translations/default';
-import { LayerDataSource } from 'dist/typing/jimu-arcgis/lib/data-sources/layer-data-source';
-import { string } from 'prop-types';
-import { floatWidget } from 'dist/typing/jimu-layouts/lib/flexbox-layout/builder/layout-action';
-import { timingSafeEqual } from 'crypto';
-import CAVWorkSpace from './CAVWorkSpace';
-let heartIcon = require('jimu-ui/lib/icons/heart.svg');
-let closeIcon = require('jimu-ui/lib/icons/close.svg');
+import { TabContent, TabPane, Icon} from 'jimu-ui';
+import CardHeader from './_header';
+let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 
 interface IProps {
   data: any,
-  width: number,
+  requestURL: string,
+  key: any,
+  panel:number,
   callbackClose: any,
-  callbackMinimize: any,
-  requestURL: string
+  callbackSave: any,
+  callbackLinkage:any,
+  callbackGetPanels:any,
+  callbackReorderCards:any,
+  callbackActiveCards:any,
+  callbackGetFavorites: any,
+  callbackMove:any
 }
 
 interface IState {
-  width: number,
   nodeData: any,
   activeTab: string,
-  propertyBadge: string,
 }
 
 export default class AttributeRuleCard extends React.Component <IProps, IState> {
@@ -35,10 +32,8 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
     super(props);
 
     this.state = {
-      width: this.props.width,
       nodeData: this.props.data.data,
-      activeTab: 'Properties',
-      propertyBadge: "primary"
+      activeTab: 'Properties'
     };
 
   }
@@ -54,24 +49,21 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
   render(){
 
     return (
-    <div style={{width: this.state.width, backgroundColor: "#fff", borderWidth:2, borderStyle:"solid", borderColor:"#000", float:"left", display:"inline-block"}}>
-      <Navbar color="dark" expand="md">
-        <NavbarBrand><h4 style={{color:"#fff"}}>{this.props.data.text}</h4></NavbarBrand>
-        <Nav className="ml-auto"  tabs>
-          <NavItem>
-            <NavLink onClick={() => { this.toggleTabs('Properties'); }}><Badge color={this.state.propertyBadge}>Properties</Badge></NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink>
-              <Badge color="warning" onClick={this.sendMinimize}><Icon icon={heartIcon} size='14' color='#333' /></Badge>
-              <Badge color="danger" onClick={this.sendClose}><Icon icon={closeIcon} size='14' color='#333' /></Badge>
-            </NavLink>
-          </NavItem>
-        </Nav>
-      </Navbar>
+    <div style={{width:"100%", backgroundColor: "#fff", borderWidth:2, borderStyle:"solid", borderColor:"#000", float:"left", display:"inline-block"}}>
+      <CardHeader title={this.props.data.text} isFavorite={this.headerSearchFavorites} id={"tt_"+(this.props.data.id).toString()}
+        panel={this.props.panel} panelCount={this.props.callbackGetPanels} slotInPanel={this.headerActiveCardLocation} totalSlotsInPanel={this.props.callbackActiveCards}
+        onClose={this.headerCallClose}
+        onSave={this.headerCallFavorite}
+        onTabSwitch={this.headerToggleTabs}
+        onMove={this.headerCallMove}
+        onReorderCards={this.headerCallReorder}
+        showProperties={true}
+        showStatistics={false}
+        showResources={false}
+      />
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
-        <div style={{width: this.state.width, paddingLeft:10, paddingRight:10}}>
+        <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div><h4>{this.props.data.type} Properties</h4></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{this.state.nodeData.description}</span></div>
@@ -90,36 +82,57 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
     </div>);
   }
 
-  //****** UI components and UI Interaction
+  //****** Header Support functions
   //********************************************
-  toggleTabs(tab) {
+  headerToggleTabs =(tab:string) => {
     if (this.state.activeTab !== tab) {
       this.setState({
         activeTab: tab,
-        propertyBadge: ((tab === "Properties")? "primary" : "dark")
       });
-
-      switch(tab) {
-        case "Statistics": {
-          break;
-        }
-        default: {
-          break;
-        }
+    }
+    switch(tab) {
+      case "Statistics": {
+        break;
+      }
+      default: {
+        break;
       }
     }
   }
-
-
-  sendClose =() => {
-    this.props.callbackClose(this.props.data);
+  headerCallMove =(direction:string) => {
+    this.props.callbackMove(this.props.data, this.props.data.type, this.props.panel, direction);
+  }
+  headerCallReorder =(direction:string) => {
+    this.props.callbackReorderCards(this.props.data, this.props.panel, direction);
+  }
+  headerCallClose =() => {
+    this.props.callbackClose(this.props.data, this.props.panel);
+  }
+  headerCallFavorite =() => {
+    return new Promise((resolve, reject) => {
+      this.props.callbackSave(this.props.data).then(resolve(true));
+    });
+  }
+  headerSearchFavorites =() => {
+    let isFavorite = false;
+    let list = this.props.callbackGetFavorites();
+    isFavorite = list.some((li:any) => {
+      return li.props.data.id === this.props.data.id;
+    });
+    return isFavorite;
+  }
+  headerActiveCardLocation =() => {
+    let currPos = -1;
+    let list = this.props.callbackActiveCards();
+    list[this.props.panel].map((mac:any, i:number) => {
+      if(mac.props.data.id === this.props.data.id) {
+        currPos = i;
+      }
+    });
+    return currPos;
   }
 
-  sendMinimize =() => {
-    this.props.callbackMinimize(this.props.data);
-  }
-
-  //****** helper functions and request functions
+  //****** UI components and UI Interaction
   //********************************************
   _processCodeBlock =(code: string) => {
     let block="";
@@ -136,6 +149,9 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
     return {__html: block};
   }
 
+  //****** helper functions and request functions
+  //********************************************
+
   _matchCodeToDesc =(code: any) => {
     let message = "";
     let subtypes = this.props.data.subtypes;
@@ -148,18 +164,6 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
       message = "Sorry, no matching type";
     }
     return message;
-  }
-
-
-  _requestObject = async(clause: string, category: string) => {
-    let url = this.props.requestURL + "/" + this.props.data.parentId + "/query?where="+ clause +"&returnCountOnly=true&f=pjson";
-    fetch(url, {
-      method: 'GET'
-    })
-    .then((response) => {return response.json()})
-    .then((data) => {
-      //do something
-    });
   }
 
 

@@ -1,8 +1,8 @@
 import {ImmutableObject} from 'seamless-immutable';
 
 export interface Config{
-  p1: string;
-  p2: string;
+  serviceURL: string;
+  hasMetadata: boolean;
 }
 
 export type IMConfig = ImmutableObject<Config>;

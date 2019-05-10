@@ -14,3 +14,18 @@
   background-color: #fff;
   border: 1px solid #fff;
 }
+
+.navbar-header {
+  background-color: #F16E10;
+}
+
+.stagePanel {
+  padding-Left:5;
+  width:760;
+  overflow-X:"auto";
+  overflow-Y:"auto";
+  background-Color:"#efefef";
+  border:2;
+  border-Color:"#aaa";
+  border-Style:"dashed";
+  display:"inline-block"}
