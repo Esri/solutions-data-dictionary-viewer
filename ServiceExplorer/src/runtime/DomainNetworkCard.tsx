@@ -30,7 +30,14 @@ interface IState {
   activeTab: string,
   expandTierGroup: boolean,
   expandTiers: any,
-  expandNetworkAttributes: boolean,
+  expandTiersValidDevice:any,
+  expandTiersValidLine: any,
+  expandTiersValidSubnetworkControllers: any,
+  expandTiersAggregatedLines: any,
+  expandJunctionSources: boolean,
+  expandJunctionLayers: any,
+  expandJunctionAG: any,
+  expandJunctionAT: any,
   expandTerminalConfigurations: boolean
 }
 
@@ -43,20 +50,47 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       activeTab: 'Properties',
       expandTierGroup: false,
       expandTiers: {},
-      expandNetworkAttributes: false,
+      expandTiersValidDevice: {},
+      expandTiersValidLine: {},
+      expandTiersValidSubnetworkControllers: {},
+      expandTiersAggregatedLines: {},
+      expandJunctionSources: false,
+      expandJunctionLayers: {},
+      expandJunctionAG: {},
+      expandJunctionAT: {},
       expandTerminalConfigurations: false
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
+    console.log(this.state.nodeData);
     console.log(this.props.dataElements);
     let tiersCopy = {...this.state.expandTiers};
+    let tiersVDCopy = {...this.state.expandTiersValidDevice};
+    let tiersVLCopy = {...this.state.expandTiersValidLine};
+    let tiersVSCCopy = {...this.state.expandTiersValidSubnetworkControllers};
+    let tiersAGLCopy = {...this.state.expandTiersAggregatedLines};
+    let JunctionLayerCopy = {...this.state.expandJunctionLayers};
+    let JunctionAGCopy = {...this.state.expandJunctionAG};
+    let JunctionATCopy = {...this.state.expandJunctionAT};
     this.state.nodeData.tiers.map((t:any) => {
-      tiersCopy[t] = false;
+      tiersCopy[t.name] = "none";
+      tiersVDCopy[t.name] = false;
+      tiersVLCopy[t.name] = false;
+      tiersVSCCopy[t.name] = false;
+      tiersAGLCopy[t.name] = false;
     });
-    this.setState({expandTiers:tiersCopy});
+    this.state.nodeData.junctionSources.map((j:any) => {
+      JunctionLayerCopy[j.layerId] = "none";
+      JunctionAGCopy[j.layerId] = false;
+      j.assetGroups.map((ag:any) => {
+        JunctionATCopy[ag.assetGroupName] = false;
+      });
+    });
+    this.setState({expandTiers:tiersCopy, expandTiersValidDevice: tiersVDCopy, expandTiersValidLine: tiersVLCopy, expandTiersValidSubnetworkControllers: tiersVSCCopy,
+      expandTiersAggregatedLines: tiersAGLCopy, expandJunctionLayers: JunctionLayerCopy, expandJunctionAG:JunctionAGCopy, expandJunctionAT:JunctionATCopy
+    });
   }
 
   componentDidMount() {
@@ -83,13 +117,20 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div><h5>{this.props.data.type} Properties</h5></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.domainNetworkAliasName}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Field Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subnetworkLabelFieldName}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Tier Definition: <span style={{fontWeight:"bold"}}>{this.state.nodeData.tierDefinition}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Tiers:</div>
           <Collapse isOpen={this.state.expandTierGroup}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createTiersTable()}
+              {(this.state.nodeData.tiers.length > 0)?this._createTiersTable():"No tiers exist"}
             </div>
           </Collapse>
-
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Junction Sources:</div>
+          <Collapse isOpen={this.state.expandJunctionSources}>
+            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+              {(this.state.nodeData.junctionSources.length > 0)?this._createJunctionSourceTable():"No junctions exist"}
+            </div>
+          </Collapse>
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
@@ -155,15 +196,95 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       this.setState({expandTierGroup: true});
     }
   }
-
   toggleTiers =(name:string) => {
-    let tierGroupCopy = {...this.state.expandTiers}
-    if(tierGroupCopy[name]) {
-      tierGroupCopy[name] = false;
-      this.setState({expandTiers: tierGroupCopy});
+    let tierGroupCopy = {...this.state.expandTiers};
+    if(tierGroupCopy[name] === "table-row") {
+      tierGroupCopy[name] = "none";
+      this.setState({expandTiers: tierGroupCopy}, () => {
+        this.setState(this.state);
+      });
     } else {
+      tierGroupCopy[name] = "table-row";
+      this.setState({expandTiers: tierGroupCopy}, () => {
+        this.setState(this.state);
+      });
+    }
+  }
+  toggleTiersValidDevice =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersValidDevice};
+    if(tierGroupCopy[name] === false) {
       tierGroupCopy[name] = true;
-      this.setState({expandTiers: tierGroupCopy});
+      this.setState({expandTiersValidDevice: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersValidDevice: tierGroupCopy});
+    }
+  }
+  toggleTiersValidLine =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersValidLine};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersValidLine: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersValidLine: tierGroupCopy});
+    }
+  }
+  toggleTiersValidSubnetworkControllers =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersValidSubnetworkControllers};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersValidSubnetworkControllers: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersValidSubnetworkControllers: tierGroupCopy});
+    }
+  }
+  toggleTiersAggregatedLines =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersAggregatedLines};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersAggregatedLines: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersAggregatedLines: tierGroupCopy});
+    }
+  }
+  toggleJunctionSources =() => {
+    if(this.state.expandJunctionSources) {
+      this.setState({expandJunctionSources: false});
+    } else {
+      this.setState({expandJunctionSources: true});
+    }
+  }
+  toggleValidJunctions =(name:string) => {
+    let junctionLayerCopy = {...this.state.expandJunctionLayers};
+    if(junctionLayerCopy[name] === "none") {
+      junctionLayerCopy[name] = "table-row";
+      this.setState({expandJunctionLayers: junctionLayerCopy});
+    } else {
+      junctionLayerCopy[name] = "none";
+      this.setState({expandJunctionLayers: junctionLayerCopy});
+    }
+  }
+  toggleValidJunctionsAT =(name:string) => {
+    let junctionLayerCopy = {...this.state.expandJunctionAT};
+    if(junctionLayerCopy[name] === false) {
+      junctionLayerCopy[name] = true;
+      this.setState({expandJunctionAT: junctionLayerCopy});
+    } else {
+      junctionLayerCopy[name] = false;
+      this.setState({expandJunctionAT: junctionLayerCopy});
+    }
+  }
+  toggleEdgeSources =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersAggregatedLines};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersAggregatedLines: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersAggregatedLines: tierGroupCopy});
     }
   }
 
@@ -173,21 +294,35 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
+          <div onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
           </td>
           <td style={{fontSize:"small"}}>{ft.tierGroupName}</td>
+          <td style={{fontSize:"small"}}>{ft.rank}</td>
           <td style={{fontSize:"small"}}>{ft.subnetworkFieldName}</td>
           <td style={{fontSize:"small"}}>{ft.tierTopology}</td>
         </tr>
       );
       arrList.push(
-        <Collapse isOpen={this.state.expandTiers[ft.name]}>
-        <tr>
-          <td colSpan={4}>
-          <div>{this._createTierDetailsTable(ft)}</div>
+        <tr key={i+"_hidden"} style={{display:this.state.expandTiers[ft.name]}}>
+          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
+            <div onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
+            <Collapse isOpen={this.state.expandTiersValidDevice[ft.name]}>
+            <div>{this._createValidAssetsTable(ft.validDevices, "Device", "junction")}</div>
+            </Collapse>
+            <div onClick={()=>{this.toggleTiersValidLine(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
+            <Collapse isOpen={this.state.expandTiersValidLine[ft.name]}>
+            <div>{this._createValidAssetsTable(ft.validLines, "Line", "edge")}</div>
+            </Collapse>
+            <div onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
+            <Collapse isOpen={this.state.expandTiersValidSubnetworkControllers[ft.name]}>
+            <div>{this._createValidAssetsTable(ft.validSubnetworkControllers, "Device", "junction")}</div>
+            </Collapse>
+            <div onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
+            <Collapse isOpen={this.state.expandTiersAggregatedLines[ft.name]}>
+            <div>{this._createValidAssetsTable(ft.aggregatedLinesForSubnetLine, "Line", "edge")}</div>
+            </Collapse>
           </td>
         </tr>
-        </Collapse>
       );
     });
     let tableObj = <Table hover>
@@ -195,6 +330,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     <tr>
       <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
       <th style={{fontSize:"small", fontWeight:"bold"}}>Group</th>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Rank</th>
       <th style={{fontSize:"small", fontWeight:"bold"}}>Subnetwork Field</th>
       <th style={{fontSize:"small", fontWeight:"bold"}}>Topology</th>
     </tr>
@@ -205,7 +341,6 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     </Table>
     return tableObj;
   }
-
   _createTierDetailsTable =(tierInfo:any) => {
     let arrTables = [];
     if(tierInfo.validDevices.length > 0) {
@@ -214,7 +349,6 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     }
     return arrTables;
   }
-
   _createValidAssetsTable =(asset:any, type:string, source:string) => {
     let arrList = [];
     let atList =(d:any, domainName:string) => {
@@ -229,7 +363,9 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       let validAsset = this._AGCodeLookup(d.assetGroupCode, source, type);
       arrList.push(
         <tr key={i}>
-          <td style={{fontSize:"small"}}>{validAsset.ag}</td>
+          <td style={{fontSize:"small"}}>
+          <div onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
+          </td>
           <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain)}</td>
         </tr>
       );
@@ -249,6 +385,77 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     return tableObj;
   }
 
+  _createJunctionSourceTable =() => {
+    let arrList = [];
+    let validAG =(j:any) => {
+      let collection = [];
+      j.assetGroups.map((ag:any, z: number) => {
+        let ATList = [];
+        ag.assetTypes.map((at:any, a: number) => {
+          let catList = [];
+          at.categories.map((c:any, b: number) => {
+            catList.push(
+              <div id={b+"_c"}>{c}</div>
+            );
+          });
+          ATList.push(<tr id={a+"_at"}>
+            <td>{at.assetTypeName}</td>
+            <td>{catList}</td>
+          </tr>);
+        });
+
+        collection.push(<tr id={z+"_junction"}>
+          <td>{ag.assetGroupName}</td>
+          <td>
+          <div onClick={()=>{this.toggleValidJunctionsAT(ag.assetGroupName)}}>{(this.state.expandJunctionAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
+          <Collapse isOpen={this.state.expandJunctionAT[ag.assetGroupName]}>
+            <table>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+              </tr>
+              {ATList}
+            </table>
+          </Collapse>
+          </td>
+        </tr>);
+      });
+      return collection;
+    }
+    this.state.nodeData.junctionSources.map((j: any, i: number) => {
+      arrList.push(
+        <tr key={i}>
+          <td style={{fontSize:"small"}}>
+          <div onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</div>
+          </td>
+        </tr>
+      );
+      arrList.push(
+        <tr key={i+"_hidden"} style={{display:this.state.expandJunctionLayers[j.layerId]}}>
+          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
+            <table>
+              <tr>
+                <th>Asset Group</th>
+                <th>Asset Type</th>
+              </tr>
+              {validAG(j)}
+            </table>
+          </td>
+        </tr>
+      );
+    });
+    let tableObj = <Table hover>
+    <thead>
+    <tr>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
+    </tr>
+    </thead>
+    <tbody>
+      {arrList}
+    </tbody>
+    </Table>
+    return tableObj;
+  }
 
   //****** helper functions and request functions
   //********************************************
@@ -291,7 +498,6 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     }
     return alias;
   }
-
   _ATCodeLookup =(value:any, domainName:string) => {
     let alias = value;
     let domain = this._validAssetTypes(domainName);
@@ -305,12 +511,22 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     }
     return alias;
   }
-
   _validAssetTypes =(lookup: string) => {
     let domainVals = this.props.domains.filter((d:any)=> {
       return(d.name === lookup);
     });
     return domainVals;
   }
+  _layerLookup = (param: any) => {
+    let layerName = param;
+    let filtered = this.props.dataElements.filter((de: any) => {
+      return de.layerId === param;
+    });
+    if(filtered.length > 0) {
+      layerName = filtered[0].dataElement.aliasName
+    }
+    return layerName;
+  }
+
 
 }

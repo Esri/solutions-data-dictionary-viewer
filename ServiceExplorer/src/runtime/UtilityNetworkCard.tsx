@@ -75,16 +75,16 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div><h5>{this.props.data.type} Properties</h5></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomainNetworks()}}>{(this.state.expandDomainNetworks)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain Networks:</div>
-          <Collapse isOpen={this.state.expandDomainNetworks}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createDomainNetworkTable()}
-            </div>
-          </Collapse>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleCategories()}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Categories:</div>
           <Collapse isOpen={this.state.expandCategories}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createCatTable()}
+            </div>
+          </Collapse>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomainNetworks()}}>{(this.state.expandDomainNetworks)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain Networks:</div>
+          <Collapse isOpen={this.state.expandDomainNetworks}>
+            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+              {this._createDomainNetworkTable()}
             </div>
           </Collapse>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleNetworkAttributes()}}>{(this.state.expandNetworkAttributes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Network Attributes:</div>
@@ -167,10 +167,10 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
   }
 
   toggleDomainNetworks =() => {
-    if(this.state.expandCategories) {
-      this.setState({expandCategories: false});
+    if(this.state.expandDomainNetworks) {
+      this.setState({expandDomainNetworks: false});
     } else {
-      this.setState({expandCategories: true});
+      this.setState({expandDomainNetworks: true});
     }
   }
 
@@ -220,7 +220,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(dn.domainNetworkAliasName,"Category", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {dn.domainNetworkAliasName} </div>
+          <div onClick={()=>{this.props.callbackLinkage(dn.domainNetworkAliasName,"DomainNetwork", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {dn.domainNetworkAliasName} </div>
           </td>
         </tr>
       );

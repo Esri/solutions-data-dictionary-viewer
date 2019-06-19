@@ -26,6 +26,13 @@ import LayerCard from './LayerCard';
 import LayersCard from './LayersCard';
 import UtilityNetworkCard from './UtilityNetworkCard';
 import DomainNetworkCard from './DomainNetworkCard';
+import DomainNetworksCard from './DomainNetworksCard';
+import NetworkAttributeCard from './NetworkAttributeCard';
+import NetworkAttributesCard from './NetworkAttributesCard';
+import TerminalConfigurationCard from './TerminalConfigurationCard';
+import TerminalConfigurationsCard from './TerminalConfigurationsCard';
+import CategoryCard from './CategoryCard';
+import CategoriesCard from './CategoriesCard';
 import { any } from 'prop-types';
 import './css/custom.css';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
@@ -37,6 +44,7 @@ let panelIcon = require('jimu-ui/lib/icons/toc-add-page.svg');
 export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   constructor(props){
     super(props);
+    console.log(props);
     this.treeRef = React.createRef();
     this.toggleHistory = this.toggleHistory.bind(this);
     this.toggleSearch = this.toggleSearch.bind(this);
@@ -47,7 +55,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       showPanel2: false,
       panelList: [],
       activeTab: 'properties',
-      requestURL: "https://arcgisutilitysolutionsdemo.esri.com/server/rest/services/Water_Distribution_Utility_Network_Metadata/FeatureServer",
+      requestURL: props.config.url,
       serviceElements: {},
       hasDataElements: false,
       dataElements: [],
@@ -75,6 +83,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
   //https://pleblanc3.esri.com/server/rest/services/cav/FeatureServer
   //https://arcgisutilitysolutionsdemo.esri.com/server/rest/services/Water_Distribution_Utility_Network/FeatureServer
+  //https://arcgisutilitysolutionsdemo.esri.com/server/rest/services/Water_Distribution_Utility_Network_Metadata/FeatureServer
 
   toggle = (tab:string) => {
     if (this.state.activeTab !== tab) {
@@ -592,8 +601,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let nodeData = [];
     if(categories.length > 0) {
       categories.map((cat: any) => {
+        let cleanId = id + "_" + cat.name.replace(/ /g, "_");
         nodeData.push({
-          id: id + "_" + cat.name,
+          id: cleanId,
           type: "Category",
           text: cat.name,
           icon: "",
@@ -630,9 +640,10 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let nodeData = [];
     if(networkAttributes.length > 0) {
       networkAttributes.map((na: any) => {
+        let cleanId = id + "_" + na.name.replace(/ /g, "_");
         nodeData.push({
-          id: id + "_" + na.name,
-          type: "DomainNetwork",
+          id: cleanId,
+          type: "NetworkAttribute",
           text: na.name,
           icon: "",
           requestAdditional: false,
@@ -649,8 +660,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let nodeData = [];
     if(terminalConfigurations.length > 0) {
       terminalConfigurations.map((tc: any) => {
+        let cleanId = id + "_" + tc.terminalConfigurationName.replace(/ /g, "_");
         nodeData.push({
-          id: id + "_" + tc.terminalConfigurationName,
+          id: cleanId,
           type: "TerminalConfiguration",
           text: tc.terminalConfigurationName,
           icon: "",
@@ -924,8 +936,106 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           />);
           break;
         }
+        case "DomainNetworks": {
+          newActiveList.push(<DomainNetworksCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
         case "DomainNetwork": {
           newActiveList.push(<DomainNetworkCard key={dataNode.id} data={dataNode} dataElements={this.state.dataElements} domains={this.state.domainElements} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "NetworkAttributes": {
+          newActiveList.push(<NetworkAttributesCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "NetworkAttribute": {
+          newActiveList.push(<NetworkAttributeCard key={dataNode.id} data={dataNode} dataElements={this.state.dataElements} domains={this.state.domainElements} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "TerminalConfiguration": {
+          newActiveList.push(<TerminalConfigurationCard key={dataNode.id} data={dataNode} dataElements={this.state.dataElements} domains={this.state.domainElements} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "TerminalConfigurations": {
+          newActiveList.push(<TerminalConfigurationsCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "Category": {
+          newActiveList.push(<CategoryCard key={dataNode.id} data={dataNode} dataElements={this.state.dataElements} domains={this.state.domainElements} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
+        case "Categories": {
+          newActiveList.push(<CategoriesCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
             panel={slot}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
@@ -1241,7 +1351,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let serviceNodes = [...this.state.serviceNodes];
       let hasSubNodes =(node: any) => {
         if(node.type === type) {
-          if(node.text.indexOf(value) > -1) {
+          if(node.text === value) {
             matchNode = node;
           }
         }
@@ -1330,12 +1440,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
 
   parseURL= () => {
-    window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) => {
-        if(key === "lookup") {
-          this.setState({requestURL: value});
+    if(this.props.config.hasOwnProperty("allowUrlLookup")) {
+      if(this.props.config.allowUrlLookup) {
+        if(this.props.queryObject.hasOwnProperty("lookup")) {
+          this.setState({requestURL: this.props.queryObject.lookup});
         }
-        return value;
-    });
+      }
+    }
   }
 
   _compare =(prop: any) => {

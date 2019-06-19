@@ -1,27 +1,27 @@
-import {React, IMDataSourceJson, Immutable, UseDataSource, ImmutableArray, IMUseDataSource, FieldSchema, IMState, DataSource, FeatureQueryDataSource, DataSourceTypes} from 'jimu-core';
-import { BaseWidgetSetting, ChooseDataSource, DataSourceJsonWithRootId, ChooseField, AllWidgetSettingProps } from "jimu-for-builder";
-import {ArcGISDataSourceTypes} from 'jimu-arcgis/arcgis-data-source-type';
+import {React, FormattedMessage} from 'jimu-core';
+import {BaseWidgetSetting, AllWidgetSettingProps} from 'jimu-for-builder';
+import {IMConfig} from '../config';
+import defaultI18nMessages from './translations/default'
 
-export default class Setting extends BaseWidgetSetting{
-
-  onDsSelected = (dsJson: DataSourceJsonWithRootId) => {
+export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, any>{
+  onURLChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
       widgetId: this.props.id,
-      useDataSources: Immutable([{
-        dataSourceId: dsJson.dataSourceJson.id,
-        rootDataSourceId: dsJson.rootDataSourceId
-      }]) as ImmutableArray<IMUseDataSource>
-    })
+      config: this.props.config.set('url', evt.currentTarget.value)
+    });
+  }
+
+  onAllowLookupChange = (evt: React.FormEvent<HTMLInputElement>) => {
+    this.props.onSettingChange({
+      widgetId: this.props.id,
+      config: this.props.config.set('allowUrlLookup', evt.currentTarget.checked)
+    });
   }
 
   render(){
-    return <div className="use-feature-layer-setting p-2">
-      <ChooseDataSource
-        types={[ArcGISDataSourceTypes.FeatureLayer, DataSourceTypes.FeatureQuery]}
-        onSelected={this.onDsSelected}
-        defaultDataSourceIds={this.props.useDataSources && this.props.useDataSources.map(ds => ds.dataSourceId) as ImmutableArray<string>}
-      />
-
+    return <div className="widget-setting-demo">
+      <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.props.config.url} onChange={this.onURLChange} style={{width:"90%"}}/></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
     </div>
   }
 }

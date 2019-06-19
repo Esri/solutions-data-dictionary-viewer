@@ -1,4 +1,4 @@
 export default {
-  p1: 'Property 1',
-  p2: 'Property 2'
+  url: 'Feature Service URL',
+  urlLookup: 'Allow loading Feature Service by url parameter (lookup)'
 }
