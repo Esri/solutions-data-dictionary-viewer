@@ -5,6 +5,7 @@ import {IMConfig} from '../config';
 
 import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
 import CardHeader from './_header';
+import { arr } from '@interactjs/utils';
 let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
@@ -28,7 +29,8 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
-  expandTerminal: boolean
+  expandActive: boolean,
+  expandAT: any
 }
 
 export default class CategoryCard extends React.Component <IProps, IState> {
@@ -38,13 +40,26 @@ export default class CategoryCard extends React.Component <IProps, IState> {
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
-      expandTerminal: false
+      expandActive: false,
+      expandAT: {}
     };
 
   }
 
   componentWillMount() {
     console.log(this.props.dataElements);
+    let atCopy = {...this.state.expandAT};
+    let dn = this._findUN();
+    if(dn !== null) {
+      dn.map((d: any, i: number) => {
+        d.junctionSources.map((js:any) => {
+          js.assetGroups.map((ag:any) => {
+            atCopy[ag.assetGroupName] = false;
+          });
+        });
+      });
+    }
+    this.setState({expandAT: atCopy});
   }
 
   componentDidMount() {
@@ -70,6 +85,12 @@ export default class CategoryCard extends React.Component <IProps, IState> {
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div><h5>{this.props.data.type} Properties</h5></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Category used in:</div>
+          <Collapse isOpen={this.state.expandActive}>
+            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+              {(this._findUN() !== null)?this._createActiveTable():"No domains exist"}
+            </div>
+          </Collapse>
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
@@ -128,9 +149,116 @@ export default class CategoryCard extends React.Component <IProps, IState> {
   }
   //****** UI components and UI Interaction
   //********************************************
+  toggleActiveCat =() => {
+    if(this.state.expandActive) {
+      this.setState({expandActive: false});
+    } else {
+      this.setState({expandActive: true});
+    }
+  }
+
+  toggleActiveATList =(name:string) => {
+    let atCopy = {...this.state.expandAT};
+    if(atCopy[name] === false) {
+      atCopy[name] = true;
+      this.setState({expandAT: atCopy});
+    } else {
+      atCopy[name] = false;
+      this.setState({expandAT: atCopy});
+    }
+  }
+
+  _createActiveTable =() => {
+    let arrList = [];
+    let dn = this._findUN();
+    if(dn !== null) {
+      console.log(dn);
+      dn.map((d: any, i: number) => {
+        d.junctionSources.map((js:any) => {
+          js.assetGroups.map((ag:any) => {
+            let atTable = this._createAssetTypeTable(ag.assetTypes);
+            if(atTable !== null) {
+              arrList.push(
+                <tr key={i}>
+                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+                    <span onClick={()=>{this.toggleActiveATList(ag.assetGroupName)}}>{(this.state.expandAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} </span>
+                   {ag.assetGroupName}
+                   <Collapse isOpen={this.state.expandAT[ag.assetGroupName]}>
+                    {atTable}
+                  </Collapse>
+                   </td>
+                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(js.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(js.layerId)}</span></td>
+                </tr>
+              );
+            }
+          });
+        });
+      });
+    }
+    let tableObj = <Table hover>
+    <thead>
+    <tr>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Asset Group</th>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
+    </tr>
+    </thead>
+    <tbody>
+      {arrList}
+    </tbody>
+    </Table>
+    return tableObj;
+  }
+
+  _createAssetTypeTable =(atList:any) => {
+    let arrList = [];
+    let tableObj = null;
+    atList.map((at:any,i:number) => {
+      if(at.categories.indexOf(this.state.nodeData.name) > -1) {
+        arrList.push(
+          <tr key={i}>
+            <td style={{fontSize:"small"}}>{at.assetTypeName}</td>
+          </tr>
+        );
+      }
+    });
+    if(arrList.length > 0) {
+      tableObj = <Table hover>
+      <thead>
+      <tr>
+        <th style={{fontSize:"small", fontWeight:"bold"}}>Asset Type</th>
+      </tr>
+      </thead>
+      <tbody>
+        {arrList}
+      </tbody>
+      </Table>
+    }
+    return tableObj;
+  }
 
 
   //*** SUPPORT FUNCTIONS *****/
+  _findUN =() => {
+    let dn = null;
+    this.props.dataElements.map((de:any) => {
+      if(de.hasOwnProperty("dataElement")) {
+        if(de.dataElement.hasOwnProperty("domainNetworks")) {
+          dn = de.dataElement.domainNetworks;
+        }
+      }
+    });
+    return dn;
+  }
 
+  _layerLookup = (param: any) => {
+    let layerName = param;
+    let filtered = this.props.dataElements.filter((de: any) => {
+      return de.layerId === param;
+    });
+    if(filtered.length > 0) {
+      layerName = filtered[0].dataElement.aliasName
+    }
+    return layerName;
+  }
 
 }

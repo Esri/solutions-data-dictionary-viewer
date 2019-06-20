@@ -129,6 +129,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             this._processData();
             ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} height={1000} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
             this._checkCookie();
+            this._parseStartUpURL();
           });
         });
       });
@@ -1438,12 +1439,27 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
   }
 
-
   parseURL= () => {
     if(this.props.config.hasOwnProperty("allowUrlLookup")) {
       if(this.props.config.allowUrlLookup) {
         if(this.props.queryObject.hasOwnProperty("lookup")) {
           this.setState({requestURL: this.props.queryObject.lookup});
+        }
+      }
+    }
+  }
+
+  _parseStartUpURL =() => {
+    if(this.props.queryObject.hasOwnProperty("startup")) {
+      if(this.props.queryObject.startup !== "") {
+        let param = (this.props.queryObject.startup).split(",");
+        if(param.length > 0) {
+          param.map((p:string) => {
+            if(p.indexOf(":") > -1) {
+              let keys = p.split(":");
+              this.searchLaunchCard(keys[0], keys[1], 0);
+            }
+          });
         }
       }
     }
