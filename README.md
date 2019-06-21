@@ -6,43 +6,41 @@ An application that allows viewing and searching of details of a feature Service
 ## Features
 * Tree view of your feature service
 * Search for finding things in a service
-* A map to interactively filter
-* a table to show details
+* Cards of each aspect of the service
 
 ## Instructions
+1. Make sure you have ArcGIS Experience Builder (ExB) Developer Edition installed on your machine.
 
-1. Fork and then clone the repo.
-2. install node modules.
-* You are clone or downloaded this, open a command prompt and type "npm install"
+2. Fork and then clone the repo. Copy the folder "ServiceExplorer" into the your ```<ExB install location>\client\your-extensions\widgets```
 
-3. install Yarn (to install and keep modules in sync)
-* https://yarnpkg.com/en/
+3. Start up ExB.  Start file watcher.
 
-4. Yarn React modules (react and react-dom are standard). React-Redux is for global state storage and messaging
- and BluePrint(UI component) Modules, in command prompt, type:
-* yarn add @blueprintjs/core react react-dom react-redux
+4. Launch ExB in the browser.  Create a new app.  In the "Home" page in the left panel, click the "Insert" button.
 
-5. (Only for new app creation, not needed in this case) if you starting blank you would have to call react-create-app to make a file structure for the app.
-This repo already did this.  But for reference, I used a react create esri app, that module is here.  It's great because it's an app with esri dojo bindings already
-* https://www.npmjs.com/package/create-esri-react-app
+5. Add the Service Explorer widget.
 
-6. Optional, if you installed an updated BluePrint, copy the "@blueprintjs" folder instead "node_modules" folder into the "src" folder.  This is so the code doesn't have to look for these inside the node modules folder.
+6. On the configuration panel (right side). Provide the URL to your feature service (Utility Network for now). Optionally, if you want to be able to load other services via a url parameter check the box labeled "allowurlLookup".
 
-7. At the root of application, open a command prompt here, and type "npm start". This should open a web browser and load the page.
+7. On the "General" tab of the configuration panel, define the height and width as 100%.
+
+8. Save the application and "Preview" or "Publish".
 
 ## Requirements
 
 * Install Node JS
-* Install React, React-dom, React-redux, BluePrint, esri-react-app
+* Install ArcGIS Experience Builder
 * Web browser with access to the Internet
 
 ## Resources
 
 ## Usage
 
-The application loads a default feature service.  You can load your own by adding a url parameter.
+The application loads a default feature service defined in the configuration.  You can load your own by adding a url parameter if allowed in the configuration.
 at the end of the url, type:
 * ?lookup=url to your feature service
+
+If you want a specific card to load on startup, add it as a url parameter with this pattern "<name of card>:<type of card>,<name of card>:<type of card>, etc"
+* ?startup=Water Device:Layer
 
 ## Issues
 
