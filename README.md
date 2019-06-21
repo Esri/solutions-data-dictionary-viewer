@@ -39,7 +39,7 @@ The application loads a default feature service defined in the configuration.  Y
 at the end of the url, type:
 * ?lookup=url to your feature service
 
-If you want a specific card to load on startup, add it as a url parameter with this pattern "<name of card>:<type of card>,<name of card>:<type of card>, etc"
+If you want a specific card to load on startup, add it as a url parameter with this pattern ```<name of card>:<type of card>,<name of card>:<type of card>, etc```
 * ?startup=Water Device:Layer
 
 ## Issues
