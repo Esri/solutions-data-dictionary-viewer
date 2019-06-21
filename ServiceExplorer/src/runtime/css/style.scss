@@ -1,0 +1,13 @@
+@import 'jimu-ui/lib/style/variables';
+
+.widget-demo{
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+
+  .title{
+    font-weight: bold;
+  }
+
+}
