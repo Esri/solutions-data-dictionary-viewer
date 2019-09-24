@@ -2,6 +2,7 @@
 import {BaseWidget, React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
+import './css/custom.css';
 
 import { Button, Image, ListGroup, ListGroupItem, Input, Collapse, Icon} from 'jimu-ui';
 let ArrowUpIcon = require('jimu-ui/lib/icons/arrow-up-8.svg');
@@ -84,9 +85,9 @@ export default class ServiceExplorerTree extends React.Component <IProps, IState
     }
 
     return (
-      <div style={{paddingLeft:58}}>
+      <div style={{paddingLeft:58, width:"100%"}}>
         <div style={{display:"inline-block", width:"100%"}}>
-          <Input placeholder="Search Your Service" onChange={(e:any)=>{this.searchService(e.target.value)}}></Input>
+          <Input placeholder="Search Your Service" onChange={(e:any)=>{this.searchService(e.target.value)}} style={{width:"100%"}}></Input>
         </div>
         <ListGroup>
             {checkState()}

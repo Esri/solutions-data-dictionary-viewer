@@ -2,6 +2,7 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
+
 import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
@@ -10,7 +11,6 @@ let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 interface IProps {
   data: any,
   requestURL: string,
-  key: any,
   panel:number,
   callbackClose: any,
   callbackSave: any,
@@ -24,16 +24,16 @@ interface IProps {
 
 interface IState {
   nodeData: any,
-  activeTab: string
+  activeTab: string,
 }
 
-export default class LayersCard extends React.Component <IProps, IState> {
+export default class AssetTypesCard extends React.Component <IProps, IState> {
   constructor(props: IProps){
     super(props);
 
     this.state = {
       nodeData: this.props.data.data,
-      activeTab: 'Properties'
+      activeTab: 'Properties',
     };
 
   }
@@ -44,14 +44,6 @@ export default class LayersCard extends React.Component <IProps, IState> {
 
   componentDidMount() {
     //this._processData();
-  }
-
-  componentWillReceiveProps(){
-    this.setState({ state: this.state });
-  }
-
-  componentDidUpdate() {
-    console.log(this);
   }
 
   render(){
@@ -78,9 +70,7 @@ export default class LayersCard extends React.Component <IProps, IState> {
                 <thead>
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
-                  <th style={{fontSize:"small", fontWeight:"bold"}}>ID</th>
-                  <th style={{fontSize:"small", fontWeight:"bold"}}>Type</th>
-                  <th style={{fontSize:"small", fontWeight:"bold"}}>Geometry</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Code</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -94,6 +84,7 @@ export default class LayersCard extends React.Component <IProps, IState> {
       </TabContent>
     </div>);
   }
+
 
   //****** Header Support functions
   //********************************************
@@ -145,19 +136,18 @@ export default class LayersCard extends React.Component <IProps, IState> {
     return currPos;
   }
 
+
   //****** UI components and UI Interaction
   //********************************************
   _createSTList = () => {
     let arrList = [];
-      this.props.data.data.map((ar: any, i: number) => {
+      this.props.data.nodes.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.name,"Layer",this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.data.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
             </td>
-            <td style={{fontSize:"small"}}>{ar.id}</td>
-            <td style={{fontSize:"small"}}>{ar.type}</td>
-            <td style={{fontSize:"small"}}>{(ar.hasOwnProperty("geometryType"))?ar.geometryType:""}</td>
+            <td style={{fontSize:"small"}}>{ar.data.subtypeCode}</td>
           </tr>
         );
       });

@@ -4,6 +4,7 @@ import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
 import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
+import './css/custom.css';
 let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 
 interface IProps {

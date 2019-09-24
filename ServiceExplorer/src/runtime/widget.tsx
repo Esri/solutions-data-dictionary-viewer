@@ -33,6 +33,7 @@ import TerminalConfigurationCard from './TerminalConfigurationCard';
 import TerminalConfigurationsCard from './TerminalConfigurationsCard';
 import CategoryCard from './CategoryCard';
 import CategoriesCard from './CategoriesCard';
+import AssetTypeCard from './AssetTypeCard';
 import { any } from 'prop-types';
 import './css/custom.css';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
@@ -58,6 +59,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       requestURL: props.config.url,
       serviceElements: {},
       hasDataElements: false,
+      controllerDS: null,
       dataElements: [],
       layerElements: [],
       relationshipElements: [],
@@ -256,7 +258,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     switch(type) {
       case "queryDataElements": {
         if(!data.hasOwnProperty("error")){
-          this.setState({hasDataElements: true, dataElements: data.layerDataElements});
+          var controllerDS = data.layerDataElements.filter((lde:any) => {
+            return lde.dataElement.hasOwnProperty("domainNetworks");
+          });
+          if(controllerDS.length > 0) {
+            this.setState({hasDataElements: true, dataElements: data.layerDataElements, controllerDS: controllerDS[0]});
+          } else {
+            this.setState({hasDataElements: true, dataElements: data.layerDataElements});
+          }
         }
         break;
       }
@@ -530,10 +539,61 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           fieldGroups: fieldGroups,
           attributeRules: attributeRules,
           clickable: true,
-          parentId: parentId
+          parentId: parentId,
+          nodes: this._processAssetTypes(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode)
         });
       });
     }
+    return nodeData;
+  }
+
+  _processAssetTypes =(st:any, id:string, parentId: string, subtypeCode:number) => {
+    let nodeData = [];
+    let atList = [];
+    if(this.state.controllerDS !== null) {
+      this.state.controllerDS.dataElement.domainNetworks.map((dn:any) => {
+        var junctionSource = dn.junctionSources.filter((js:any) => {
+          return js.layerId === parseInt(parentId);
+        });
+        if(junctionSource.length > 0) {
+          var assetGroup = junctionSource[0].assetGroups.filter((ag:any) => {
+            return ag.assetGroupCode === parseInt(st.subtypeCode);
+          });
+          if(assetGroup.length > 0) {
+            atList = assetGroup[0].assetTypes;
+          }
+        } else {
+          var edgeSource = dn.edgeSources.filter((es:any) => {
+            return es.layerId === parseInt(parentId);
+          });
+          if(edgeSource.length > 0) {
+            var assetGroup = edgeSource[0].assetGroups.filter((ag:any) => {
+              return ag.assetGroupCode === parseInt(st.subtypeCode);
+            });
+            if(assetGroup.length > 0) {
+              atList = assetGroup[0].assetTypes;
+            }
+          }
+        }
+      });
+    }
+    if(atList.length > 0) {
+      atList.sort(this._compare("assetTypeName"));
+      atList.map((at: any) => {
+        nodeData.push({
+          id: id+ "_" + at.assetTypeCode,
+          type: "Assettype",
+          text: at.assetTypeName,
+          icon: "",
+          requestAdditional: true,
+          data: at,
+          clickable: true,
+          parentId: parentId,
+          subtypeCode: subtypeCode
+        });
+      });
+    }
+
     return nodeData;
   }
 
@@ -702,6 +762,21 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
         case "Subtype": {
           newActiveList.push(<SubtypeCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL}
+              key={dataNode.id}
+              panel={slot}
+              callbackClose={this._callbackCloseChild}
+              callbackSave={this._callbackSaveChild}
+              callbackLinkage={this.searchLaunchCard}
+              callbackMove={this._callMovePanels}
+              callbackGetPanels={this._callbackGetPanels}
+              callbackReorderCards={this.callbackReorderCards}
+              callbackActiveCards={this._callbackGetActiveCards}
+              callbackGetFavorites={this._callbackGetFavorites}
+              />);
+          break;
+        }
+        case "Assettype": {
+          newActiveList.push(<AssetTypeCard data={dataNode} controllerDS={this.state.controllerDS} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
               key={dataNode.id}
               panel={slot}
               callbackClose={this._callbackCloseChild}
@@ -1257,6 +1332,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     });
   }
 
+  //SAVING AND DELETING FUNCTIONS
   deleteAllFavoritesAsk =() => {
     this.setState({deleteModal: true, deleteAllType: "favorites"});
   }
@@ -1300,6 +1376,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       setTimeout(()=> {this.setState({favoriteAlert: false})}, 3000);
     });
   }
+  //END SAVE AND DELETE FUNCTIONS
+
 
   //Search function
   searchService =(value: string, type: string) => {

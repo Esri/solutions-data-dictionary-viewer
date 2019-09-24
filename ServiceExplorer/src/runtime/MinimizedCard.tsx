@@ -1,14 +1,10 @@
 /** @jsx jsx */
-import {BaseWidget, React, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage, IMDataSourceInfo, DataSource, DataSourceComponent} from 'jimu-core';
+import {BaseWidget, React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Navbar, Nav, NavItem, NavLink, NavbarBrand, Button, Image, ListGroup, ListGroupItem, ListGroupItemHeading, ListGroupItemText, Badge, Input, Collapse, Icon,
-  Card, CardImg, CardText, CardBody, CardTitle, CardSubtitle
-} from 'jimu-ui';
-import defaultMessages from './translations/default';
-import { LayerDataSource } from 'dist/typing/jimu-arcgis/lib/data-sources/layer-data-source';
-import { string } from 'prop-types';
+import {Badge, Icon} from 'jimu-ui';
+import './css/custom.css';
 let RestoreIcon = require('jimu-ui/lib/icons/zoom-out-fixed.svg');
 let CloseIcon = require('jimu-ui/lib/icons/close.svg');
 

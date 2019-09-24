@@ -5,6 +5,7 @@ import {IMConfig} from '../config';
 
 import { TabContent, TabPane, Icon} from 'jimu-ui';
 import CardHeader from './_header';
+import './css/custom.css';
 let ArrowLeft = require('./assets/arrowx200L.png');
 let ArrowRight = require('./assets/arrowx200R.png');
 

@@ -5,6 +5,7 @@ import {IMConfig} from '../config';
 
 import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
+import './css/custom.css';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');

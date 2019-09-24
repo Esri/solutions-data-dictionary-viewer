@@ -5,6 +5,7 @@ import {IMConfig} from '../config';
 
 import {Icon,Table, Input} from 'jimu-ui';
 import { any } from 'prop-types';
+import './css/custom.css';
 
 let undoIcon = require('jimu-ui/lib/icons/undo.svg');
 
