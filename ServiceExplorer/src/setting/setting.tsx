@@ -9,6 +9,7 @@ interface State{
   query: any;
   cacheStructure: any;
   cacheStatus: string;
+  showCacheButton: boolean;
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
@@ -25,7 +26,8 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       connectivityRules: {},
       metadata: {}
     },
-    cacheStatus: ""
+    cacheStatus: "",
+    showCacheButton: (this.props.config.useCache)?this.props.config.useCache:false
   };
 
   componentWillMount(){
@@ -62,6 +64,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       widgetId: this.props.id,
       config: this.props.config.set('useCache', evt.currentTarget.checked)
     });
+    this.setState({showCacheButton: evt.currentTarget.checked});
   }
 
   onDataSourceSelect = (ds: any) => {
@@ -112,12 +115,18 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       </SettingSection>
 
       <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.props.config.url} onChange={this.onURLChange} style={{width:"90%"}}/></div>
-      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
-
       <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.props.config.useCache} onChange={this.onUseCacheChange} /></div>
 
-      <div style={{paddingBottom:10}}>Build cache: <input defaultValue="Build Cache" onClick={this.checkCreatePortalItem} type="button"/></div>
-      <div style={{paddingBottom:10}}>{this.state.cacheStatus}</div>
+      {(this.state.showCacheButton)?
+        <div>
+          <div style={{paddingBottom:10}}>Build cache: <input defaultValue="Build Cache" onClick={this.checkCreatePortalItem} type="button"/></div>
+          <div style={{paddingBottom:10}}>{this.state.cacheStatus}</div>
+        </div>
+        :''
+      }
+      <div style={{height:"25px"}}></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
+
 
       {(typeof(this.props.useDataSources) !== "undefined") &&
         <DataSourceComponent useDataSource={this.props.useDataSources[0]} query={''}>
