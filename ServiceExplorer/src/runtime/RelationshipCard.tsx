@@ -65,7 +65,7 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
               <div style={{width: "33%", display:"inline-block"}}>
                 <div style={{width: "100%", height: 50, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingTop:30}}>{this.state.nodeData.backwardPathLabel}</div>
                 <div style={{width: "100%", height: 20, textAlign:"center"}}><img src={ArrowLeft} style={{width: ((this.props.width/3)-50), height: 20}}/></div>
@@ -86,7 +86,17 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
       </TabContent>
     </div>);
   }
-
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
+  }
   //****** Header Support functions
   //********************************************
   headerToggleTabs =(tab:string) => {

@@ -86,11 +86,11 @@ export default class DomainCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{this.props.data.data.description}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Field Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.fieldType}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.type}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Type <span style={{fontWeight:"bold"}}>{this.props.data.data.type}</span></div>
           {(this.props.data.data.type === "range")?
             <Collapse isOpen={this.state.expandFields}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
@@ -125,7 +125,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
             </div>
             </Collapse>
           }
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}This domain is used in: </div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}This domain is used in </div>
           <Collapse isOpen={this.state.expandSubtype}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 <Table hover>
@@ -147,6 +147,18 @@ export default class DomainCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions

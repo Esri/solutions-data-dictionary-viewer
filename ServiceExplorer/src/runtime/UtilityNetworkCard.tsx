@@ -74,7 +74,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.name}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleCategories()}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Categories:</div>
           <Collapse isOpen={this.state.expandCategories}>
@@ -105,6 +105,18 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
 
@@ -221,7 +233,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(dn.domainNetworkAliasName,"DomainNetwork", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {dn.domainNetworkAliasName} </div>
+          <div onClick={()=>{this.props.callbackLinkage(dn.domainNetworkAliasName,"Domain Network", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {dn.domainNetworkAliasName} </div>
           </td>
         </tr>
       );
@@ -245,7 +257,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(na.name,"NetworkAttribute", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {na.name} </div>
+          <div onClick={()=>{this.props.callbackLinkage(na.name,"Network Attribute", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {na.name} </div>
           </td>
         </tr>
       );
@@ -269,7 +281,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(tc.terminalConfigurationName,"TerminalConfiguration", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {tc.terminalConfigurationName} </div>
+          <div onClick={()=>{this.props.callbackLinkage(tc.terminalConfigurationName,"Terminal Configuration", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {tc.terminalConfigurationName} </div>
           </td>
           <td>{tc.terminals.length}</td>
         </tr>

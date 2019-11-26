@@ -133,23 +133,23 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.domainNetworkAliasName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Field Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subnetworkLabelFieldName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Tier Definition: <span style={{fontWeight:"bold"}}>{this.state.nodeData.tierDefinition}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Tiers:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Tiers</div>
           <Collapse isOpen={this.state.expandTierGroup}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.tiers.length > 0)?this._createTiersTable():"No tiers exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Junction Sources:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Junction Sources</div>
           <Collapse isOpen={this.state.expandJunctionSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.junctionSources.length > 0)?this._createJunctionSourceTable():"No junctions exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Edge Sources:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Edge Sources</div>
           <Collapse isOpen={this.state.expandEdgeSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.edgeSources.length > 0)?this._createEdgeSourceTable():"No edges exist"}
@@ -160,6 +160,19 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions

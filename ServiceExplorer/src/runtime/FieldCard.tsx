@@ -61,6 +61,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
   }
 
   componentWillMount() {
+    console.log(this.props.data);
     let filtered = this.props.domains.map((d:any) => {
       return d.name === this.props.data.text;
     });
@@ -93,32 +94,42 @@ export default class FieldCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Alias: <span style={{fontWeight:"bold"}}>{this.props.data.data.aliasName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Model Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.modelName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Allow Null: <span style={{fontWeight:"bold"}}>{(this.props.data.data.isNullable)? "True" : "False"}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Alias: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("aliasName"))?this.props.data.data.aliasName:this.props.data.data.alias}</span></div>
+          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}>Model Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.modelName}</span></div>:""}
+          {
+            (this.props.data.data.hasOwnProperty("isNullable"))?
+            <div style={{paddingTop:5, paddingBottom:5}}>Allow Null: <span style={{fontWeight:"bold"}}>{(this.props.data.data.isNullable)? "True" : "False"}</span></div>
+            :
+            <div style={{paddingTop:5, paddingBottom:5}}>Allow Null: <span style={{fontWeight:"bold"}}>{(this.props.data.data.nullable)? "True" : "False"}</span></div>
+          }
           <div style={{paddingTop:5, paddingBottom:5}}>Required: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("required"))? (this.props.data.data.required)? "True" : "False" : "False"}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Default Value: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("defaultValue"))? this.props.data.data.defaultValve : ""}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.type}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Length: <span style={{fontWeight:"bold"}}>{this.props.data.data.length}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Precision: <span style={{fontWeight:"bold"}}>{this.props.data.data.precision}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>scale: <span style={{fontWeight:"bold"}}>{this.props.data.data.scale}</span></div>
+          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}>Precision: <span style={{fontWeight:"bold"}}>{this.props.data.data.precision}</span></div>:""}
+          {(this.props.data.data.hasOwnProperty("scale"))?<div style={{paddingTop:5, paddingBottom:5}}>Scale: <span style={{fontWeight:"bold"}}>{this.props.data.data.scale}</span></div>:""}
           {
-            (this.props.data.data.hasOwnProperty("domain")) && <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain: <span style={{fontWeight:"bold"}}>{this.props.data.data.domain.domainName}</span></div>
+            (this.props.data.data.hasOwnProperty("domain"))?
+              (this.props.data.data.domain !== null) &&
+              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain: <span style={{fontWeight:"bold"}}>{(this.props.data.data.domain !== null)?this.props.data.data.domain.domainName: "None"}</span></div>
+            :<div style={{paddingTop:5, paddingBottom:5}}>Domain: <span style={{fontWeight:"bold"}}>{"None"}</span></div>
           }
           {
-            (this.props.data.data.hasOwnProperty("domain")) && <Collapse isOpen={this.state.expandDomain}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createDomainExpand(this.props.data.data.domain)}
-            </div>
-          </Collapse>
+            (this.props.data.data.hasOwnProperty("domain"))?
+              (this.props.data.data.domain !== null) && <Collapse isOpen={this.state.expandDomain}>
+              <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                {this._createDomainExpand(this.props.data.data.domain)}
+              </div>
+              </Collapse>
+            :""
           }
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
         <TabPane tabId="Statistics">
-          <div style={{width: this.state.width, paddingLeft:10, paddingRight:10}}>
+          <div style={{width: "100%", paddingLeft:10, paddingRight:10}}>
             <div><h4>Site Statistics</h4></div>
             {this.state.statsOutput}
           </div>
@@ -126,6 +137,18 @@ export default class FieldCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions

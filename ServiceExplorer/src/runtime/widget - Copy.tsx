@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import {BaseWidget, React, ReactDOM, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage, loadArcGISJSAPIModules} from 'jimu-core';
+import {BaseWidget, React, ReactDOM, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
@@ -52,8 +52,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
     this.state = {
       useCache: (props.config.useCache)?props.config.useCache:true,
-      cacheId: props.config.cacheId,
-      cacheData: null,
+      cachePath: props.config.cachePath,
       stagePanels: 0,
       showPanel2: false,
       panelList: [],
@@ -126,37 +125,18 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   componentDidMount() {
-    if(this.state.useCache) {
-      let data = this.pullDataFromCache().then((d:any) => {
-        this.setState({cacheData: d},() => {
-          this.requestServiceDetails().then(() => {
-            this._requestObject("queryDataElements", -1).then(() => {
-              this._requestObject("relationships", -1).then(() => {
-                this._requestObject("queryDomains", -1).then(() => {
-                  this._processData();
-                  ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
-                  this._checkCookie();
-                  this._parseStartUpURL();
-                });
-              });
-            });
+    this.requestServiceDetails().then(() => {
+      this._requestObject("queryDataElements", -1).then(() => {
+        this._requestObject("relationships", -1).then(() => {
+          this._requestObject("queryDomains", -1).then(() => {
+            this._processData();
+            ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
+            this._checkCookie();
+            this._parseStartUpURL();
           });
         });
       });
-    } else {
-      this.requestServiceDetails().then(() => {
-        this._requestObject("queryDataElements", -1).then(() => {
-          this._requestObject("relationships", -1).then(() => {
-            this._requestObject("queryDomains", -1).then(() => {
-              this._processData();
-              ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
-              this._checkCookie();
-              this._parseStartUpURL();
-            });
-          });
-        });
-      });
-    }
+    });
     //this._featureLayerList();
   }
 
@@ -244,29 +224,29 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   //Request Info
   requestServiceDetails = async () => {
     //let qDE_url = FSurl + "/queryDomains?layers=" + args.searchLayers +"&f=pjson";
+    let url = this.state.requestURL + "/?f=pjson";
     if(this.state.useCache) {
-      this.setState({serviceElements: this.state.cacheData.featureServer});
+      url = this.state.cachePath + "featureServer/featureServer.json?1=2";
     } else {
-      let url = this.state.requestURL + "/?f=pjson";
-      await fetch(url, {
-        method: 'GET'
-      })
-      .then((response) => {return response.json()})
-      .then((data) => {
-        if(!data.hasOwnProperty("error")){
-          this.setState({serviceElements: data});
-        }
-      });
+      url = this.state.requestURL + "/?f=pjson";
     }
+    await fetch(url, {
+      method: 'GET'
+    })
+    .then((response) => {return response.json()})
+    .then((data) => {
+      if(!data.hasOwnProperty("error")){
+        this.setState({serviceElements: data});
+      }
+    });
   }
 
   _requestObject = async(type: any, layer: number) => {
     let url = this.state.requestURL;
-    let data = null;
     if(layer !== -1) {
       if(type === "metadata") {
         if(this.state.useCache) {
-          data = this.state.cacheData.metadata[layer];
+          url = this.state.cachePath + type + "/" + layer + ".xml";
         } else {
           url = url + "/" + layer + "/" + type;
         }
@@ -275,8 +255,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           url = url + "/" + layer + "/" + type + "?f=pjson";
         } else {
           if(this.state.useCache) {
-            data = this.state.cacheData.layers[layer];
-            //url = this.state.cachePath + "layers/" + layer + ".json";
+            url = this.state.cachePath + "layers/" + layer + ".json";
           } else {
             url = url + "/" + layer + "?f=pjson";
           }
@@ -284,21 +263,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       }
     } else {
       if(this.state.useCache) {
-        data = this.state.cacheData[type];
-        //url = this.state.cachePath + type + "/" + type + ".json";
+        url = this.state.cachePath + type + "/" + type + ".json";
       } else {
         url = url + "/" + type + "?f=pjson";
       }
     }
-    if(!this.state.useCache) {
-      let request = await fetch(url, {
-        method: 'GET'
-      });
-      if(type === "metadata") {
-        data = await request.text();
-      } else {
-        data = await request.json();
-      }
+    let request = await fetch(url, {
+      method: 'GET'
+    });
+    let data = null;
+    if(type === "metadata") {
+      data = await request.text();
+    } else {
+      data = await request.json();
     }
     switch(type) {
       case "queryDataElements": {
@@ -355,7 +332,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
     });
-    let nodeStructure = {
+    let nodeStructure = {};
+    nodeStructure = {
       id: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription,
       type: "Feature Service",
       text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription,
@@ -366,111 +344,99 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       clickable: false,
       data:unData,
       crumb:[],
-      search: false,
-      nodes: []
-    };
-    //Handling LAYERS nodes
-    let layersNode = {
-      id: "Layers",
-      type: "Layers",
-      text: "Layers",
-      subNodeCount: this.state.serviceElements.layers.length,
-      data: this.state.serviceElements.layers,
-      clickable: true,
-      crumb:[
-        {type: "Feature Service",value:(data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id}
-      ],
-      search: false,
-      nodes:[]
-    };
-    layersNode.nodes = data.layers.map((layer: any, i:number) => {
-      let checkNodes = this._queryDataElement(layer.id);
-      let simpleData = layer;
-      let type="Layer";
-      if(checkNodes.hasOwnProperty("dataElement")) {
-        if(checkNodes.dataElement.hasOwnProperty("domainNetworks")) {
-          type = "Utility Network"
+      nodes: [
+        {
+          id: "Layers",
+          type: "Layers",
+          text: "Layers",
+          subNodeCount: this.state.serviceElements.layers.length,
+          data: this.state.serviceElements.layers,
+          clickable: true,
+          crumb:[
+            {type: "Feature Service",value:(data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure}
+          ],
+          nodes: data.layers.map((layer: any, i:number) => {
+            let checkNodes = this._queryDataElement(layer.id);
+            let simpleData = layer;
+            let type="Layer";
+            if(checkNodes.hasOwnProperty("dataElement")) {
+              if(checkNodes.dataElement.hasOwnProperty("domainNetworks")) {
+                type = "Utility Network"
+              }
+            }
+            let subNode = {};
+            subNode = {
+              id: layer.id,
+              type: type,
+              text: layer.name,
+              subNodeCount: 0,
+              icon: "",
+              requestAdditional: true,
+              nodes: [],
+              data: (this.state.hasDataElements)?this._queryDataElement(layer.id):simpleData,
+              clickable: true,
+              crumb:[
+                {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure},
+                {type: "Layers", value:"Layers", node: subNode}
+              ],
+            };
+            if(this.state.hasDataElements) {
+              let crumb = [
+                {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure},
+                {type: "Layers", value:"Layers", node: subNode},
+                {type: type, value:layer.name}
+              ];
+              subNode.nodes = this._processDataElements(layer.id, crumb, layer.name);
+            } else {
+              this._requestObject(null,layer.id).then((data) => {
+                subNode.data = data;
+                subNode.nodes = this._processDataSimple(data, layer.id);
+              });
+            }
+            return(subNode);
+          })
+        },
+        {
+          id: "Tables",
+          type: "Tables",
+          text: "Tables",
+          subNodeCount: this.state.serviceElements.tables.length,
+          data: this.state.serviceElements.tables,
+          clickable: true,
+          crumb:[
+            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription}
+          ],
+          nodes: data.tables.map((table: any, i:number) => {
+            let newCrumb = [
+              {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription},
+              {type: "Tables", value:"Tables"},
+            ];
+            let simpleData = table;
+            let nodeStruct = {
+              id: table.id,
+              type: "Table",
+              text: table.name,
+              subNodeCount: 0,
+              icon: "",
+              requestAdditional: true,
+              nodes: [],
+              data: (this.state.hasDataElements)?this._queryDataElement(table.id):simpleData,
+              clickable: true,
+              crumb:newCrumb,
+            };
+            if(this.state.hasDataElements) {
+              nodeStruct.nodes = this._processDataElements(table.id, newCrumb, "Table");
+            } else {
+              this._requestObject(null,table.id).then((data) => {
+                nodeStruct.data = data;
+                nodeStruct.nodes = this._processDataSimple(data, table.id);
+              });
+            }
+            return(nodeStruct);
+          })
         }
-      }
-      let subNode = {
-        id: layer.id,
-        type: type,
-        text: layer.name,
-        subNodeCount: 0,
-        icon: "",
-        requestAdditional: true,
-        nodes: [],
-        search: false,
-        data: (this.state.hasDataElements)?this._queryDataElement(layer.id):simpleData,
-        clickable: true
-      };
-      subNode["crumb"]= [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
-        {type: "Layers", value:"Layers", node: layersNode.id}
-      ];
-      if(this.state.hasDataElements) {
-        let crumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
-          {type: "Layers", value:"Layers", node: layersNode.id},
-          {type: type, value:layer.name, node: subNode.id}
-        ];
-        subNode.nodes = this._processDataElements(layer.id, crumb, layer.name);
-      } else {
-        this._requestObject(null,layer.id).then((data) => {
-          subNode.data = data;
-          subNode.nodes = this._processDataSimple(data, layer.id);
-        });
-      }
-      return(subNode);
-    });
-    nodeStructure.nodes.push(layersNode);
-
-    //Handling TABLE nodes
-    let tablesNode = {
-      id: "Tables",
-      type: "Tables",
-      text: "Tables",
-      subNodeCount: this.state.serviceElements.tables.length,
-      data: this.state.serviceElements.tables,
-      clickable: true,
-      crumb:[
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
-      ],
-      search: false,
-      nodes: []
-    };
-    data.tables.map((table: any, i:number) => {
-      let newCrumb = [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
-        {type: "Tables", value:"Tables", node:tablesNode.id},
-      ];
-      let simpleData = table;
-      let nodeStruct = {
-        id: table.id,
-        type: "Table",
-        text: table.name,
-        subNodeCount: 0,
-        icon: "",
-        requestAdditional: true,
-        nodes: [],
-        search: false,
-        data: (this.state.hasDataElements)?this._queryDataElement(table.id):simpleData,
-        clickable: true,
-        crumb:newCrumb,
-      };
-      if(this.state.hasDataElements) {
-        nodeStruct.nodes = this._processDataElements(table.id, newCrumb, "Table");
-      } else {
-        this._requestObject(null,table.id).then((data) => {
-          nodeStruct.data = data;
-          nodeStruct.nodes = this._processDataSimple(data, table.id);
-        });
-      }
-      tablesNode.nodes.push(nodeStruct);
-    });
-    nodeStructure.nodes.push(tablesNode);
-
-    //Handling RELATIONSHIP nodes
+      ]
+    }
     if(this.state.serviceElements.hasOwnProperty("relationships")) {
       let relationNode = {
         id: "Relationships",
@@ -480,34 +446,28 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: relationship,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription}
         ],
-        search: false,
-        nodes: []
+        nodes: relationship.map((relship: any, i:number) => {
+          let newCrumb = [
+            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription},
+            {type: "Relationships", value:"Relationships"},
+          ];
+          return({
+            id: relship.id,
+            type: "Relationship",
+            text: relship.name,
+            subNodeCount: 0,
+            icon: "",
+            requestAdditional: false,
+            data: relship,
+            clickable: true,
+            crumb:newCrumb,
+          })
+        })
       };
-      relationship.map((relship: any, i:number) => {
-        let newCrumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
-          {type: "Relationships", value:"Relationships", node:relationNode.id},
-        ];
-        let reSubNode = {
-          id: relship.id,
-          type: "Relationship",
-          text: relship.name,
-          subNodeCount: 0,
-          icon: "",
-          requestAdditional: false,
-          data: relship,
-          clickable: true,
-          crumb:newCrumb,
-          search:false
-        };
-        relationNode.nodes.push(reSubNode);
-      });
       nodeStructure.nodes.push(relationNode);
     }
-
-    //Handling DOMAINS nodes
     if(this.state.domainElements.length > 0) {
       let domainNode = {
         id: "Domains",
@@ -517,34 +477,33 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: domains,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription}
         ],
-        search: false,
-        nodes: []
+        nodes: domains.map((domain: any, i:number) => {
+          let newCrumb = [
+            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription},
+            {type: "Domains", value:"Domains"},
+          ];
+          return({
+            id: domain.name,
+            type: "Domain",
+            text: domain.name,
+            subNodeCount: 0,
+            icon: "",
+            requestAdditional: false,
+            data: domain,
+            clickable: true,
+            crumb:newCrumb,
+          })
+        })
       };
-      domains.map((domain: any, i:number) => {
-        let newCrumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
-          {type: "Domains", value:"Domains", node:domainNode.id},
-        ];
-        domainNode.nodes.push({
-          id: domain.name,
-          type: "Domain",
-          text: domain.name,
-          subNodeCount: 0,
-          icon: "",
-          requestAdditional: false,
-          data: domain,
-          clickable: true,
-          search: false,
-          crumb:newCrumb,
-        });
-      })
       nodeStructure.nodes.push(domainNode);
     }
-
-    //Handling UN specific nodes
     if(unData !== null) {
+      let newCrumb = [
+        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription},
+        {type: "Controller Dataset", value:"Controller Dataset"},
+      ];
       let domainNetworkNode = {
         id: "UtilityNetwork",
         type: "Controller Dataset",
@@ -553,16 +512,10 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: unData,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription}
         ],
-        search: false,
-        nodes: []
+        nodes: this._processDataElements(unData.layerId, newCrumb, "Feature Service")
       };
-      let newCrumb = [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
-        {type: "Controller Dataset", value:"Controller Dataset", node: domainNetworkNode.id},
-      ];
-      domainNetworkNode.nodes = this._processDataElements(unData.layerId, newCrumb, "Feature Service");
       nodeStructure.nodes.unshift(domainNetworkNode);
     }
 
@@ -578,8 +531,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let nodeData = [];
     if(filtered.length > 0) {
       filtered.map((de: any) => {
-        //Handing SUBTYPES nodes
         if(de.dataElement.hasOwnProperty("subtypeFieldName")) {
+          let newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Subtypes",
+            value:"Subtypes"
+          });
           let stNode = {
             id: de.layerId + "_subtype",
             type: "Subtypes",
@@ -587,25 +544,20 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             subNodeCount: de.dataElement.subtypes.length,
             icon: "",
             requestAdditional: false,
-            nodes: [],
+            nodes: this._processSubTypes(de.dataElement.subtypes, de.layerId + "_subtype", de.layerId, de.dataElement.fields.fieldArray, de.dataElement.fieldGroups, de.dataElement.attributeRules, newCrumb, parent),
             clickable: true,
             crumb: crumb,
-            search: false,
             parent: parent
           };
-          let newCrumb = [...crumb];
-          newCrumb.push({
-            type:"Subtypes",
-            value:"Subtypes",
-            node: stNode.id
-          });
-          //stNode.crumb = newCrumb;
-          stNode.nodes = this._processSubTypes(de.dataElement.subtypes, de.layerId + "_subtype", de.layerId, de.dataElement.fields.fieldArray, de.dataElement.fieldGroups, de.dataElement.attributeRules, newCrumb, parent);
           nodeData.push(stNode);
         }
-        //Handing ATTRIBUTE RULES nodes
         if(de.dataElement.hasOwnProperty("attributeRules")) {
-          let arNode = {
+          let newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Attribute Rules",
+            value:"Attribute Rules"
+          });
+          let aaNode = {
             id: de.layerId + "_attrRules",
             type: "Attribute Rules",
             text: "Attribute Rules",
@@ -614,24 +566,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             data: de.dataElement.attributeRules,
             subtypes: de.dataElement.subtypes,
             requestAdditional: false,
-            nodes: [],
+            nodes: this._processAttrRules(de.dataElement.attributeRules, de.layerId + "_attrRules", de.dataElement.subtypes, newCrumb, parent),
             clickable: true,
-            search: false,
             crumb: crumb,
             parent: parent
           };
+          nodeData.push(aaNode);
+        }
+        if(de.dataElement.hasOwnProperty("fields")) {
           let newCrumb = [...crumb];
           newCrumb.push({
-            type:"Attribute Rules",
-            value:"Attribute Rules",
-            node: arNode.id
+            type:"Fields",
+            value:"Fields"
           });
-          //arNode["crumb"] = newCrumb;
-          arNode.nodes = this._processAttrRules(de.dataElement.attributeRules, de.layerId + "_attrRules", de.dataElement.subtypes, newCrumb, parent);
-          nodeData.push(arNode);
-        }
-        //Handing FIELD nodes
-        if(de.dataElement.hasOwnProperty("fields")) {
           let fieldsNode = {
             id: de.layerId + "_allfields",
             type: "Fields",
@@ -641,24 +588,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             data: de.dataElement.fields.fieldArray,
             st: de.dataElement.subtypes,
             requestAdditional: false,
-            nodes: [],
+            nodes: this._processFields(de.dataElement.fields.fieldArray, de.layerId + "_allfields", de.dataElement.subtypes, de.layerId, newCrumb, parent),
             clickable: true,
-            search: false,
             crumb: crumb,
             parent: parent
           };
-          let newCrumb = [...crumb];
-          newCrumb.push({
-            type:"Fields",
-            value:"Fields",
-            node: fieldsNode.id
-          });
-          //fieldsNode.crumb = newCrumb;
-          fieldsNode.nodes = this._processFields(de.dataElement.fields.fieldArray, de.layerId + "_allfields", de.dataElement.subtypes, de.layerId, newCrumb, parent);
           nodeData.push(fieldsNode);
         }
-        //Handing INDEX nodes
         if(de.dataElement.hasOwnProperty("indexes")) {
+          let newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Indexes",
+            value:"Indexes"
+          });
           let indexesNode = {
             id: de.layerId + "_indexes",
             type: "Indexes",
@@ -667,25 +609,20 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             icon: "",
             data: de.dataElement.indexes.indexArray,
             requestAdditional: false,
-            nodes: [],
+            nodes: this._processIndexes(de.dataElement.indexes.indexArray, de.layerId + "_indexes", newCrumb, parent),
             clickable: true,
-            search: false,
             crumb: crumb,
             parent: parent
           };
-          let newCrumb = [...crumb];
-          newCrumb.push({
-            type:"Indexes",
-            value:"Indexes",
-            node: indexesNode.id
-          });
-          //indexesNode.crumb = newCrumb;
-          indexesNode.nodes = this._processIndexes(de.dataElement.indexes.indexArray, de.layerId + "_indexes", newCrumb, parent);
           nodeData.push(indexesNode);
         }
         //UN layer type specific
         if(de.dataElement.hasOwnProperty("domainNetworks")) {
-          // UN CATEGORIES nodes
+          let newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Categories",
+            value:"Categories"
+          });
           let cNode = {
             id: de.layerId + "_categories",
             type: "Categories",
@@ -695,21 +632,15 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             requestAdditional: false,
             data: de.dataElement.categories,
             clickable: true,
-            search: false,
             crumb: crumb,
-            nodes: []
+            nodes: this._processCategories(de.dataElement.categories, de.layerId + "_categories", newCrumb)
           };
-          let cCrumb = [...crumb];
-          cCrumb.push({
-            type:"Categories",
-            value:"Categories",
-            node: cNode.id
-          });
-          //cNode.crumb = cCrumb;
-          cNode.nodes = this._processCategories(de.dataElement.categories, de.layerId + "_categories", cCrumb);
           nodeData.push(cNode);
-
-          // UN DOMAIN NETWORK nodes
+          newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Domain Networks",
+            value:"Domain Networks"
+          });
           let dnNode = {
             id: de.layerId + "_domainNetworks",
             type: "Domain Networks",
@@ -719,21 +650,15 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             requestAdditional: false,
             data: de.dataElement.domainNetworks,
             clickable: true,
-            search: false,
             crumb: crumb,
-            nodes: []
+            nodes: this._processDomainNetworks(de.dataElement.domainNetworks, de.layerId + "_domainNetwork", newCrumb)
           };
-          let dnCrumb = [...crumb];
-          dnCrumb.push({
-            type:"Domain Networks",
-            value:"Domain Networks",
-            node: dnNode.id
-          });
-          //dnNode.crumb = dnCrumb;
-          dnNode.nodes = this._processDomainNetworks(de.dataElement.domainNetworks, de.layerId + "_domainNetwork", dnCrumb);
           nodeData.push(dnNode);
-
-          // UN Network ATTRIBUTE nodes
+          newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Network Attributes",
+            value:"Network Attributes"
+          });
           let naNode = {
             id: de.layerId + "_networkAttributes",
             type: "Network Attributes",
@@ -743,21 +668,15 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             requestAdditional: false,
             data: de.dataElement.networkAttributes,
             clickable: true,
-            search: false,
             crumb: crumb,
-            nodes: []
+            nodes: this._processNetworkAttributes(de.dataElement.networkAttributes, de.layerId + "_networkAttributes", newCrumb)
           };
-          let naCrumb = [...crumb];
-          naCrumb.push({
-            type:"Network Attributes",
-            value:"Network Attributes",
-            node: naNode.id
-          });
-          //naNode.crumb = naCrumb;
-          naNode.nodes = this._processNetworkAttributes(de.dataElement.networkAttributes, de.layerId + "_networkAttributes", naCrumb);
           nodeData.push(naNode);
-
-          // UN Terminal Config nodes
+          newCrumb = [...crumb];
+          newCrumb.push({
+            type:"Terminal Configurations",
+            value:"Terminal Configurations"
+          });
           let tcNode = {
             id: de.layerId + "_terminalConfigurations",
             type: "Terminal Configurations",
@@ -767,18 +686,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             requestAdditional: false,
             data: de.dataElement.terminalConfigurations,
             clickable: true,
-            search: false,
             crumb: crumb,
-            nodes: []
+            nodes: this._processTerminalConfigurations(de.dataElement.terminalConfigurations, de.layerId + "_terminalConfigurations", newCrumb)
           };
-          let tcCrumb = [...crumb];
-          tcCrumb.push({
-            type:"Terminal Configurations",
-            value:"Terminal Configurations",
-            node: tcNode.id
-          });
-          //tcNode.crumb = tcCrumb;
-          tcNode.nodes = this._processTerminalConfigurations(de.dataElement.terminalConfigurations, de.layerId + "_terminalConfigurations", tcCrumb);
           nodeData.push(tcNode);
         }
       });
@@ -825,7 +735,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let nodeData = [];
     if(subTypes.length > 0) {
       subTypes.map((st: any) => {
-        let stNode = {
+        let newCrumb = [...crumb];
+        newCrumb.push({
+          type:"Subtype",
+          value: st.subtypeName
+        });
+        nodeData.push({
           id: id + "_" + st.subtypeCode,
           type: "Subtype",
           text: st.subtypeName,
@@ -838,20 +753,10 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           attributeRules: attributeRules,
           clickable: true,
           parentId: parentId,
-          search: false,
           crumb: crumb,
           parent: parent,
-          nodes: []
-        };
-        let newCrumb = [...crumb];
-        newCrumb.push({
-          type:"Subtype",
-          value: st.subtypeName,
-          node: stNode.id
+          nodes: this._processAssetTypes(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode, newCrumb, parent)
         });
-        //stNode.crumb = newCrumb;
-        stNode.nodes = this._processAssetTypes(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode, newCrumb, parent);
-        nodeData.push(stNode);
       });
     }
     return nodeData;
@@ -898,7 +803,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           requestAdditional: true,
           data: at,
           clickable: true,
-          search: false,
           parentId: parentId,
           subtypeCode: subtypeCode,
           crumb: crumb,
@@ -925,7 +829,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           subtypes: subtypes,
           clickable: true,
           crumb:crumb,
-          search: false,
           parent:parent
         });
       });
@@ -947,7 +850,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           data: fd,
           st: subtypes,
           clickable: true,
-          search: false,
           parentId: parentId,
           crumb:crumb,
           parent:parent
@@ -972,7 +874,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             requestAdditional: false,
             data: idx,
             clickable: true,
-            search: false,
             crumb:crumb,
             parent:parent
           });
@@ -996,7 +897,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           requestAdditional: false,
           data: cat,
           clickable: true,
-          search: false,
           crumb:crumb
         });
       });
@@ -1017,7 +917,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           requestAdditional: false,
           data: dn,
           clickable: true,
-          search: false,
           crumb:crumb
         });
       });
@@ -1039,7 +938,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           requestAdditional: false,
           data: na,
           clickable: true,
-          search: false,
           crumb:crumb
         });
       });
@@ -1061,7 +959,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           requestAdditional: false,
           data: tc,
           clickable: true,
-          search: false,
           crumb:crumb
         });
       });
@@ -1094,7 +991,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Subtype": {
-          newActiveList.push(<SubtypeCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL} cacheData={this.state.cacheData}
+          newActiveList.push(<SubtypeCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL}
               config={this.props.config}
               key={dataNode.id}
               panel={slot}
@@ -1321,20 +1218,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
         case "Layers": {
           newActiveList.push(<LayersCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
-            panel={slot}
-            callbackClose={this._callbackCloseChild}
-            callbackSave={this._callbackSaveChild}
-            callbackLinkage={this.searchLaunchCard}
-            callbackMove={this._callMovePanels}
-            callbackGetPanels={this._callbackGetPanels}
-            callbackReorderCards={this.callbackReorderCards}
-            callbackActiveCards={this._callbackGetActiveCards}
-            callbackGetFavorites={this._callbackGetFavorites}
-          />);
-          break;
-        }
-        case "Utility Network": {
-          newActiveList.push(<UtilityNetworkCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
             panel={slot}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
@@ -1780,13 +1663,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let hasSubNodes =(node: any) => {
         if(node.type === type) {
           if(node.hasOwnProperty("parent")) {
-            if(typeof(parent) !== "undefined") {
-              if(node.parent === parent) {
-                if(node.text === value) {
-                  matchNode = node;
-                }
-              }
-            } else {
+            if(node.parent === parent) {
               if(node.text === value) {
                 matchNode = node;
               }
@@ -2001,41 +1878,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     serviceNodes.map((sn: any) => {
       hasSubNodes(sn);
     });
+
     return matchList;
-  }
-
-  pullDataFromCache = async() => {
-    return new Promise((resolve, reject) => {
-      loadArcGISJSAPIModules(['esri/portal/Portal','esri/portal/PortalItem', 'esri/portal/PortalUser']).then(async ([Portal, PortalItem, PortalUser]) => {
-        let portalA = new Portal({
-          url: this.props.portalUrl // First instance
-        });
-        let item = new PortalItem({
-          id: this.state.cacheId,
-          portal: portalA // This loads the first portal instance set above
-        });
-        await item.load().then(async (data:any) => {
-          await data.fetchData().then((d:any) => {
-            resolve(d);
-          });
-        });
-        /*
-        portalA.load().then(() => {
-          let queryParams = {
-            query: "id:"+this.state.cacheId,
-            num: 1
-          };
-          portalA.queryItems(queryParams).then((response:any) => {
-            if(response.results.length > 0) {
-              console.log(response.results);
-            } else {
-
-            }
-          });
-        });
-        */
-      });
-    });
   }
 
 

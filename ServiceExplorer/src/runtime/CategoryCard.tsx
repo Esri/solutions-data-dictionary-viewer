@@ -84,9 +84,9 @@ export default class CategoryCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Category used in:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Category used in</div>
           <Collapse isOpen={this.state.expandActive}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this._findUN() !== null)?this._createActiveTable():"No domains exist"}
@@ -97,6 +97,18 @@ export default class CategoryCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions

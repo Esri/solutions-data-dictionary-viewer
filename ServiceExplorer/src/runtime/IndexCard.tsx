@@ -31,6 +31,7 @@ interface IState {
   statsOutput: any,
   activeTab: string,
   domainHolder: any,
+  fields: any,
   fieldNameHolder: any,
   fieldHolder: any,
   expandFields: boolean,
@@ -48,6 +49,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
       statsOutput: [],
       activeTab: 'Properties',
       domainHolder: {},
+      fields:[],
       fieldNameHolder: {},
       fieldHolder: [],
       expandFields: false,
@@ -60,10 +62,16 @@ export default class IndexCard extends React.Component <IProps, IState> {
   componentWillMount() {
     console.log(this.props.data);
     let fieldList = {};
-    this.props.data.data.fields.fieldArray.map((fd: any) => {
-      fieldList[fd.name] = false;
-    });
-    this.setState({fieldHolder:fieldList});
+    let fields = [];
+    if(this.props.data.data.fields.hasOwnProperty("fieldArray")) {
+      this.props.data.data.fields.fieldArray.map((fd: any) => {
+        fieldList[fd.name] = false;
+      });
+      fields = this.props.data.data.fields.fieldArray;
+    } else {
+      fields = this.props.data.data.fields.split(",");
+    }
+    this.setState({fieldHolder:fieldList, fields: fields});
   }
 
   componentDidMount() {
@@ -90,7 +98,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Ascending: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("isAscending"))? (this.props.data.data.isAscending)? "True" : "False" : "False"}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Unique: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("isUnique"))? (this.props.data.data.isUnique)? "True" : "False" : "False"}</span></div>
@@ -114,6 +122,18 @@ export default class IndexCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -191,17 +211,25 @@ export default class IndexCard extends React.Component <IProps, IState> {
   _createFieldList =() => {
     let arrList = [];
     let usedFields = [];
-    this.props.data.data.fields.fieldArray.map((fi: any, z: number)=>{
+    this.state.fields.map((fi: any, z: number)=>{
       if(usedFields.indexOf(fi.name) === -1) {
-        let fieldDetailsTable = this._createFieldsExpand(fi);
-        let alias = fi.aliasName;
-        let fieldName = <span><div style={{textAlign: "left"}}>{(this.state.fieldHolder[fi.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {alias}</div><div style={{textAlign: "left"}}>{"("+fi.name+")"}</div></span>;
+        let fieldDetailsTable = null;
+        if(fi.constructor === Object) {
+          fieldDetailsTable = this._createFieldsExpand(fi);
+        }
+        let alias = (fi.hasOwnProperty("aliasName"))?fi.aliasName:fi;
+        let fieldName = <span><div style={{textAlign: "left"}}>{(fieldDetailsTable !== null)? (this.state.fieldHolder[fi.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:''} {alias}</div><div style={{textAlign: "left"}}>{"("+(fi.hasOwnProperty("name"))?fi.name:fi+")"}</div></span>;
         arrList.push(<tr key={z}>
           <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
           <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
-          <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
-              this.toggleFields(fi.name);
-            }}>{fieldName}</div>
+          {
+            (fieldDetailsTable !== null)?
+              <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
+                this.toggleFields(fi.name);
+              }}>{fieldName}</div>
+            :
+            <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}}>{fieldName}</div>
+          }
             <Collapse isOpen={this.state.fieldHolder[fi.name]}>
               {(fieldDetailsTable !== null)? fieldDetailsTable: <div></div>}
             </Collapse>

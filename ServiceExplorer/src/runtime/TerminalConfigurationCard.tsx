@@ -29,7 +29,8 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
-  expandTerminal: boolean
+  expandTerminal: boolean,
+  expandTerminalPaths: boolean
 }
 
 export default class TerminalConfigurationCard extends React.Component <IProps, IState> {
@@ -39,13 +40,14 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
-      expandTerminal: false
+      expandTerminal: false,
+      expandTerminalPaths: false
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.dataElements);
+    console.log(this.state.nodeData);
   }
 
   componentDidMount() {
@@ -69,7 +71,7 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.terminalConfigurationName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Default Configuration: <span style={{fontWeight:"bold"}}>{this.state.nodeData.defaultConfiguration}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Traversability: <span style={{fontWeight:"bold"}}>{this.state.nodeData.traversabilityModel}</span></div>
@@ -79,13 +81,31 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
               {(this.state.nodeData.terminals.length > 0)?this._createTerminalTable():"No terminals exist"}
             </div>
           </Collapse>
-
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalsPaths()}}>{(this.state.expandTerminalPaths)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Paths:</div>
+          <Collapse isOpen={this.state.expandTerminalPaths}>
+            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+              {(this.state.nodeData.terminals.length > 0)?this._createTerminalPathsTable():"No terminals paths"}
+            </div>
+          </Collapse>
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
       </TabContent>
     </div>);
   }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
+  }
+
 
   //****** Header Support functions
   //********************************************
@@ -146,6 +166,14 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
     }
   }
 
+  toggleTerminalsPaths =() => {
+    if(this.state.expandTerminalPaths) {
+      this.setState({expandTerminalPaths: false});
+    } else {
+      this.setState({expandTerminalPaths: true});
+    }
+  }
+
   _createTerminalTable =() => {
     let arrList = [];
     this.state.nodeData.terminals.map((t: any, i: number) => {
@@ -171,7 +199,77 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
     return tableObj;
   }
 
-  //*** SUPPORT FUNCTIONS *****/
+  _createTerminalPathsTable =() => {
+    let arrList = [];
+    let arrPath = [];
+    this.state.nodeData.validConfigurationPaths.sort(this._compare("name"));
+    this.state.nodeData.validConfigurationPaths.map((vp: any, i: number) => {
+      console.log(vp);
+      arrPath = [];
+      vp.terminalPaths.map((tp: any, z: number) => {
+        arrPath.push(
+          <tr key={z}>
+            <td style={{fontSize:"small"}}>From: </td><td style={{fontSize:"small"}}>{this._lookupTerminalNameById(tp.fromTerminalId)}</td>
+            <td style={{fontSize:"small"}}>To: </td><td style={{fontSize:"small"}}>{this._lookupTerminalNameById(tp.toTerminalId)}</td>
+          </tr>
+        );
+      });
 
+      arrList.push(
+        <tr key={i}>
+          <td style={{fontSize:"small"}}>{vp.name}{(this._lookupDefaultPath(vp.name))?" (Default)":""}</td>
+          <td style={{fontSize:"small"}}>{vp.description}</td>
+          <td style={{fontSize:"small"}}>
+            <table>{arrPath}</table>
+          </td>
+        </tr>
+      );
+    });
+    let tableObj = <Table hover>
+    <thead>
+    <tr>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Paths</th>
+    </tr>
+    </thead>
+    <tbody>
+      {arrList}
+    </tbody>
+    </Table>
+    return tableObj;
+  }
+  //*** SUPPORT FUNCTIONS *****/
+  _lookupTerminalNameById =(id: number) => {
+    let name = [];
+    name = this.state.nodeData.terminals.filter((t: any, i: number) => {
+      return (t.terminalId === id);
+    });
+    if(name.length > 0) {
+      return name[0].terminalName;
+    } else {
+      return id;
+    }
+  }
+
+  _lookupDefaultPath =(name: string) => {
+    let isDefault = false;
+    if(this.state.nodeData.defaultConfiguration === name) {
+      isDefault = true;
+    }
+    return isDefault;
+  }
+
+  _compare =(prop: any) => {
+    return function(a: any, b: any) {
+      let comparison = 0;
+      if (a[prop] > b[prop]) {
+        comparison = 1;
+      } else if (a[prop] < b[prop]) {
+        comparison = -1;
+      }
+      return comparison;
+    }
+  }
 
 }

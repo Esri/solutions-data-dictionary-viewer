@@ -16,8 +16,10 @@ interface IProps {
   key:any,
   data: any,
   domains: any,
+  cacheData: any,
   requestURL: string,
   panel:number,
+  config: any,
   callbackClose: any,
   callbackSave: any,
   callbackLinkage:any,
@@ -40,6 +42,7 @@ interface IState {
   fieldHolder: any,
   validFields: any,
   validFieldsChecker: any,
+  assetTypeDesc: any,
   expandFields: boolean,
   expandCAV: boolean,
   expandAR: boolean,
@@ -62,6 +65,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       fieldHolder: [],
       validFields: [],
       validFieldsChecker: [],
+      assetTypeDesc: [],
       expandFields: false,
       expandCAV: false,
       expandAR: false,
@@ -96,7 +100,9 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       let matchFieldList = tempFieldList;
       if(this.state.validFieldsChecker.length > 0) {
         matchFieldList = tempFieldList.filter((tf:any) => {
-          return(this.state.validFieldsChecker.indexOf(tf.fieldName) > -1)
+          return this.state.validFieldsChecker.some((f: any) => {
+            return(tf.fieldName === f.fieldName);
+          });
         });
         matchFieldList.map((fi: any, i: number)=>{
           if(fi.domainName !== "") {
@@ -140,7 +146,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal"}}>
-          <div><h5>{this.props.data.type} Properties</h5></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subtypeName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Code: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subtypeCode}</span></div>
           <div style={{paddingTop:5, paddingBottom:5, width:"100%", wordWrap: "break-word", whiteSpace: "normal"}}>Description: <span style={{fontWeight:"bold"}}>{this.state.description}</span></div>
@@ -200,6 +206,18 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -337,7 +355,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
 
   _createAssetTypeTable =() => {
       let _createATList =() => {
-        let desc = this._retrieveATDesc();
+        let desc = this.state.assetTypeDesc;
         let arrList = [];
         let filterAT = this.state.nodeData.fieldInfos.filter((at: any, i: number)=>{
           return(at.fieldName.toLowerCase() === "assettype");
@@ -388,15 +406,16 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         let domainTable = this._createDomainExpand(fi.domainName);
         let fieldDetailsTable = this._createFieldsExpand(fi.fieldName);
         let domain = this._matchDomain(fi.domainName);
-        let fieldAlias = this._matchField(fi.fieldName);
+        let fieldObj = this._matchField(fi.fieldName);
         let defaultVal = fi.defaultValue;
         let fieldName = fi.fieldName;
         usedFields.push(fieldName);
-        if(fieldAlias.length > 0) {
-          let alias = fieldAlias[0].aliasName;
-          if(alias.indexOf(":") > -1) {
-            //alias = alias.substring(0,alias.indexOf(":"));
-            alias = this._handleAliasBrackets(alias, fi.fieldName);
+        if(fieldObj.length > 0) {
+          let alias = fieldObj[0].aliasName;
+          //check metadata for specific alias
+          let aliasFromMetadata = this._matchFieldAliasInMetadata(fieldName);
+          if(aliasFromMetadata !== "") {
+            alias = aliasFromMetadata;
           }
           fieldName = <span><div style={{textAlign: "left"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {alias}</div><div style={{textAlign: "left"}}>{"("+fi.fieldName+")"}</div></span>;
         }
@@ -561,7 +580,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       filterAR.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"AttributeRule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
+            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>
@@ -575,16 +594,24 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
   //****** helper functions and request functions
   //********************************************
   _requestMetadata = async() => {
-    let url = this.props.requestURL + "/" + this.props.data.parentId + "/metadata";
-    await fetch(url, {
-      method: 'GET'
-    })
-    .then((response) => {return response.text()})
-    .then((data) => {
+    if(this.props.config.useCache) {
+      let data  = this.props.cacheData.metadata[this.props.data.parentId];
       let parser = new DOMParser();
       let xmlDoc = parser.parseFromString(data,"text/xml");
       this.setState({metadataElements: xmlDoc});
-    });
+    } else {
+      let url = this.props.requestURL + "/" + this.props.data.parentId + "/metadata";
+      await fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.text()})
+      .then((data) => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      });
+    }
+
   }
 
   _requestObject = async(clause: string, category: string) => {
@@ -608,76 +635,59 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
   _processMetaData =() => {
     let description= "";
     let fieldFilter = [];
+    let ATDesc = [];
     let metadata = this.state.metadataElements;
     let metaLevel = metadata.getElementsByTagName("metadata");
-    let fieldLevel = metaLevel[0].getElementsByTagName("eainfo");
-    if(fieldLevel.length > 0) {
-      let attrLevel = fieldLevel[0].getElementsByTagName("attr");
-      if(attrLevel.length > 0) {
-        for (let i=0; i < attrLevel.length; i++) {
-          if(attrLevel[i].getElementsByTagName("attrlabl")[0].innerHTML === "assetgroup") {
-            let attrDomv = attrLevel[i].getElementsByTagName("attrdomv");
-            for (let a=0; a < attrDomv.length; a++) {
-              let edom = attrDomv[a].getElementsByTagName("edom");
-              let udom = attrDomv[a].getElementsByTagName("udom");
-              if(edom.length > 0) {
-                for (let b=0; b < edom.length; b++) {
-                  if(parseInt(edom[b].getElementsByTagName("edomv")[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
-                    description = edom[b].getElementsByTagName("edomvds")[0].innerHTML;
-                  }
-                }
+    let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
+    if(eaInfoLevel.length > 0) {
+      let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
+      if(detailedLevel.length > 0) {
+        for (let i=0; i < detailedLevel.length; i++) {
+          let subTypeCodeLevel = detailedLevel[i].getElementsByTagName("enttypdv");
+          if(subTypeCodeLevel.length > 0) {
+            //loop thorugh details and get code node and see if it's the current code card is on.
+            if(parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
+              //this tag stores the descriptions
+              let subTypeDescLevel = detailedLevel[i].getElementsByTagName("enttypd");
+              if(subTypeDescLevel.length > 0) {
+                description = subTypeDescLevel[0].innerHTML;
               }
-              if(udom.length > 0) {
-                let fieldText = udom[0].innerHTML;
-                let textArray = fieldText.split(";");
-                textArray.map((t:any)=> {
-                  let stList = t.split(":");
-                  if(parseInt(stList[0]) === parseInt(this.state.nodeData.subtypeCode)) {
-                    fieldFilter = stList[1].split(",");
-                  }
-                })
-              }
-            }
-          }
-        }
-      }
-    }
-    this.setState({description:description, validFieldsChecker:fieldFilter});
-  }
-
-  _retrieveATDesc =() => {
-    let description = [];
-    if(this.state.metadataElements !== null){
-      let metadata = this.state.metadataElements;
-      let metaLevel = metadata.getElementsByTagName("metadata");
-      let fieldLevel = metaLevel[0].getElementsByTagName("eainfo");
-      if(fieldLevel.length > 0) {
-        let attrLevel = fieldLevel[0].getElementsByTagName("attr");
-        if(attrLevel.length > 0) {
-          for (let i=0; i < attrLevel.length; i++) {
-            if(attrLevel[i].getElementsByTagName("attrlabl")[0].innerHTML === "assettype") {
-              let attrDomv = attrLevel[i].getElementsByTagName("attrdomv");
-              for (let a=0; a < attrDomv.length; a++) {
-                let edom = attrDomv[a].getElementsByTagName("edom");
-                if(edom.length > 0) {
-                  for (let b=0; b < edom.length; b++) {
-                    if(parseInt(edom[b].getElementsByTagName("edomvds")[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
-                      let desc = edom[b].getElementsByTagName("edomvd")[0].innerHTML;
-                      let code = edom[b].getElementsByTagName("edomv")[0].innerHTML;
-                      description.push({
-                        description: desc,
-                        code: code
-                      });
+              //now add only fields that pertain to this subtype
+              let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+              if(attrLevel.length > 0) {
+                for (let z=0; z < attrLevel.length; z++) {
+                  let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
+                  let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
+                  if(fieldName.length > 0) {
+                    fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
+                    if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
+                      //get AT descriptions
+                      let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
+                      if(attrdomvLevel.length > 0) {
+                        let edomLevel = attrdomvLevel[0].getElementsByTagName("edom");
+                        if(edomLevel.length > 0) {
+                          for (let e=0; e < edomLevel.length; e++) {
+                            let edomvLevel = edomLevel[e].getElementsByTagName("edomv");
+                            let edomvddLevel = edomLevel[e].getElementsByTagName("edomvdd");
+                            //where AT desc is stored
+                            if(edomvddLevel.length > 0) {
+                              ATDesc.push({code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML})
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
+
             }
           }
         }
       }
+
     }
-    return description;
+    this.setState({description:description, validFieldsChecker:fieldFilter, assetTypeDesc: ATDesc});
   }
 
   _compare =(prop: any) => {
@@ -721,23 +731,15 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
     return fieldVal;
   }
 
-  _handleAliasBrackets =(alias: string, name: string) => {
-    let clean = alias;
-    let code = this.state.nodeData.subtypeCode;
-    clean = clean.replace(/],/g,"],<br>");
-    let pieces = clean.split(",<br>");
-    let validList = [", "+code+" ", code+",", code+" ", code+"]", ", "+code+",", ];
-    let filter = pieces.filter((p: any) => {
-      return validList.some((v:string) => {
-        return (p.indexOf(v) > -1);
-      });
+  _matchFieldAliasInMetadata =(lookup: string) => {
+    let fieldAlias = "";
+    let fieldFiltered = this.state.validFieldsChecker.filter((f:any)=> {
+      return(f.fieldName === lookup);
     });
-    if(filter.length > 0) {
-      clean = filter[0];
-    } else {
-      clean = name;
+    if(fieldFiltered.length > 0) {
+      fieldAlias = fieldFiltered[0].fieldAlias;
     }
-    return clean;
+    return fieldAlias;
   }
 
 }

@@ -64,7 +64,7 @@ export default class FieldsCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
           <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
           <Table hover>
                 <thead>
@@ -84,6 +84,18 @@ export default class FieldsCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -146,7 +158,7 @@ export default class FieldsCard extends React.Component <IProps, IState> {
             <td style={{fontSize:"small"}}>
             <div onClick={()=>{this.props.callbackLinkage(f.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
-            <td style={{fontSize:"small", wordWrap: "break-word"}}>{f.aliasName}</td>
+            <td style={{fontSize:"small", wordWrap: "break-word"}}>{(f.hasOwnProperty("aliasName"))?f.aliasName:f.alias}</td>
             <td style={{fontSize:"small"}}>{f.type}</td>
           </tr>
         );

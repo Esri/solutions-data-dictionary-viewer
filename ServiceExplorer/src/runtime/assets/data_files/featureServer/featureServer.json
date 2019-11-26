@@ -1,0 +1,313 @@
+{
+  "currentVersion": 10.71,
+  "cimVersion": "2.4.0",
+  "serviceDescription": "<div style='text-align:Left;'><div><div style='font-size:12pt'><p><span>This service has been designed to support the advance capabilities of the ArcGIS Utility Network Management extension.</span></p></div></div></div>",
+  "hasVersionedData": true,
+  "hasArchivedData": true,
+  "supportsDisconnectedEditing": false,
+  "supportsReturnServiceEditsOption": true,
+  "returnServiceEditsHaveSR": true,
+  "supportsQueryDataElements": true,
+  "supportsRelationshipsResource": true,
+  "syncEnabled": false,
+  "extractChangesCapabilities": {
+  "supportsReturnIdsOnly": true,
+  "supportsReturnExtentOnly": false,
+  "supportsReturnAttachments": false,
+  "supportsLayerQueries": false,
+  "supportsGeometry": false,
+  "supportsFeatureReturn": false
+  },
+  "supportedQueryFormats": "JSON",
+  "maxRecordCount": 2000,
+  "maxRecordCountFactor": 1,
+  "capabilities": "Query,Create,Update,Delete,Uploads,Editing",
+  "description": "",
+  "copyrightText": "Esri., Inc.",
+  "advancedEditingCapabilities": {
+  "supportsSplit": true
+  },
+  "spatialReference": {
+  "wkt": "PROJCS[\"NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",984250.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-88.33333333333333],PARAMETER[\"Scale_Factor\",0.999975],PARAMETER[\"Latitude_Of_Origin\",36.66666666666666],UNIT[\"Foot_US\",0.3048006096012192]],VERTCS[\"NAVD88_height_(ftUS)\",VDATUM[\"North_American_Vertical_Datum_1988\"],PARAMETER[\"Vertical_Shift\",0.0],PARAMETER[\"Direction\",1.0],UNIT[\"Foot_US\",0.3048006096012192]]",
+  "xyTolerance": 0.003280833333333333,
+  "zTolerance": 0.003280833333333333,
+  "mTolerance": 0.001,
+  "falseX": -17463800,
+  "falseY": -46132600,
+  "xyUnits": 3048.0060960121928,
+  "falseZ": -100000,
+  "zUnits": 3048.0060960121923,
+  "falseM": -100000,
+  "mUnits": 10000
+  },
+  "initialExtent": {
+  "xmin": 993829.8538521574,
+  "ymin": 1805578.7832114892,
+  "xmax": 1069493.340006533,
+  "ymax": 1920031.7780905766,
+  "spatialReference": {
+  "wkt": "PROJCS[\"NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",984250.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-88.33333333333333],PARAMETER[\"Scale_Factor\",0.999975],PARAMETER[\"Latitude_Of_Origin\",36.66666666666666],UNIT[\"Foot_US\",0.3048006096012192]],VERTCS[\"NAVD88_height_(ftUS)\",VDATUM[\"North_American_Vertical_Datum_1988\"],PARAMETER[\"Vertical_Shift\",0.0],PARAMETER[\"Direction\",1.0],UNIT[\"Foot_US\",0.3048006096012192]]",
+  "xyTolerance": 0.003280833333333333,
+  "zTolerance": 0.003280833333333333,
+  "mTolerance": 0.001,
+  "falseX": -17463800,
+  "falseY": -46132600,
+  "xyUnits": 3048.0060960121928,
+  "falseZ": -100000,
+  "zUnits": 3048.0060960121923,
+  "falseM": -100000,
+  "mUnits": 10000
+  }
+  },
+  "fullExtent": {
+  "xmin": -17463455.5506689,
+  "ymin": -46132232.73347634,
+  "xmax": 19431955.5506689,
+  "ymax": 19495685.092346754,
+  "spatialReference": {
+  "wkt": "PROJCS[\"NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",984250.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-88.33333333333333],PARAMETER[\"Scale_Factor\",0.999975],PARAMETER[\"Latitude_Of_Origin\",36.66666666666666],UNIT[\"Foot_US\",0.3048006096012192]],VERTCS[\"NAVD88_height_(ftUS)\",VDATUM[\"North_American_Vertical_Datum_1988\"],PARAMETER[\"Vertical_Shift\",0.0],PARAMETER[\"Direction\",1.0],UNIT[\"Foot_US\",0.3048006096012192]]",
+  "xyTolerance": 0.003280833333333333,
+  "zTolerance": 0.003280833333333333,
+  "mTolerance": 0.001,
+  "falseX": -17463800,
+  "falseY": -46132600,
+  "xyUnits": 3048.0060960121928,
+  "falseZ": -100000,
+  "zUnits": 3048.0060960121923,
+  "falseM": -100000,
+  "mUnits": 10000
+  }
+  },
+  "allowGeometryUpdates": true,
+  "allowTrueCurvesUpdates": true,
+  "onlyAllowTrueCurveUpdatesByTrueCurveClients": true,
+  "supportsApplyEditsWithGlobalIds": true,
+  "supportsOidReservation": true,
+  "supportsTrueCurve": true,
+  "units": "esriFeet",
+  "documentInfo": {
+  "Title": "Water Distribution Utility Network",
+  "Author": "",
+  "Comments": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV STYLE=\"font-size:12pt\"><P><SPAN>This service has been designed to support the advance capabilities of the ArcGIS Utility Network Management extension.</SPAN></P></DIV></DIV></DIV>",
+  "Subject": "This service is used for clients that support the ArcGIS Utility Network Management extension.",
+  "Category": "",
+  "Keywords": "Water Distribution,ArcGIS Solutions,Utility Network"
+  },
+  "supportsQueryDomains": true,
+  "supportsQueryContingentValues": true,
+  "layers": [
+  {
+  "id": 501,
+  "name": "Water Device",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPoint"
+  },
+  {
+  "id": 505,
+  "name": "Water Assembly",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPoint"
+  },
+  {
+  "id": 510,
+  "name": "Water Junction",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPoint"
+  },
+  {
+  "id": 515,
+  "name": "Water Line",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolyline"
+  },
+  {
+  "id": 520,
+  "name": "Water SubnetLine",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolyline"
+  },
+  {
+  "id": 900,
+  "name": "Structure Junction",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPoint"
+  },
+  {
+  "id": 905,
+  "name": "Structure Line",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolyline"
+  },
+  {
+  "id": 910,
+  "name": "Structure Boundary",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolygon"
+  },
+  {
+  "id": 920,
+  "name": "Service Territory",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolygon"
+  },
+  {
+  "id": 950,
+  "name": "Water Utility Network",
+  "parentLayerId": -1,
+  "defaultVisibility": true,
+  "subLayerIds": [
+  955,
+  960,
+  965,
+  970
+  ],
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Utility Network Layer"
+  },
+  {
+  "id": 955,
+  "name": "Point Errors",
+  "parentLayerId": 950,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPoint"
+  },
+  {
+  "id": 960,
+  "name": "Line Errors",
+  "parentLayerId": 950,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolyline"
+  },
+  {
+  "id": 965,
+  "name": "Polygon Errors",
+  "parentLayerId": 950,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolygon"
+  },
+  {
+  "id": 970,
+  "name": "Dirty Areas",
+  "parentLayerId": 950,
+  "defaultVisibility": true,
+  "subLayerIds": null,
+  "minScale": 0,
+  "maxScale": 0,
+  "type": "Feature Layer",
+  "geometryType": "esriGeometryPolygon"
+  }
+  ],
+  "tables": [
+  {
+  "id": 5500,
+  "name": "Valve Inspection"
+  },
+  {
+  "id": 5501,
+  "name": "Hydrant Maintenance Inspection"
+  }
+  ],
+  "relationships": [
+  {
+  "id": 0,
+  "name": "Device_ControllableValve_To_Inspection"
+  },
+  {
+  "id": 1,
+  "name": "Device_Hydrant_To_Inspection"
+  }
+  ],
+  "controllerDatasetLayers": {
+  "utilityNetworkLayerId": 950
+  },
+  "supportsDynamicLayers": true,
+  "enableZDefaults": true,
+  "zDefault": 0,
+  "allowUpdateWithoutMValues": true,
+  "heightModelInfo": {
+  "heightModel": "gravity_related_height",
+  "vertCRS": "NAVD88_height_(ftUS)",
+  "heightUnit": "us-foot"
+  },
+  "supportsVCSProjection": true,
+  "datumTransformations": [
+  {
+  "geoTransforms": [
+  {
+  "wkid": 1580,
+  "latestWkid": 1580,
+  "transformForward": true,
+  "name": "NAD_1983_HARN_To_WGS_1984"
+  }
+  ]
+  },
+  {
+  "geoTransforms": [
+  {
+  "wkid": 1580,
+  "latestWkid": 1580,
+  "transformForward": false,
+  "name": "NAD_1983_HARN_To_WGS_1984"
+  }
+  ]
+  }
+  ]
+  }

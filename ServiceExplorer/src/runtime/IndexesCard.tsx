@@ -65,7 +65,7 @@ export default class IndexesCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
           <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
           <Table hover>
                 <thead>
@@ -86,6 +86,18 @@ export default class IndexesCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -144,9 +156,16 @@ export default class IndexesCard extends React.Component <IProps, IState> {
     let arrList = [];
       this.props.data.data.map((f: any, i: number) => {
         let fieldList = [];
-        f.fields.fieldArray.map((a: any, z: number) => {
+        let arrFields;
+        if(f.fields.hasOwnProperty("fieldArray")) {
+          arrFields = f.fields.fieldArray;
+        } else {
+          arrFields = f.fields.split(",");
+        }
+        arrFields.map((a: any, z: number) => {
+          let value = (a.hasOwnProperty("name"))?a.name:a;
           fieldList.push(
-            <div key={z} onClick={()=>{this.props.callbackLinkage(a.name,"Field", this.props.panel)}} style={{verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {a.name} </div>
+            <div key={z} onClick={()=>{this.props.callbackLinkage(value,"Field", this.props.panel)}} style={{verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {value} </div>
           );
         });
         arrList.push(

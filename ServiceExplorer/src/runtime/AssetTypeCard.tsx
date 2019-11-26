@@ -17,6 +17,7 @@ interface IProps {
   requestURL: string,
   key: any,
   panel:number,
+  config: any,
   callbackClose: any,
   callbackSave: any,
   callbackLinkage:any,
@@ -85,10 +86,10 @@ export default class TableCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Code: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeCode}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRules();}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Rules:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRules();}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Rules</div>
           <Collapse isOpen={this.state.expandRules}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover width={"100%"}>
@@ -110,6 +111,18 @@ export default class TableCard extends React.Component <IProps, IState> {
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -275,19 +288,25 @@ export default class TableCard extends React.Component <IProps, IState> {
       }
     });
     if(rulesTable.length > 0) {
-      let whereClause = "(fromassettype = " + this.state.nodeData.assetTypeCode + " AND fromassetgroup = " + this.props.data.subtypeCode;
-      if((sourceId.length > 0)) {
-        whereClause = whereClause + " AND fromnetworksourceid = " + sourceId[0].sourceId;
-      }
-      whereClause = whereClause + ") OR ";
-      whereClause = whereClause + "(toassettype = " + this.state.nodeData.assetTypeCode + " AND toassetgroup = " + this.props.data.subtypeCode;
-      if((sourceId.length > 0)) {
-        whereClause = whereClause + " AND tonetworksourceid = " + sourceId[0].sourceId;
-      }
-      whereClause = whereClause + ")";
-      console.log(whereClause);
-      let URL = this.props.requestURL + "/" + rulesTable[0].dataElement.layerId + "/query?where="+whereClause+"&f=pjson";
-      await fetch(URL, {
+      let url = this.props.requestURL + "/" + rulesTable[0].dataElement.layerId + "/query?where="+whereClause+"&f=pjson";
+      //if(this.props.config.useCache) {
+      //  url = this.props.config.cachePath + "/connectivityRules/" + rulesTable[0].dataElement.layerId + ".json";
+      //} else {
+        let whereClause = "(fromassettype = " + this.state.nodeData.assetTypeCode + " AND fromassetgroup = " + this.props.data.subtypeCode;
+        if((sourceId.length > 0)) {
+          whereClause = whereClause + " AND fromnetworksourceid = " + sourceId[0].sourceId;
+        }
+        whereClause = whereClause + ") OR ";
+        whereClause = whereClause + "(toassettype = " + this.state.nodeData.assetTypeCode + " AND toassetgroup = " + this.props.data.subtypeCode;
+        if((sourceId.length > 0)) {
+          whereClause = whereClause + " AND tonetworksourceid = " + sourceId[0].sourceId;
+        }
+        whereClause = whereClause + ")";
+        url = this.props.requestURL + "/" + rulesTable[0].dataElement.layerId + "/query?where="+whereClause+"&f=pjson";
+      //}
+
+      console.log(url);
+      await fetch(url, {
         method: 'GET'
       })
       .then((response) => {return response.json()})

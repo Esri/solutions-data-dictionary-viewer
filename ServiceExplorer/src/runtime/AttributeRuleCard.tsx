@@ -65,7 +65,7 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{this.state.nodeData.description}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>This rule works on: <span style={{fontWeight:"bold"}}>{this._matchCodeToDesc(this.state.nodeData.subtypeCode)}</span></div>
@@ -81,6 +81,17 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
         </TabPane>
       </TabContent>
     </div>);
+  }
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions

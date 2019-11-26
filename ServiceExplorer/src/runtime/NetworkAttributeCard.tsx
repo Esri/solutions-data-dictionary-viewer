@@ -69,9 +69,9 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
-    <div style={{paddingTop:5, paddingBottom:5}}>Inline Domain Name: {(this.state.nodeData.domainName !== "") ? <span  onClick={()=>{this.props.callbackLinkage(this.state.nodeData.domainName, "Domain", this.props.panel)}} style={{fontWeight:"bold"}}><Icon icon={linkIcon} size='12' color='#333' /> {this.state.nodeData.domainName}</span>:<span> </span>}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Inline Domain Name: {(this.state.nodeData.domainName !== "") ? <span  onClick={()=>{this.props.callbackLinkage(this.state.nodeData.domainName, "Domain", this.props.panel)}} style={{fontWeight:"bold"}}><Icon icon={linkIcon} size='12' color='#333' /> {this.state.nodeData.domainName}</span>:<span> </span>}</div>
           <div style={{paddingTop:5, paddingBottom:5}}>Data Type: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataType}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleAssignment()}}>{(this.state.expandAssignment)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Assignment:</div>
           <Collapse isOpen={this.state.expandAssignment}>
@@ -85,6 +85,18 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
         </TabPane>
       </TabContent>
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
