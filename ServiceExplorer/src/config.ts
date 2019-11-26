@@ -6,6 +6,7 @@ export interface Config{
   allowUrlLookup: boolean;
   useCache: boolean;
   cachePath: string;
+  cacheId: string;
 }
 
 export type IMConfig = ImmutableObject<Config>;
