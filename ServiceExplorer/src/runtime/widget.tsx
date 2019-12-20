@@ -1,8 +1,8 @@
 /** @jsx jsx */
-import {BaseWidget, React, ReactDOM, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage, loadArcGISJSAPIModules} from 'jimu-core';
+import {BaseWidget, React, ReactDOM, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
+import {loadArcGISJSAPIModules} from 'jimu-arcgis';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Image, ButtonDropdown, Popover, PopoverHeader, PopoverBody, Icon, Input,
   Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Alert } from 'jimu-ui';
 import defaultMessages from './translations/default';
@@ -69,6 +69,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       metadataElements: null,
       serviceNodes: [],
       showTree: true,
+      treeReady:false,
       showActiveOptions: "block",
       contentStartLocation: 400,
       popoverOpen: false,
@@ -134,7 +135,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               this._requestObject("relationships", -1).then(() => {
                 this._requestObject("queryDomains", -1).then(() => {
                   this._processData();
-                  ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
+                  this.setState({treeReady:true});
+     // ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
                   this._checkCookie();
                   this._parseStartUpURL();
                 });
@@ -149,7 +151,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           this._requestObject("relationships", -1).then(() => {
             this._requestObject("queryDomains", -1).then(() => {
               this._processData();
-              ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
+              this.setState({treeReady:true});
               this._checkCookie();
               this._parseStartUpURL();
             });
@@ -165,10 +167,24 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
   render(){
 
-    return <div className="widget-demo" style={{top:0, height:this.state.winHeight}}>
+/*
+        <Button id="popoverSearch" type="secondary" onClick={this.toggleSearch}>
+          <Icon icon={searchIcon} size='16' color='#333' />
+        </Button>
+        <Popover placement="left" isOpen={this.state.popoverSearch} target="popoverSearch">
+          <PopoverHeader>Search Active Cards</PopoverHeader>
+          <PopoverBody>
+            <Input placeholder="Search Active Cards" ref="activeSearchValue" onChange={(e)=>{this.searchService(e.target.value, "active")}}></Input>
+          </PopoverBody>
+        </Popover>
+        <br></br>
+*/
+
+
+    return <div className="widget-demo" style={{top:0, height:this.state.winHeight, backgroundColor:"#fff"}}>
       <div>
         <Collapse isOpen={this.state.showTree}>
-          <div id="serviceExplorerTree" style={{width: 400, height:this.state.winHeight-10, overflow: "auto", position: "fixed"}}></div>
+        {this.state.treeReady && <ServiceExplorerTree width={400} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />}
         </Collapse>
       </div>
       <div id="serviceExplorerStage" style={{top:0, height:this.state.winHeight -5, left:this.state.contentStartLocation, position: "absolute", overflowX:"auto", overflowY:"auto", whiteSpace: "nowrap"}}>
@@ -181,37 +197,31 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           </div>
         }
       </div>
-      <div id="serviceExplorerSidebar" style={{top:0, left: 0, position: "fixed", textAlign: "right", display:this.state.showActiveOptions}}>
-        <Button id="PopoverTree" color="info" type="button" onClick={this.toggleTree}>
-          <Icon icon={treeIcon} size='16' color='#333' />
+      <div id="serviceExplorerSidebar" style={{top:0, left: 0, position: "relative", width:"60px", textAlign: "left", display:this.state.showActiveOptions}}>
+        <Button id="PopoverTree" type="secondary" onClick={this.toggleTree}>
+          <Icon icon={treeIcon} size='17' color='#00f' />
         </Button>
         <br></br>
-        <Button id="addPanel" color="dark" type="button" onClick={this.togglePanel2}>
-          <Icon icon={panelIcon} size='16' color='#fff' />
+        <Button id="addPanel" type="secondary" onClick={this.togglePanel2}>
+          <Icon icon={panelIcon} size='16' color='#333' />
         </Button>
         <br></br>
-        <Button id="popoverSearch" color="success" type="button" onClick={this.toggleSearch}>
-          <Icon icon={searchIcon} size='16' color='#333' />
+        <Button id="popoverDelete" type="secondary" onClick={this.deleteAllActiveAsk}>
+          <Icon icon={deleteIcon} size='16' color='#f00' />
         </Button>
-        <Popover placement="left" isOpen={this.state.popoverSearch} target="popoverSearch">
-          <PopoverHeader>Search Active Cards</PopoverHeader>
+        <br></br>
+        <Button id="PopoverClick" type="secondary" onClick={this.toggleHistory}>
+          <Icon icon={heartIcon} size='16' color='#FFA500' />
+        </Button>
+        <Popover innerClassName="popOverBG" placement="right" isOpen={this.state.popoverOpen} target="PopoverClick">
+          <PopoverHeader><div className="leftRightPadder5" style={{float:"left"}}>Favorites</div><div className="leftRightPadder5" style={{float:"right"}} onClick={this.deleteAllFavoritesAsk}><Icon icon={deleteIcon} size='18' color='#333' /></div></PopoverHeader>
           <PopoverBody>
-            <Input placeholder="Search Active Cards" ref="activeSearchValue" onChange={(e)=>{this.searchService(e.target.value, "active")}}></Input>
-          </PopoverBody>
-        </Popover>
-        <br></br>
-        <Button id="popoverDelete" color="danger" type="button" onClick={this.deleteAllActiveAsk}>
-          <Icon icon={deleteIcon} size='16' color='#333' />
-        </Button>
-        <br></br>
-        <Button id="PopoverClick" color="warning" type="button" onClick={this.toggleHistory}>
-          <Icon icon={heartIcon} size='16' color='#333' />
-        </Button>
-        <Popover placement="left" isOpen={this.state.popoverOpen} target="PopoverClick">
-          <PopoverHeader><div style={{float:"left"}}>Favorites</div><div style={{float:"right"}} onClick={this.deleteAllFavoritesAsk}><Icon icon={deleteIcon} size='18' color='#333' /></div></PopoverHeader>
-          <PopoverBody>
-          <Input placeholder="Search favorites" ref="favoritesSearchValue" onChange={(e)=>{this.searchService(e.target.value, "favorites")}}></Input>
-          {this.state.favoriteCards}
+            <div className="leftRightPadder5">
+              <Input placeholder="Search favorites" ref="favoritesSearchValue" onChange={(e)=>{this.searchService(e.target.value, "favorites")}}></Input>
+              <div style={{paddingBottom:"5px"}}></div>
+              {this.state.favoriteCards}
+            </div>
+            <div style={{paddingBottom:"10px"}}></div>
           </PopoverBody>
         </Popover>
       </div>
@@ -220,11 +230,11 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           Are you sure you want to clear all?
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" onClick={this.deleteAllYes}>Yes</Button>{' '}
+          <Button type="danger" onClick={this.deleteAllYes}>Yes</Button>{' '}
           <Button color="secondary" onClick={this.deleteAllNo}>No</Button>
         </ModalFooter>
       </Modal>
-      <div style={{width:225, position: "fixed", top: 145, left:0}}>
+      <div style={{width:225, position: "relative", top: 0, left:0}}>
         <Alert color="warning" isOpen={this.state.favoriteAlert} toggle={()=> {this.setState({favoriteAlert:false})}}>
           <div style={{width:"100%", height:"100%", fontWeight:"bold", fontSize:"smaller"}}>
             Added to favorites.
@@ -1490,7 +1500,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       return(fc.key === (dataNode.id).toString());
     });
     if(filterFC.length <= 0) {
-      favoriteCard.push(<MinimizedCard key={dataNode.id} data={dataNode} width={250} height={50} callbackRestore={this._callbackRestoreChild} callbackDelete={this._callbackDeleteFavorite} />);
+      favoriteCard.push(<MinimizedCard key={dataNode.id} data={dataNode} width={250} height={35} callbackRestore={this._callbackRestoreChild} callbackDelete={this._callbackDeleteFavorite} />);
       this.setState({favoriteCards: favoriteCard, masterFavoriteCards: favoriteCard}, ()=> {
         //save into cookie
         let cookieList = [];
@@ -1773,8 +1783,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     }
   }
 
-  searchLaunchCard = (value: string, type: string, panel:number, parent:string) => {
+  searchLaunchCard = (value: string, type: string, panel:number, parent?:string, parentSub?:string) => {
     let matchNode = null;
+    let parentNodes = [];
     if(value !== "") {
       let serviceNodes = [...this.state.serviceNodes];
       let hasSubNodes =(node: any) => {
@@ -1782,8 +1793,17 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           if(node.hasOwnProperty("parent")) {
             if(typeof(parent) !== "undefined") {
               if(node.parent === parent) {
-                if(node.text === value) {
-                  matchNode = node;
+                //see if there is another level of parent to search for example if "unknown" asset type is passed
+                if(typeof(parentSub) !== "undefined") {
+                  node.crumb.map((c: any) => {
+                    if(c.value === parentSub) {
+                      matchNode = node;
+                    }
+                  });
+                } else {
+                  if(node.text === value) {
+                    matchNode = node;
+                  }
                 }
               }
             } else {
@@ -1806,13 +1826,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     serviceNodes.map((sn: any) => {
       hasSubNodes(sn);
     });
-    }
 
     if(matchNode !== null) {
       this._createCardHolder(matchNode, type, panel);
     } else {
       alert("Sorry, no card found");
     }
+  }
+
   }
 
 

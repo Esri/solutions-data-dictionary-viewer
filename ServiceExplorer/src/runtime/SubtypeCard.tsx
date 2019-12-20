@@ -371,7 +371,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                   });
                   arrList.push(
                     <tr key={i}>
-                      <td style={{fontSize:"small"}}>{d.name}</td>
+                      <td style={{fontSize:"small"}} onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}>{d.name}</td>
                       <td style={{fontSize:"small"}}>{d.code}</td>
                       <td style={{fontSize:"small", wordWrap: "break-word"}}>{(filtered.length > 0)?filtered[0].description:""}</td>
                     </tr>
@@ -436,7 +436,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           //keep whatever value it is.
         }
         arrList.push(<tr key={i}><td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-        <div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
+        <div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
         <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
           this.toggleFields(fi.fieldName);
         }}>{fieldName}
@@ -580,7 +580,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       filterAR.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
+            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>

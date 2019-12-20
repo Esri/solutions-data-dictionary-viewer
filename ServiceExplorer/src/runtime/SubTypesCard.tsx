@@ -155,7 +155,7 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.data.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.data.subtypeName,"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
             </td>
             <td style={{fontSize:"small"}}>{ar.data.subtypeCode}</td>
           </tr>

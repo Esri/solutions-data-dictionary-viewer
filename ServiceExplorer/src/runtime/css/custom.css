@@ -113,3 +113,13 @@ table {
   display: inline-block;
   padding-bottom: 5px;
 }
+
+.popOverBG {
+  background-color: #fff;
+  border: 2px solid #cfdbe7;
+}
+
+.leftRightPadder5 {
+  padding-left: 5px;
+  padding-right: 5px;
+}

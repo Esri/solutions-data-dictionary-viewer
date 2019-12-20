@@ -1,8 +1,8 @@
 /** @jsx jsx */
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
-
-import { Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, Tooltip} from 'jimu-ui';
+import './css/custom.css';
+import { Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, Tooltip, DropdownMenu } from 'jimu-ui';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
 let closeIcon = require('jimu-ui/lib/icons/close.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
@@ -72,6 +72,13 @@ export default class CardHeader extends React.Component <IProps, IState> {
     let upValid =() =>{return this.props.slotInPanel() > 0};
     let isFavorite =() =>{return this.props.isFavorite()};
 
+/*
+              {(this.props.showProperties) && <Badge color={this.state.propertyBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Properties')); }}><Icon icon={pageIcon} size='16' color='#fff' /></Badge>}
+              {(this.props.showStatistics) && <Badge color={this.state.statsBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Statistics')); }}><Icon icon={chartIcon} size='16' color='#fff' /></Badge>}
+              {(this.props.showResources) && <Badge color={this.state.diagramsBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Diagrams')); }}><Icon icon={resourceIcon} size='16' color='#fff' /></Badge>}
+              <Badge><span style={{color:"#000"}}>|</span></Badge>
+*/
+
     return (
     <div style={{width:"100%", float:"left", display:"inline-block"}}>
       <Navbar color="dark" expand="md">
@@ -79,38 +86,35 @@ export default class CardHeader extends React.Component <IProps, IState> {
         <Nav className="ml-auto"  tabs>
           <NavItem>
             <NavLink>
-              {(this.props.showProperties) && <Badge color={this.state.propertyBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Properties')); }}><Icon icon={pageIcon} size='16' color='#fff' /></Badge>}
-              {(this.props.showStatistics) && <Badge color={this.state.statsBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Statistics')); }}><Icon icon={chartIcon} size='16' color='#fff' /></Badge>}
-              {(this.props.showResources) && <Badge color={this.state.diagramsBadge} onClick={() => { this.props.onTabSwitch(this.toggleTabs('Diagrams')); }}><Icon icon={resourceIcon} size='16' color='#fff' /></Badge>}
-              <Badge color="dark"><span style={{color:"#000"}}>|</span></Badge>
-              <Badge color="dark" style={{verticalAlign:"bottom"}}>
-                <Icon icon={moveIcon} size='16' color='#fff' id={this.props.id} onClick={this.toggleToolTip}/>
-                <Icon icon={heartIcon} size='16' color={(isFavorite())?'#fbaa33':"#ffffff"} onClick={()=> {this.props.onSave().then(()=>{this.setState(this.state)})}}/>
-                <Icon icon={closeIcon} size='16' color='#e20053'  onClick={()=>{this.props.onClose()}}/>
-              </Badge>
+                <div style={{display:"inline-block"}} id={this.props.id} onClick={this.toggleToolTip}><Icon icon={moveIcon} size='16' color='#000'/></div>
+                <div style={{display:"inline-block"}} onClick={()=> {this.props.onSave().then(()=>{this.setState(this.state)})}}><Icon icon={heartIcon} size='16' color={(isFavorite())?'#fbaa33':"#000"} /></div>
+                <div style={{display:"inline-block"}} onClick={()=>{this.props.onClose()}}><Icon icon={closeIcon} size='16' color='#e20053'/></div>
             </NavLink>
           </NavItem>
         </Nav>
       </Navbar>
-      <Tooltip placement="bottom" isOpen={this.state.tooltipOpen} autohide={false} target={this.props.id} toggle={this.toggleToolTip}>
-            <table cellSpacing={0} cellPadding={0}>
-              <tr>
-                <td></td>
-                <td>{<Icon icon={upArrowIcon} size='16' color={(upValid())?'#000':'#ccc'} onClick={()=>{(upValid)?this.props.onReorderCards("up"):''}} />}</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>{<Icon icon={leftArrowIcon} size='14' color={(leftValid)?'#000':'#ccc'} onClick={()=>{(leftValid)?this.props.onMove("left"):''}} />}</td>
-                <td></td>
-                <td>{<Icon icon={rightArrowIcon} size='14' color={(rightValid)?'#000':'#ccc'} onClick={()=>{(rightValid)?this.props.onMove("right"):''}} />}</td>
-              </tr>
-              <tr>
-                <td></td>
-                <td>{<Icon icon={downArrowIcon} size='14' color={(downValid())?'#000':'#ccc'} onClick={()=>{(downValid)?this.props.onReorderCards("down"):''}} />}</td>
-                <td></td>
-              </tr>
-            </table>
-        </Tooltip>
+      <DropdownMenu className="" showArrow={true} alightment="center">
+
+      </DropdownMenu>
+      <Tooltip placement="bottom" isOpen={this.state.tooltipOpen} autohide={false} target={this.props.id} toggle={this.toggleToolTip} tigger="hover" >
+        <table cellSpacing={0} cellPadding={0}>
+          <tr>
+            <td></td>
+            <td onClick={()=>{(upValid)?this.props.onReorderCards("up"):''}}>{<Icon icon={upArrowIcon} size='16' color={(upValid())?'#000':'#ccc'} />}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>{<Icon icon={leftArrowIcon} size='14' color={(leftValid)?'#000':'#ccc'} onClick={()=>{(leftValid)?this.props.onMove("left"):''}} />}</td>
+            <td></td>
+            <td>{<Icon icon={rightArrowIcon} size='14' color={(rightValid)?'#000':'#ccc'} onClick={()=>{(rightValid)?this.props.onMove("right"):''}} />}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>{<Icon icon={downArrowIcon} size='14' color={(downValid())?'#000':'#ccc'} onClick={()=>{(downValid)?this.props.onReorderCards("down"):''}} />}</td>
+            <td></td>
+          </tr>
+        </table>
+      </Tooltip>
     </div>);
   }
 

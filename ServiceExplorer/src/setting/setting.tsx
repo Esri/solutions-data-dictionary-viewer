@@ -1,9 +1,12 @@
-import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent, loadArcGISJSAPIModules} from 'jimu-core';
-import {BaseWidgetSetting, AllWidgetSettingProps, DataSourceChooser, FieldChooser, SettingRow, SettingSection, FileUploader} from 'jimu-for-builder';
-import {ArcGISDataSourceTypes} from 'jimu-arcgis/arcgis-data-source-type';
+import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent} from 'jimu-core';
+//import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent, loadArcGISJSAPIModules} from 'jimu-core';
+import {loadArcGISJSAPIModules} from 'jimu-arcgis';
+import {BaseWidgetSetting, AllWidgetSettingProps} from 'jimu-for-builder';
+import {DataSourceSelector, SelectedDataSourceJson, AllDataSourceTypes} from 'jimu-ui/data-source-selector';
+import {ArcGISDataSourceTypes} from 'jimu-arcgis';
 import {IMConfig} from '../config';
 import defaultI18nMessages from './translations/default';
-import { DataActionDropDown } from 'jimu-ui';
+import { DataActionDropDown, SettingRow, SettingSection } from 'jimu-ui';
 
 interface State{
   query: any;
@@ -40,28 +43,28 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
   onURLChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
-      widgetId: this.props.id,
+      id: this.props.id,
       config: this.props.config.set('url', evt.currentTarget.value)
     });
   }
 
   onCachePathChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
-      widgetId: this.props.id,
+      id: this.props.id,
       config: this.props.config.set('cachePath', evt.currentTarget.value)
     });
   }
 
   onAllowLookupChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
-      widgetId: this.props.id,
+      id: this.props.id,
       config: this.props.config.set('allowUrlLookup', evt.currentTarget.checked)
     });
   }
 
   onUseCacheChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
-      widgetId: this.props.id,
+      id: this.props.id,
       config: this.props.config.set('useCache', evt.currentTarget.checked)
     });
     this.setState({showCacheButton: evt.currentTarget.checked});
@@ -76,7 +79,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     }));
 
     this.props.onSettingChange({
-      widgetId: this.props.id,
+      id: this.props.id,
       useDataSources: Immutable(useDataSources) as ImmutableArray<IMUseDataSource>
     });
 
@@ -106,13 +109,11 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
   render(){
     const { useDataSources, id } = this.props;
     return <div className="widget-setting-demo">
-      <SettingSection>
-        <SettingRow>
-          <DataSourceChooser widgetId={id} isMultiple={true} selectedDataSourceIds={this.getDataSourceIds(useDataSources)}
+          <DataSourceSelector widgetId={id} isMultiple={true} selectedDataSourceIds={this.getDataSourceIds(useDataSources)}
             onSelect={this.onDataSourceSelect}
-            types={this.supportedTypes} />
-        </SettingRow>
-      </SettingSection>
+            types={this.supportedTypes}
+             />
+
 
       <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.props.config.url} onChange={this.onURLChange} style={{width:"90%"}}/></div>
       <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.props.config.useCache} onChange={this.onUseCacheChange} /></div>
@@ -155,7 +156,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
             this.requestServiceInfo(response.results[0].id);
             response.results[0].access = "public";
             this.props.onSettingChange({
-              widgetId: this.props.id,
+              id: this.props.id,
               config: this.props.config.set('cacheId', response.results[0].id)
             });
           } else {
@@ -169,11 +170,12 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
               }
             })
             .then((result:any) => {
+              console.log(result);
               //var data = {"org":true, "everyone":true};
               //portal.shareItem(data, result.id).then((res)  => {
                 this.requestServiceInfo(result.id);
                 this.props.onSettingChange({
-                  widgetId: this.props.id,
+                  id: this.props.id,
                   config: this.props.config.set('cacheId', result.id)
                 });
               //});
@@ -210,7 +212,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       this.setState({cacheStatus: "Step 5 of 7: Saving Data Elements"});
       let qDEUrl = url + "/queryDataElements/?f=pjson";
       await this.fetchRequest(qDEUrl,{type:"queryDataElements"},itemId,"").then(async(response:any) => {
-        console.log(response);
         //do connectivity rules by layer and subtype
         let rulesTable = response.layerDataElements.filter((de:any) =>{
           return de.dataElement.aliasName === "Rules";

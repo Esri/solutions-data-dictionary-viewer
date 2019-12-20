@@ -156,7 +156,7 @@ export default class FieldsCard extends React.Component <IProps, IState> {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(f.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(f.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{(f.hasOwnProperty("aliasName"))?f.aliasName:f.alias}</td>
             <td style={{fontSize:"small"}}>{f.type}</td>

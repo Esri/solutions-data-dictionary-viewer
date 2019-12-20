@@ -3,11 +3,12 @@ import {BaseWidget, React, ReactDOM,  defaultMessages as jimuCoreDefaultMessage,
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 import './css/custom.css';
-import { Button, Image, ListGroup, ListGroupItem, Input, Collapse, Icon, Popover, PopoverHeader, PopoverBody, Modal, ModalHeader, ModalBody, ModalFooter, Label, Progress} from 'jimu-ui';
+import { Button, Image, ListGroup, ListGroupItem, Input, Collapse, Icon, Popover, PopoverHeader, PopoverBody, Progress} from 'jimu-ui';
 let ArrowUpIcon = require('jimu-ui/lib/icons/arrow-up-8.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let moreIcon = require('jimu-ui/lib/icons/more.svg');
+let searchIcon = require('jimu-ui/lib/icons/search.svg');
 
 interface IProps {
   theme: any
@@ -39,7 +40,8 @@ interface IState {
   showSearchOptions: boolean,
   searchOptionState: any,
   searchWait: boolean,
-  searchValue: string
+  searchValue: string,
+  searchActive: boolean
 }
 
 class _ServiceExplorerTree extends React.Component <IProps, IState> {
@@ -73,7 +75,8 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
         otherElements:{check:true, expand:true, subs:[], display: "Other Elements"}
       },
       searchWait: false,
-      searchValue: ""
+      searchValue: "",
+      searchActive: false
     };
 
   }
@@ -98,21 +101,35 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
     }
 
     return (
-      <div style={{paddingLeft:58, width:"100%"}}>
+      <div style={{paddingLeft:58, width:this.props.width, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
         <div style={{display:"inline", width:"100%"}}>
-          <div style={{display:"inline-block", width:"95%"}}><Input placeholder="Search the Table of Contents" value={this.state.searchValue} onChange={(e:any)=>{
+          <div style={{display:"inline-block", width:this.props.width - 120}}>
+            <Input placeholder="Search the Table of Contents" value={this.state.searchValue} onChange={(e:any)=>{
               e.persist();
-              this.setState({searchWait:true, searchValue: e.target.value}, ()=> {
-                setTimeout(this.searchService,500, e.target.value);
+              this.setState({searchValue: e.target.value},()=>{
+                if(e.target.value == "") {
+                  this.setState({searchActive: false});
+                }
               });
-            }}
-            style={{width:"100%"}}></Input></div>
-          <div style={{display:"inline-block"}} onClick={this._toggleSearchOption}><Icon icon={moreIcon} size='16' color='#333' id="iconSearchOptions" /></div>
+              }}
+              style={{width:"100%"}}>
+            </Input>
+          </div>
+            <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px"}}>
+            <div id="seachTree" onClick={() => {
+              this.setState({searchWait:true, searchValue: this.state.searchValue}, ()=> {
+                setTimeout(this.searchService,500, this.state.searchValue);
+              });
+            }}>
+              <Icon icon={searchIcon} size='16' color='#333' />
+            </div>
+            </div>
+          <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px"}} onClick={this._toggleSearchOption} id="iconSearchOptions"><Icon icon={moreIcon} size='16' color='#333' /></div>
           <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} animated color="Primary" value="100" /></div>
-          <Popover theme={this.props.theme} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
-            <PopoverHeader theme={this.props.theme}>Search Options</PopoverHeader>
-            <PopoverBody theme={this.props.theme}>
-            <div style={{paddingBottom:"10px"}}>Check the boxes you want to include in the search.</div>
+          <Popover className="popOverBG" innerClassName="popOverBG" hideArrow={true} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
+            <PopoverHeader><div className="leftRightPadder5">Search Options</div></PopoverHeader>
+            <PopoverBody>
+            <div  className="leftRightPadder5" style={{paddingBottom:"10px"}}>Check the boxes you want to include in the search.</div>
             {this.searchOptionsTable()}
             </PopoverBody>
           </Popover>
@@ -125,12 +142,12 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
 
   mapper = (nodes: any, parentId: string, lvl: number) => {
     return nodes.map((node: any, index: number) => {
-      if(this.state.searchValue === "") {
+      if(!this.state.searchActive) {
         const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
         const item = <React.Fragment>
-          <ListGroupItem style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-            {<div style={{ paddingLeft: `${25 * lvl}px` }}>
-              {node.nodes && <Button className="pl-0" color="link" id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
+          <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
+            {<div style={{ paddingLeft: `${15 * lvl}px` }}>
+              {node.nodes && <Button type="tertiary" id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
               {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)}>{node.text}</span>}
             </div>}
           </ListGroupItem>
@@ -144,9 +161,9 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
         if(node.search) {
           const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
           const item = <React.Fragment>
-            <ListGroupItem style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-              {<div style={{ paddingLeft: `${25 * lvl}px` }}>
-                {node.nodes && <Button className="pl-0" color="link" id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
+            <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
+              {<div style={{ paddingLeft: `${15 * lvl}px` }}>
+                {node.nodes && <Button type="tertiary" id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
                 {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)}>{node.text}</span>}
               </div>}
             </ListGroupItem>
@@ -253,10 +270,10 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
           let level = sn;
           hasSubNodes(sn, level, i);
         });
-        this.setState({serviceNodes: serviceNodes, searchWait:false});
+        this.setState({serviceNodes: serviceNodes, searchWait:false, searchActive:true});
       //});
     } else {
-      this.setState({serviceNodes: serviceNodes, searchWait:false});
+      this.setState({serviceNodes: serviceNodes, searchWait:false, searchActive:false});
     }
   }
 
@@ -286,7 +303,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
   _toggleSearchOption =() => {
     if(this.state.showSearchOptions) {
       this.setState({showSearchOptions: false}, () => {
-        this.searchService(this.state.searchValue);
+        //this.searchService(this.state.searchValue);
       });
     } else {
       this.setState({showSearchOptions: true});
@@ -393,12 +410,12 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
       let searchHeader =
         <div style={{width:"100%"}} key={obj}>
           <div style={{fontWeight:"bold", width:"100%", backgroundColor:"#e1e1e1"}}>
-          <div style={{display:"inline-block", float:"left", paddingLeft:"2px"}}>
+          <div className="leftRightPadder5" style={{display:"inline-block", float:"left"}}>
           <Input type="checkbox" theme={this.props.theme} aria-label={"Include " +currObj.display+ " in search"} checked={currObj.check} onChange={(e:any)=> {this.searchGroupCheck(e, obj)}} /></div>
           <div style={{display:"inline-block", paddingLeft:"5px"}}>{currObj.display}</div>
-          <div style={{display:"inline-block", float:"right"}}><a onClick={()=>{this.toggleSearchExpand(obj)}}><Icon icon={(currObj.expand)?downArrowIcon:rightArrowIcon} size='16' color='#333' /></a></div>
+          <div className="leftRightPadder5" style={{display:"inline-block", float:"right"}}><a onClick={()=>{this.toggleSearchExpand(obj)}}><Icon icon={(currObj.expand)?downArrowIcon:rightArrowIcon} size='16' color='#333' /></a></div>
           </div>
-          <div style={{paddingLeft:"15px", paddingTop:"5px", display:(currObj.expand)?"block":"none"}}>
+          <div style={{paddingLeft:"20px", paddingTop:"5px", display:(currObj.expand)?"block":"none"}}>
             {currSection}
           </div>
         </div>;

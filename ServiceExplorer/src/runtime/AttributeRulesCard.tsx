@@ -158,11 +158,11 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
             </td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>
+            <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>
             </td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>
