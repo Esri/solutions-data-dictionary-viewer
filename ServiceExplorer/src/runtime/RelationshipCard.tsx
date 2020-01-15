@@ -3,11 +3,10 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon} from 'jimu-ui';
+import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
-let ArrowLeft = require('./assets/arrowx200L.png');
-let ArrowRight = require('./assets/arrowx200R.png');
+let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 
 interface IProps {
   data: any,
@@ -42,6 +41,7 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
 
   componentWillMount() {
     //test
+    console.log(this.state.nodeData);
   }
 
   componentDidMount() {
@@ -65,22 +65,29 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-              <div style={{width: "33%", display:"inline-block"}}>
-                <div style={{width: "100%", height: 50, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingTop:30}}>{this.state.nodeData.backwardPathLabel}</div>
-                <div style={{width: "100%", height: 20, textAlign:"center"}}><img src={ArrowLeft} style={{width: ((this.props.width/3)-50), height: 20}}/></div>
-                <div style={{width: "100%", height: 50, textAlign:"center"}}>{this.state.nodeData.originPrimaryKey}</div>
-              </div>
-              <div style={{width: "34%", height:120, borderWidth:2, borderStyle:"solid", borderColor:"#ccc",  textAlign:"center", display:"inline-block"}}>
-                <div style={{width: "100%", height: 60, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingLeft:2, paddingRight:2, paddingTop: 20, display:"inline-block"}}>{this.state.nodeData.name.replace(/_/g, " ")}</div>
-                <div style={{width: "100%", height: 60, textAlign:"center", paddingLeft:2, paddingRight:2, verticalAlign:"bottom"}}>{this._cardinalityLookup(this.state.nodeData.cardinality)}</div>
-              </div>
-              <div style={{width: "33%", display:"inline-block", float:"right"}}>
-                <div style={{width: "100%", height: 50, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingTop:30}}>{this.state.nodeData.forwardPathLabel}</div>
-                <div style={{width: "100%", height: 20, textAlign:"center"}}><img src={ArrowRight} style={{width: ((this.props.width/3)-50), height: 20}}/></div>
-                <div style={{width: "100%", height: 50, textAlign:"center"}}>{this.state.nodeData.originForeignKey}</div>
-              </div>
-              <div style={{paddingBottom: 15}}></div>
+            <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+            <div style={{paddingBottom: 15}}></div>
+            <Table>
+              <tbody>
+                <tr>
+                  <td style={{fontWeight:"bold"}}>Cardinality: </td><td>{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
+                  <td style={{fontWeight:"bold"}}>Type: </td><td>{(this.state.nodeData.composite)?"Composite":"Simple"}</td>
+                </tr>
+                <tr>
+                  <td style={{fontWeight:"bold"}}>Origin Name: </td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.backwardPathLabel,"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
+                  <td style={{fontWeight:"bold"}}>Destination: </td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.forwardPathLabel,"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
+                </tr>
+                <tr>
+                  <td style={{fontWeight:"bold"}}>Origin Primary Key: </td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this.state.nodeData.backwardPathLabel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
+                  <td style={{fontWeight:"bold"}}>Origin Foreign Key: </td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this.state.nodeData.forwardPathLabel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
+                </tr>
+              </tbody>
+            </Table>
+            <div style={{paddingBottom: 15}}></div>
           </div>
         </TabPane>
       </TabContent>
@@ -151,9 +158,9 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
   //********************************************
   _cardinalityLookup =(code: string) => {
     let possible = {
-      "esriRelCardinalityOneToMany": "1:M",
-      "esriRelCardinalityOneToOne": "1:1",
-      "esriRelCardinalityManyToMany": "M:N",
+      "esriRelCardinalityOneToMany": "One to many",
+      "esriRelCardinalityOneToOne": "One to one",
+      "esriRelCardinalityManyToMany": "Many to many",
     };
     if(possible.hasOwnProperty(code)) {
       return possible[code];

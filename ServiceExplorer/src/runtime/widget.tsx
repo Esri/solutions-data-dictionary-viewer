@@ -469,7 +469,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         crumb:newCrumb,
       };
       if(this.state.hasDataElements) {
-        nodeStruct.nodes = this._processDataElements(table.id, newCrumb, "Table");
+        let crumb = [
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
+          {type: "Tables", value:"Tables", node:tablesNode.id},
+          {type: "Table", value:table.name, node: nodeStruct.id}
+        ];
+        nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name);
       } else {
         this._requestObject(null,table.id).then((data) => {
           nodeStruct.data = data;
@@ -1787,32 +1792,36 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let matchNode = null;
     let parentNodes = [];
     if(value !== "") {
+      let cleanValue = this.replaceSpaces(value);
+      parent = this.replaceSpaces(parent);
       let serviceNodes = [...this.state.serviceNodes];
       let hasSubNodes =(node: any) => {
         if(node.type === type) {
+          let nodeText = this.replaceSpaces(node.text);
           if(node.hasOwnProperty("parent")) {
             if(typeof(parent) !== "undefined") {
-              if((node.parent).toLowerCase() === (parent).toLowerCase()) {
+              let nodeParentVal = this.replaceSpaces(node.parent);
+              if((nodeParentVal).toLowerCase() === (parent).toLowerCase()) {
                 //see if there is another level of parent to search for example if "unknown" asset type is passed
                 if(typeof(parentSub) !== "undefined") {
                   node.crumb.map((c: any) => {
-                    if((c.value).toLowerCase() === (parentSub).toLowerCase()) {
+                    if((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
                       matchNode = node;
                     }
                   });
                 } else {
-                  if((node.text).toLowerCase() === (value).toLowerCase()) {
+                  if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
                     matchNode = node;
                   }
                 }
               }
             } else {
-              if((node.text).toLowerCase() === (value).toLowerCase()) {
+              if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
                 matchNode = node;
               }
             }
           } else {
-            if((node.text).toLowerCase() === (value).toLowerCase()) {
+            if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
               matchNode = node;
             }
           }
@@ -2029,8 +2038,16 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(typeof(value) !== "string") {
       value = value.toString();
     }
+    value = this.replaceSpaces(value);
     if(value.indexOf(":") > -1) {
       value = value.replace(/:/g,"__");
+    }
+    return value;
+  }
+
+  replaceSpaces =(value:string) => {
+    if(value.indexOf(" ") > -1) {
+      value = value.replace(/ /g,"");
     }
     return value;
   }
