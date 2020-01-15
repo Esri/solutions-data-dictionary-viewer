@@ -403,7 +403,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
       let subNode = {
-        id: this.replaceColon(layer.id),
+        id: layer.id,
         type: type,
         text: layer.name,
         subNodeCount: 0,
@@ -456,7 +456,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       ];
       let simpleData = table;
       let nodeStruct = {
-        id: this.replaceColon(table.id),
+        id: table.id,
         type: "Table",
         text: table.name,
         subNodeCount: 0,
@@ -501,7 +501,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           {type: "Relationships", value:"Relationships", node:relationNode.id},
         ];
         let reSubNode = {
-          id: this.replaceColon(relship.id),
+          id: relship.id,
           type: "Relationship",
           text: relship.name,
           subNodeCount: 0,
@@ -538,7 +538,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           {type: "Domains", value:"Domains", node:domainNode.id},
         ];
         domainNode.nodes.push({
-          id: this.replaceColon(domain.name),
+          id: domain.name,
           type: "Domain",
           text: domain.name,
           subNodeCount: 0,
@@ -591,7 +591,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         //Handing SUBTYPES nodes
         if(de.dataElement.hasOwnProperty("subtypeFieldName")) {
           let stNode = {
-            id: this.replaceColon(de.layerId + "_subtype"),
+            id: de.layerId + "_subtype",
             type: "Subtypes",
             text: "Subtypes",
             subNodeCount: de.dataElement.subtypes.length,
@@ -616,7 +616,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         //Handing ATTRIBUTE RULES nodes
         if(de.dataElement.hasOwnProperty("attributeRules")) {
           let arNode = {
-            id: this.replaceColon(de.layerId + "_attrRules"),
+            id: de.layerId + "_attrRules",
             type: "Attribute Rules",
             text: "Attribute Rules",
             subNodeCount: de.dataElement.attributeRules.length,
@@ -643,7 +643,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         //Handing FIELD nodes
         if(de.dataElement.hasOwnProperty("fields")) {
           let fieldsNode = {
-            id: this.replaceColon(de.layerId + "_allfields"),
+            id: de.layerId + "_allfields",
             type: "Fields",
             text: "Fields",
             subNodeCount: de.dataElement.fields.fieldArray.length,
@@ -670,7 +670,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         //Handing INDEX nodes
         if(de.dataElement.hasOwnProperty("indexes")) {
           let indexesNode = {
-            id: this.replaceColon(de.layerId + "_indexes"),
+            id: de.layerId + "_indexes",
             type: "Indexes",
             text: "Indexes",
             subNodeCount: de.dataElement.indexes.indexArray.length,
@@ -697,7 +697,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         if(de.dataElement.hasOwnProperty("domainNetworks")) {
           // UN CATEGORIES nodes
           let cNode = {
-            id: this.replaceColon(de.layerId + "_categories"),
+            id: de.layerId + "_categories",
             type: "Categories",
             text: "Categories",
             subNodeCount: de.dataElement.categories.length,
@@ -721,7 +721,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
           // UN DOMAIN NETWORK nodes
           let dnNode = {
-            id: this.replaceColon(de.layerId + "_domainNetworks"),
+            id: de.layerId + "_domainNetworks",
             type: "Domain Networks",
             text: "Domain Networks",
             subNodeCount: de.dataElement.domainNetworks.length,
@@ -745,7 +745,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
           // UN Network ATTRIBUTE nodes
           let naNode = {
-            id: this.replaceColon(de.layerId + "_networkAttributes"),
+            id: de.layerId + "_networkAttributes",
             type: "Network Attributes",
             text: "Network Attributes",
             subNodeCount: de.dataElement.networkAttributes.length,
@@ -769,7 +769,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
           // UN Terminal Config nodes
           let tcNode = {
-            id: this.replaceColon(de.layerId + "_terminalConfigurations"),
+            id: de.layerId + "_terminalConfigurations",
             type: "Terminal Configurations",
             text: "Terminal Configurations",
             subNodeCount: de.dataElement.terminalConfigurations.length,
@@ -802,7 +802,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       console.log(data);
       if(data.fields.length > 0) {
           let fNode = {
-            id: this.replaceColon(id + "_fields"),
+            id: id + "_fields",
             type: "Fields",
             text: "Fields (" + data.fields.length + ")",
             icon: "",
@@ -815,7 +815,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       }
       if(data.indexes.length > 0) {
         let iNode = {
-          id: this.replaceColon(id + "_indexes"),
+          id: id + "_indexes",
           type: "Indexes",
           text: "Indexes (" + data.indexes.length + ")",
           icon: "",
@@ -836,7 +836,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(subTypes.length > 0) {
       subTypes.map((st: any) => {
         let stNode = {
-          id: this.replaceColon(id + "_" + st.subtypeCode),
+          id: id + "_" + st.subtypeCode,
           type: "Subtype",
           text: st.subtypeName,
           subNodeCount:0,
@@ -901,7 +901,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       atList.sort(this._compare("assetTypeName"));
       atList.map((at: any) => {
         nodeData.push({
-          id: this.replaceColon(id+ "_" + at.assetTypeCode),
+          id: id+ "_" + at.assetTypeCode,
           type: "Assettype",
           text: at.assetTypeName,
           icon: "",
@@ -926,7 +926,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(ar.length > 0) {
       ar.map((fd: any, i: number) => {
         nodeData.push({
-          id: this.replaceColon(id + "_" + fd.name),
+          id: id + "_" + fd.name,
           type: "Attribute Rule",
           text: fd.name,
           icon: "",
@@ -949,7 +949,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(fields.length > 0) {
       fields.map((fd: any) => {
         nodeData.push({
-          id: this.replaceColon(id + "_" + fd.name),
+          id: id + "_" + fd.name,
           type: "Field",
           text: fd.name,
           icon: "",
@@ -975,7 +975,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         //don't add indexes with period in them.
         if(idx.name.indexOf(".") <= -1) {
           nodeData.push({
-            id: this.replaceColon(id + "_" + idx.name),
+            id: id + "_" + idx.name,
             type: "Index",
             text: idx.name,
             icon: "",
@@ -999,7 +999,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       categories.map((cat: any) => {
         let cleanId = id + "_" + cat.name.replace(/ /g, "_");
         nodeData.push({
-          id: this.replaceColon(cleanId),
+          id: cleanId,
           type: "Category",
           text: cat.name,
           icon: "",
@@ -1020,7 +1020,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(domainNetworks.length > 0) {
       domainNetworks.map((dn: any) => {
         nodeData.push({
-          id: this.replaceColon(id + "_" + dn.domainNetworkName),
+          id: id + "_" + dn.domainNetworkName,
           type: "Domain Network",
           text: dn.domainNetworkAliasName,
           icon: "",
@@ -1042,7 +1042,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       networkAttributes.map((na: any) => {
         let cleanId = id + "_" + na.name.replace(/ /g, "_");
         nodeData.push({
-          id: this.replaceColon(cleanId),
+          id: cleanId,
           type: "Network Attribute",
           text: na.name,
           icon: "",
@@ -1064,7 +1064,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       terminalConfigurations.map((tc: any) => {
         let cleanId = id + "_" + tc.terminalConfigurationName.replace(/ /g, "_");
         nodeData.push({
-          id: this.replaceColon(cleanId),
+          id: cleanId,
           type: "Terminal Configuration",
           text: tc.terminalConfigurationName,
           icon: "",
@@ -1792,27 +1792,27 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         if(node.type === type) {
           if(node.hasOwnProperty("parent")) {
             if(typeof(parent) !== "undefined") {
-              if((node.parent).toLowerCase() === (parent).toLowerCase()) {
+              if(node.parent === parent) {
                 //see if there is another level of parent to search for example if "unknown" asset type is passed
                 if(typeof(parentSub) !== "undefined") {
                   node.crumb.map((c: any) => {
-                    if((c.value).toLowerCase() === (parentSub).toLowerCase()) {
+                    if(c.value === parentSub) {
                       matchNode = node;
                     }
                   });
                 } else {
-                  if((node.text).toLowerCase() === (value).toLowerCase()) {
+                  if(node.text === value) {
                     matchNode = node;
                   }
                 }
               }
             } else {
-              if((node.text).toLowerCase() === (value).toLowerCase()) {
+              if(node.text === value) {
                 matchNode = node;
               }
             }
           } else {
-            if((node.text).toLowerCase() === (value).toLowerCase()) {
+            if(node.text === value) {
               matchNode = node;
             }
           }
@@ -2023,16 +2023,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       hasSubNodes(sn);
     });
     return matchList;
-  }
-
-  replaceColon =(value:string) => {
-    if(typeof(value) !== "string") {
-      value = value.toString();
-    }
-    if(value.indexOf(":") > -1) {
-      value = value.replace(/:/g,"__");
-    }
-    return value;
   }
 
   pullDataFromCache = async() => {

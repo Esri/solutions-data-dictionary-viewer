@@ -189,18 +189,18 @@ export default class CategoryCard extends React.Component <IProps, IState> {
       dn.map((d: any, i: number) => {
         d.junctionSources.map((js:any) => {
           js.assetGroups.map((ag:any) => {
-            let atTable = this._createAssetTypeTable(ag.assetTypes);
+            let atTable = this._createAssetTypeTable(ag.assetTypes, ag.assetGroupName, this._layerLookup(js.layerId));
             if(atTable !== null) {
               arrList.push(
                 <tr key={i}>
-                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(js.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(js.layerId)}</span></td>
+                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, this._layerLookup(js.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
                     <span onClick={()=>{this.toggleActiveATList(ag.assetGroupName)}}>{(this.state.expandAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} </span>
                    {ag.assetGroupName}
                    <Collapse isOpen={this.state.expandAT[ag.assetGroupName]}>
                     {atTable}
                   </Collapse>
                    </td>
-                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(js.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(js.layerId)}</span></td>
                 </tr>
               );
             }
@@ -211,8 +211,8 @@ export default class CategoryCard extends React.Component <IProps, IState> {
     let tableObj = <Table hover>
     <thead>
     <tr>
-      <th style={{fontSize:"small", fontWeight:"bold"}}>Asset Group</th>
       <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
+      <th style={{fontSize:"small", fontWeight:"bold"}}>Asset Group</th>
     </tr>
     </thead>
     <tbody>
@@ -222,14 +222,14 @@ export default class CategoryCard extends React.Component <IProps, IState> {
     return tableObj;
   }
 
-  _createAssetTypeTable =(atList:any) => {
+  _createAssetTypeTable =(atList:any, ag:string, layerName:string) => {
     let arrList = [];
     let tableObj = null;
     atList.map((at:any,i:number) => {
       if(at.categories.indexOf(this.state.nodeData.name) > -1) {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}>{at.assetTypeName}</td>
+            <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>{at.assetTypeName}</td>
           </tr>
         );
       }

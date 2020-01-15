@@ -98,6 +98,7 @@ export default class CardHeader extends React.Component <IProps, IState> {
       </DropdownMenu>
       <Tooltip placement="bottom" isOpen={this.state.tooltipOpen} autohide={false} target={this.props.id} toggle={this.toggleToolTip} tigger="hover" >
         <table cellSpacing={0} cellPadding={0}>
+          <tbody>
           <tr>
             <td></td>
             <td onClick={()=>{(upValid)?this.props.onReorderCards("up"):''}}>{<Icon icon={upArrowIcon} size='16' color={(upValid())?'#000':'#ccc'} />}</td>
@@ -113,6 +114,7 @@ export default class CardHeader extends React.Component <IProps, IState> {
             <td>{<Icon icon={downArrowIcon} size='14' color={(downValid())?'#000':'#ccc'} onClick={()=>{(downValid)?this.props.onReorderCards("down"):''}} />}</td>
             <td></td>
           </tr>
+          </tbody>
         </table>
       </Tooltip>
     </div>);

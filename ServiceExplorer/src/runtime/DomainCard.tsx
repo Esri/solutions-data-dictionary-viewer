@@ -261,6 +261,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
   }
 
   createMatchSubtype =() => {
+    console.log(this.props.dataElements);
     let arrList = [];
     this.props.dataElements.map((de: any, z: number)=>{
       if(de.dataElement.hasOwnProperty("subtypes")) {
@@ -268,9 +269,9 @@ export default class DomainCard extends React.Component <IProps, IState> {
           st.fieldInfos.map((fi: any, a: number)=>{
             if(fi.domainName === this.props.data.text) {
               arrList.push(
-                <tr key={i}>
-                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
+                <tr key={st.subtypeName + fi.fieldName}>
+                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
                 </tr>
               );
             }

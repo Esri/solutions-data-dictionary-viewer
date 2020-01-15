@@ -334,7 +334,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       this.setState({expandJunctionAT: junctionLayerCopy});
     }
   }
-  toggleEdgeSources =(name:string) => {
+  toggleEdgeSources =() => {
     if(this.state.expandEdgeSources) {
       this.setState({expandEdgeSources: false});
     } else {
@@ -405,11 +405,13 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
   }
   _createValidAssetsTable =(asset:any, type:string, source:string) => {
     let arrList = [];
-    let atList =(d:any, domainName:string) => {
+    let atList =(d:any, domainName:string, subtype:string) => {
       let list = [];
       d.assetTypes.map((at: any, z: number) => {
         let validAT = this._ATCodeLookup(at.assetTypeCode, domainName);
-        list.push(<div key={at.assetTypeCode+"_"+z}>{validAT}</div>);
+        list.push(<div key={at.assetTypeCode+"_"+z}>
+        <div onClick={()=>{this.props.callbackLinkage(validAT,"Assettype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type, subtype)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' />{validAT}</div>
+        </div>);
       });
       return list;
     };
@@ -418,9 +420,9 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
+          <div onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
           </td>
-          <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain)}</td>
+          <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain, validAsset.ag)}</td>
         </tr>
       );
     });
@@ -441,7 +443,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
 
   _createJunctionSourceTable =() => {
     let arrList = [];
-    let validAG =(j:any) => {
+    let validAG =(j:any, layerName:string) => {
       let collection = [];
       j.assetGroups.map((ag:any, z: number) => {
         let ATList = [];
@@ -453,13 +455,13 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
             );
           });
           ATList.push(<tr id={a+"_at"}>
-            <td>{at.assetTypeName}</td>
+            <td><span  onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
             <td>{catList}</td>
           </tr>);
         });
 
         collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
+          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
           <td>
           <div onClick={()=>{this.toggleValidJunctionsAT(ag.assetGroupName)}}>{(this.state.expandJunctionAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
           <Collapse isOpen={this.state.expandJunctionAT[ag.assetGroupName]}>
@@ -480,7 +482,8 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</div>
+          <span onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+          <span onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
           </td>
         </tr>
       );
@@ -492,7 +495,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
                 <th>Asset Group</th>
                 <th>Asset Type</th>
               </tr>
-              {validAG(j)}
+              {validAG(j, this._layerLookup(j.layerId))}
             </table>
           </td>
         </tr>
@@ -513,7 +516,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
 
   _createEdgeSourceTable =() => {
     let arrList = [];
-    let validAG =(j:any) => {
+    let validAG =(j:any, layerName:string) => {
       let collection = [];
       j.assetGroups.map((ag:any, z: number) => {
         let ATList = [];
@@ -525,13 +528,13 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
             );
           });
           ATList.push(<tr id={a+"_at"}>
-            <td>{at.assetTypeName}</td>
+            <td><span  onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
             <td>{catList}</td>
           </tr>);
         });
 
         collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
+          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
           <td>
           <div onClick={()=>{this.toggleValidEdgesAT(ag.assetGroupName)}}>{(this.state.expandEdgeAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
           <Collapse isOpen={this.state.expandEdgeAT[ag.assetGroupName]}>
@@ -552,7 +555,8 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleValidEdges(j.layerId)}}>{(this.state.expandEdgeLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</div>
+          <span onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+          <span onClick={()=>{this.toggleValidEdges(j.layerId)}}>{(this.state.expandEdgeLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
           </td>
         </tr>
       );
@@ -564,7 +568,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
                 <th>Asset Group</th>
                 <th>Asset Type</th>
               </tr>
-              {validAG(j)}
+              {validAG(j, this._layerLookup(j.layerId))}
             </table>
           </td>
         </tr>

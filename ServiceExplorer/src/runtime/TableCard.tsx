@@ -356,7 +356,7 @@ export default class TableCard extends React.Component <IProps, IState> {
     this.state.fields.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{(fi.hasOwnProperty("aliasName"))?fi.aliasName:fi.alias}</td>
       </tr>);
@@ -378,12 +378,12 @@ export default class TableCard extends React.Component <IProps, IState> {
       }
       control.map((fi: any, i: number)=>{
         fieldList.push(
-          <div onClick={()=>{this.props.callbackLinkage((fi.hasOwnProperty("name"))?fi.name:fi,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {(fi.hasOwnProperty("name"))?fi.name:fi}</div>
+          <div onClick={()=>{this.props.callbackLinkage((fi.hasOwnProperty("name"))?fi.name:fi,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {(fi.hasOwnProperty("name"))?fi.name:fi}</div>
         );
       });
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{fieldList}</td>
       </tr>);

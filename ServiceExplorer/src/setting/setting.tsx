@@ -1,4 +1,4 @@
-import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent} from 'jimu-core';
+import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceSchema, FieldSchema, DataSourceComponent} from 'jimu-core';
 //import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent, loadArcGISJSAPIModules} from 'jimu-core';
 import {loadArcGISJSAPIModules} from 'jimu-arcgis';
 import {BaseWidgetSetting, AllWidgetSettingProps} from 'jimu-for-builder';
@@ -13,33 +13,68 @@ interface State{
   cacheStructure: any;
   cacheStatus: string;
   showCacheButton: boolean;
+  datasource: DataSource;
+  fields: { [jimuName: string]: FieldSchema };
+  serviceURL: string;
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
   supportedTypes = Immutable([ArcGISDataSourceTypes.FeatureLayer]);
-  state = {
-    query: null,
-    cacheStructure: {
-      featureServer: {},
-      layers: {},
-      queryDataElements: {},
-      queryDomains: {},
-      contingentValues : {},
-      relationships : {},
-      connectivityRules: {},
-      metadata: {}
-    },
-    cacheStatus: "",
-    showCacheButton: (this.props.config.useCache)?this.props.config.useCache:false
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      query: null,
+      cacheStructure: {
+        featureServer: {},
+        layers: {},
+        queryDataElements: {},
+        queryDomains: {},
+        contingentValues : {},
+        relationships : {},
+        connectivityRules: {},
+        metadata: {}
+      },
+      cacheStatus: "",
+      showCacheButton: (this.props.config.useCache)?this.props.config.useCache:false,
+      datasource: null,
+      fields: {},
+      serviceURL: ""
+    };
+  }
 
   componentWillMount(){
     console.log(this);
+    if(typeof this.props.config.url !== "undefined") {
+      this.setState({serviceURL:this.props.config.url});
+    }
   }
 
-  componentDidMount(){
+  componentDidMount(){}
 
+  setDatasource = (ds: DataSource) => {
+    let schema = ds && ds.getSchema();
+    console.log(ds);
+    this.setState({datasource: ds, fields: (schema as DataSourceSchema).fields as {[jimuName: string]: FieldSchema; }});
   }
+
+  onDsCreate = (ds: any) => {
+    this.setDatasource(ds);
+  };
+
+  onDataSourceSelected = (allSelectedDss: SelectedDataSourceJson[], currentSelectedDs: SelectedDataSourceJson) => {
+    let sUrl = currentSelectedDs.dataSourceJson.url;
+    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/"));
+    this.props.onSettingChange({
+      id: this.props.id,
+      useDataSources: [{
+        dataSourceId: currentSelectedDs.dataSourceJson && currentSelectedDs.dataSourceJson.id,
+        rootDataSourceId: currentSelectedDs.rootDataSourceId
+      }],
+      config: this.props.config.set('url', sUrl)
+    });
+    this.setState({serviceURL: sUrl});
+  };
+
 
   onURLChange = (evt: React.FormEvent<HTMLInputElement>) => {
     this.props.onSettingChange({
@@ -70,6 +105,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     this.setState({showCacheButton: evt.currentTarget.checked});
   }
 
+  /*
   onDataSourceSelect = (ds: any) => {
     console.log(ds);
 
@@ -105,17 +141,33 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     </div>
   }
 
+  */
 
   render(){
-    const { useDataSources, id } = this.props;
-    return <div className="widget-setting-demo">
+    /*
+        const { useDataSources, id } = this.props;
           <DataSourceSelector widgetId={id} isMultiple={true} selectedDataSourceIds={this.getDataSourceIds(useDataSources)}
             onSelect={this.onDataSourceSelect}
             types={this.supportedTypes}
              />
+    */
+    return <div className="widget-setting-demo">
+
+      <DataSourceSelector
+        mustUseDataSource
+        types={Immutable([
+          AllDataSourceTypes.FeatureLayer,
+          AllDataSourceTypes.FeatureQuery
+        ])}
+        selectedDataSourceIds={
+          this.props.useDataSources && Immutable(this.props.useDataSources.map(ds => ds.dataSourceId))
+        }
+        useDataSourcesEnabled={this.props.useDataSourcesEnabled}
+        onSelect={this.onDataSourceSelected}
+         />
 
 
-      <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.props.config.url} onChange={this.onURLChange} style={{width:"90%"}}/></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.state.serviceURL} onChange={this.onURLChange} style={{width:"90%"}} value={this.state.serviceURL}/></div>
       <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.props.config.useCache} onChange={this.onUseCacheChange} /></div>
 
       {(this.state.showCacheButton)?
@@ -127,15 +179,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       }
       <div style={{height:"25px"}}></div>
       <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
-
-
-      {(typeof(this.props.useDataSources) !== "undefined") &&
-        <DataSourceComponent useDataSource={this.props.useDataSources[0]} query={''}>
-        {
-          this.dataRender
-        }
-      </DataSourceComponent>
-      }
 
     </div>
   }
@@ -188,7 +231,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
 
   requestServiceInfo = async(itemId:any) => {
-    let url = this.props.config.url;
+    let url = this.state.serviceURL;
     //grab feature Service json to store
     this.setState({cacheStatus: "Step 1 of 7: Saving Feature Service"});
     await this.fetchRequest(url+"/?f=pjson",{type:"featureServer"},itemId,"").then(async(response:any) => {

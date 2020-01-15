@@ -164,7 +164,7 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(as.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(as.layerId)}</span></td>
-          <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(as.evaluator.fieldName, "Field", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {as.evaluator.fieldName}</span></td>
+          <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage((as.evaluator.fieldName).toLowerCase(), "Field", this.props.panel, this._layerLookup(as.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> {as.evaluator.fieldName}</span></td>
         </tr>
       );
     });
