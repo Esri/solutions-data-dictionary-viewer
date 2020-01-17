@@ -72,7 +72,7 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
           <div style={{paddingTop:5, paddingBottom:5}}>This rule is set on: <span style={{fontWeight:"bold"}}>{this.state.nodeData.fieldName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>This rule is triggered on: <span style={{fontWeight:"bold"}}>{this.state.nodeData.triggeringEvents.join()}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>This rule type is: <span style={{fontWeight:"bold"}}>{this.state.nodeData.type}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Can this rule be batched: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.batch)? "True" : "False"}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>This rule is batched: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.batch)? "True" : "False"}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Priority: <span style={{fontWeight:"bold"}}>{this.state.nodeData.evaluationOrder}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Script:</div>
           <div style={{overflowY:"auto", paddingBottom:5, paddingLeft:5, paddingRight:5, paddingTop:5, backgroundColor: "#e1e1e1", borderWidth:2, borderStyle:"solid", borderColor:"#000"}} dangerouslySetInnerHTML={this._processCodeBlock(this.state.nodeData.scriptExpression)}></div>

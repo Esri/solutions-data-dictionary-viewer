@@ -34,8 +34,11 @@ interface IState {
   statsOutput: any,
   activeTab: string,
   expandRules: boolean,
+  expandCategories: boolean,
   rulesElements: any,
-  sourceId: number
+  sourceId: number,
+  rulesList: any,
+  expandRuleType: any
 }
 
 export default class TableCard extends React.Component <IProps, IState> {
@@ -48,8 +51,11 @@ export default class TableCard extends React.Component <IProps, IState> {
       statsOutput: [],
       activeTab: 'Properties',
       expandRules: false,
+      expandCategories: false,
       rulesElements: {},
-      sourceId: -1
+      sourceId: -1,
+      rulesList: [],
+      expandRuleType : []
     };
 
   }
@@ -89,12 +95,19 @@ export default class TableCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeName}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Code: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeCode}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Terminal Configuration: <span style={{fontWeight:"bold"}}>{this._lookupTC(this.state.nodeData.terminalConfigurationId)}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRules();}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Rules</div>
           <Collapse isOpen={this.state.expandRules}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+            {this._createRulesList()}
+          </div>
+          </Collapse>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCategories();}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Categories</div>
+          <Collapse isOpen={this.state.expandCategories}>
+          <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover width={"100%"}>
                 <tbody>
-                  {this._createRulesList()}
+                  {this._createCategoriesList()}
                 </tbody>
               </Table>
           </div>
@@ -185,6 +198,25 @@ export default class TableCard extends React.Component <IProps, IState> {
     }
   }
 
+  toggleExpandCategories =() => {
+    if(this.state.expandCategories) {
+      this.setState({expandCategories: false});
+    } else {
+      this.setState({expandCategories: true});
+    }
+  }
+
+  toggleExpandRuleType =(val:string) => {
+    let newRuleState = this.state.expandRuleType;
+    if(newRuleState[val]) {
+      newRuleState[val] = false;
+      this.setState({expandRuleType: newRuleState});
+    } else {
+      newRuleState[val] = true;
+      this.setState({expandRuleType: newRuleState});
+    }
+  }
+
   _createStatsOutput =() => {
     let output = [];
     let atList = this._validAssetTypes("assettype");
@@ -204,60 +236,80 @@ export default class TableCard extends React.Component <IProps, IState> {
 
   _createRulesList = () => {
     let arrList = [];
-    let fromList = [];
-    let toList = [];
-    if(this.state.rulesElements.hasOwnProperty("features")){
-      if(this.state.rulesElements.features.length > 0) {
-        let fromValues = this.state.rulesElements.features.filter((re:any) => {
-          return (re.attributes.fromassettype === this.state.nodeData.assetTypeCode && re.attributes.fromassetgroup === this.props.data.subtypeCode && re.attributes.fromnetworksourceid === this.state.sourceId)
-        });
 
-        if(fromValues.length > 0) {
-          fromList.push(<tr><td colSpan={6}>Rules from this asset type</td></tr>);
-          fromList.push(<tr><td>From Terminal Config</td><td>From Terminal</td><td>To Asset Group</td><td>To Asset Type</td><td>To Terminal Config</td><td>To Terminal</td></tr>);
-          fromValues.map((fv: any, i: number)=>{
-            fromList.push(<tr key={i}>
-              <td style={{fontSize:"small"}}>{fv.attributes.fromterminalconfig}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.fromterminalidname}</td>
-              <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-                <div onClick={()=>{this.props.callbackLinkage(fv.attributes.toassetgroupname,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.toassetgroupname}</div>
-              </td>
-              <td style={{fontSize:"small"}}>{fv.attributes.toassettypename}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.toterminalconfig}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.toterminalidname}</td>
-            </tr>);
-          });
-        }
+    let processRules =(rules:any) => {
+      console.log(rules);
+      let rowList = [];
+      rules.map((fv: any, i:number) => {
+        rowList.push(<tr key={fv.attributes.ruletypename+i}>
+          <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
+            {(this.state.nodeData.assetTypeName === fv.attributes.toassettypename)?
+              fv.attributes.toassettypename
+            :
+              <div onClick={()=>{this.props.callbackLinkage(fv.attributes.toassettypename,"Assettype", this.props.panel, fv.attributes.tolayername, fv.attributes.toassetgroupname)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.toassettypename}</div>
+            }
+          </td>
+          <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}><div onClick={()=>{this.props.callbackLinkage(fv.attributes.toassetgroupname,"Subtype", this.props.panel, fv.attributes.tolayername)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.toassetgroupname}</div></td>
+          <td style={{fontSize:"small"}}>{fv.attributes.toterminalconfig}</td>
+          <td style={{fontSize:"small"}}>{fv.attributes.toterminalidname}</td>
+          <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
+          {(this.state.nodeData.assetTypeName === fv.attributes.fromassettypename)?
+              fv.attributes.fromassettypename
+            :
+              <div onClick={()=>{this.props.callbackLinkage(fv.attributes.fromassettypename,"Assettype", this.props.panel, fv.attributes.fromlayername, fv.attributes.fromassetgroupname)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.fromassettypename}</div>
+            }
+          </td>
+          <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}><div onClick={()=>{this.props.callbackLinkage(fv.attributes.fromassetgroupname,"Subtype", this.props.panel, fv.attributes.fromlayername)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.fromassetgroupname}</div></td>
+          <td style={{fontSize:"small"}}>{fv.attributes.fromterminalconfig}</td>
+          <td style={{fontSize:"small"}}>{fv.attributes.fromterminalidname}</td>
+        </tr>);
+      });
+      return rowList;
+    }
 
-        let toValues = this.state.rulesElements.features.filter((re:any) => {
-          return (re.attributes.toassettype === this.state.nodeData.assetTypeCode && re.attributes.toassetgroup === this.props.data.subtypeCode && re.attributes.tonetworksourceid === this.state.sourceId)
-        });
+    for(let key in this.state.rulesList){
+      let codeBlock = <div key={key} style={{width:"100%"}}>
+        <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRuleType(key);}}>{(this.state.expandRuleType[key])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {key}</div>
+        <Collapse isOpen={this.state.expandRuleType[key]}>
+        <Table key={key}>
+          <thead>
+          <tr>
+            <th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal</th>
+            <th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal</th>
+          </tr>
+          </thead>
+          <tbody>
+            {processRules(this.state.rulesList[key])}
+          </tbody>
+        </Table>
+        </Collapse>
+      </div>;
+      arrList.push(codeBlock);
+    }
 
-        if(toValues.length > 0) {
-          toList.push(<tr><td colSpan={6}></td></tr>);
-          toList.push(<tr><td colSpan={6}>Rules to this asset type</td></tr>);
-          toList.push(<tr><td>From Asset Group</td><td>From Asset Type</td><td>From Terminal Config</td><td>From Terminal</td><td>To Terminal Config</td><td>To Terminal</td></tr>);
-          toValues.map((fv: any, i: number)=>{
-            toList.push(<tr key={i}>
-              <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-                <div onClick={()=>{this.props.callbackLinkage(fv.attributes.fromassetgroupname,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.fromassetgroupname}</div>
-              </td>
-              <td style={{fontSize:"small"}}>{fv.attributes.fromassettypename}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.fromterminalconfig}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.fromterminalidname}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.toterminalconfig}</td>
-              <td style={{fontSize:"small"}}>{fv.attributes.toterminalidname}</td>
-            </tr>);
-          });
-        }
+    //this.setState({fieldHolder: arrList});
+    return arrList;
+  }
 
-        arrList = [...fromList, ...toList];
-
-      }
+  _createCategoriesList = () => {
+    let arrList = [];
+    if(this.props.data.data.categories.length > 0){
+      this.props.data.data.categories.map((c:string, i:number) => {
+        arrList.push(
+          <tr key={+i}>
+            <td style={{fontSize:"small"}}>
+              <div onClick={()=>{this.props.callbackLinkage(c,"Category", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' />{c}</div>
+            </td>
+          </tr>
+        );
+      });
+    } else {
+      arrList.push(<tr key={"no_categories"}><td colSpan={6}>Sorry, no categories</td></tr>);
     }
     //this.setState({fieldHolder: arrList});
     return arrList;
   }
+
 
 
   //****** helper functions and request functions
@@ -312,7 +364,14 @@ export default class TableCard extends React.Component <IProps, IState> {
       .then((response) => {return response.json()})
       .then((data) => {
         if(!data.hasOwnProperty("error")){
+          let rulesList = [];
+          let distinctRuleType = [];
           data.features.map((feat: any) => {
+            let ruleDesc = this._matchRuleType(feat.attributes.ruletype);
+            if(typeof rulesList[ruleDesc] === "undefined") {
+              rulesList[ruleDesc] = [];
+              distinctRuleType.push(ruleDesc);
+            }
             var toSource = sources.filter((s:any) =>{
               return s.sourceId === feat.attributes.tonetworksourceid;
             });
@@ -320,17 +379,22 @@ export default class TableCard extends React.Component <IProps, IState> {
               return s.sourceId === feat.attributes.fromnetworksourceid;
             });
             var descriptions = this._matchCodes(feat.attributes, toSource, fromSource, unde);
+            feat.attributes["ruletypename"] = this._matchRuleType(feat.attributes.ruletype);
             feat.attributes["toassettypename"] = descriptions.toassettypename;
             feat.attributes["toassetgroupname"] = descriptions.toassetgroupname;
+            feat.attributes["tolayername"] = (descriptions.toassettypename === this.state.nodeData.assetTypeName && feat.attributes.toassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(toSource[0]);
             feat.attributes["fromassettypename"] = descriptions.fromassettypename;
             feat.attributes["fromassetgroupname"] = descriptions.fromassetgroupname;
+            feat.attributes["fromlayername"] = (descriptions.fromassettypename === this.state.nodeData.assetTypeName && feat.attributes.fromassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(fromSource[0]);
             feat.attributes["toterminalconfig"] = descriptions.toTerminalConfig;
             feat.attributes["fromterminalconfig"] = descriptions.fromTerminalConfig;
             feat.attributes["toterminalidname"] = descriptions.toTerminalId;
             feat.attributes["fromterminalidname"] = descriptions.fromTerminalId;
+            rulesList[ruleDesc].push(feat);
           });
-          console.log(data);
-          this.setState({rulesElements: data, sourceId: sourceId[0].sourceId});
+          this.setState({rulesElements: data, sourceId: sourceId[0].sourceId, rulesList:rulesList, expandRuleType:distinctRuleType}, () =>{
+            console.log(this.state.rulesList);
+          });
         }
       });
     }
@@ -451,6 +515,39 @@ export default class TableCard extends React.Component <IProps, IState> {
       return(f.name === lookup);
     });
     return fieldVal;
+  }
+
+  _lookupTC =(lookup: any) => {
+    let returnValue = lookup;
+    this.props.controllerDS.dataElement.terminalConfigurations.map((tc:any) => {
+      if(tc.terminalConfigurationId === lookup) {
+        returnValue = tc.terminalConfigurationName;
+      }
+    });
+    return returnValue;
+  }
+
+  _matchRuleType =(rule: number) => {
+    let description = rule.toString();
+    switch(rule) {
+      case 1: {description = "Junction Junction"; break;}
+      case 2: {description = "Containment"; break;}
+      case 3: {description = "Attachment"; break;}
+      case 4: {description = "Junction Edge"; break;}
+      case 5: {description = "Edge Junction Edge"; break;}
+      default: {description = rule.toString(); break;}
+    }
+    return description;
+  }
+
+  _lookupLayerName =(source:any) => {
+    let layerName = source.sourceId.toString();
+    this.props.dataElements.map((de:any) => {
+      if(de.layerId === source.layerId) {
+        layerName = de.dataElement.aliasName;
+      }
+    });
+    return layerName;
   }
 
   _handleAliasBrackets =(alias: string, name: string) => {

@@ -1806,7 +1806,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
                 if(typeof(parentSub) !== "undefined") {
                   node.crumb.map((c: any) => {
                     if((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
-                      matchNode = node;
+                      if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
+                        matchNode = node;
+                      }
                     }
                   });
                 } else {
@@ -2046,8 +2048,10 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   replaceSpaces =(value:string) => {
-    if(value.indexOf(" ") > -1) {
-      value = value.replace(/ /g,"");
+    if(typeof value !== "undefined") {
+      if(value.indexOf(" ") > -1) {
+        value = value.replace(/ /g,"");
+      }
     }
     return value;
   }
