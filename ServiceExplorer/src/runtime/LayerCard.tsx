@@ -17,6 +17,8 @@ interface IProps {
   requestURL: string,
   key: any,
   panel:number,
+  config: any,
+  cacheData:any,
   callbackClose: any,
   callbackSave: any,
   callbackLinkage:any,
@@ -39,7 +41,9 @@ interface IState {
   indexes: any,
   expandFields: boolean,
   expandSubtypes: boolean,
-  expandIndexes: boolean
+  expandIndexes: boolean,
+  metadataElements: any,
+  metadataDescription: string;
 }
 
 export default class LayerCard extends React.Component <IProps, IState> {
@@ -58,7 +62,9 @@ export default class LayerCard extends React.Component <IProps, IState> {
       indexes: [],
       expandFields: false,
       expandSubtypes: false,
-      expandIndexes: false
+      expandIndexes: false,
+      metadataElements : null,
+      metadataDescription: ""
     };
 
   }
@@ -68,7 +74,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
     let fieldList = {};
     let fields = [];
     let indexes = [];
-    //test
+    let layerDesc = "";
     if(this.props.data.data.hasOwnProperty("dataElement")) {
       if(this.props.data.data.dataElement.hasOwnProperty("fields")) {
         this.props.data.data.dataElement.fields.fieldArray.map((fd: any) => {
@@ -87,7 +93,14 @@ export default class LayerCard extends React.Component <IProps, IState> {
       indexes = this.props.data.data.indexes;
     }
 
-    this.setState({fieldHolder:fieldList, fields:fields, indexes: indexes});
+    this._requestMetadata().then(()=> {
+      if(this.state.metadataElements !== null) {
+        layerDesc = this._removeTags(this._unescapeHTML(this._processMetaData()));
+        console.log(layerDesc);
+      }
+      this.setState({fieldHolder:fieldList, fields:fields, indexes: indexes, metadataDescription: layerDesc});
+    });
+
   }
 
   componentDidMount() {
@@ -114,7 +127,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal"}}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.aliasName:this.state.nodeData.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.description:""}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}} dangerouslySetInnerHTML={{ __html: (this.state.metadataDescription !== "")?this.state.metadataDescription:this.state.nodeData.dataElement.description}}></span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Layer Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Global Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}>Object Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</span></div>
@@ -544,6 +557,29 @@ export default class LayerCard extends React.Component <IProps, IState> {
 
   //****** helper functions and request functions
   //********************************************
+  _requestMetadata = async() => {
+    if(this.props.config.useCache) {
+      if(this.props.cacheData.metadata.hasOwnProperty(this.props.data.data.layerId)) {
+        let data  = this.props.cacheData.metadata[this.props.data.data.layerId];
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      }
+    } else {
+      let url = this.props.requestURL + "/" + this.props.data.data.layerId + "/metadata";
+      await fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.text()})
+      .then((data) => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      });
+    }
+
+  }
+
   _requestObject = async(clause: string, category: string) => {
     let url = this.props.requestURL + "/" + this.props.data.parentId + "/query?where="+ clause +"&returnCountOnly=true&f=pjson";
     fetch(url, {
@@ -560,6 +596,35 @@ export default class LayerCard extends React.Component <IProps, IState> {
         this._createStatsOutput();
       }
     });
+  }
+
+  _processMetaData =() => {
+    let desc = "";
+    let metadata = this.state.metadataElements;
+    let dataInfo = metadata.getElementsByTagName("dataIdInfo");
+    if(dataInfo.length > 0) {
+      let idAbsLevel = dataInfo[0].getElementsByTagName("idAbs");
+      if(idAbsLevel.length > 0) {
+        desc = idAbsLevel[0].innerHTML;
+      }
+    }
+    return desc;
+  }
+
+  _unescapeHTML =(html:string) => {
+    var el = document.createElement('div');
+    return html.replace(/\&#?[0-9a-z]+;/gi, function (enc) {
+        el.innerHTML = enc;
+        return el.innerText
+    });
+  }
+
+  _removeTags(str: string) {
+    if ((str===null) || (str===''))
+    return str;
+    else
+    str = str.toString();
+    return str.replace( /(<([^>]+)>)/ig, '');
   }
 
   _compare =(prop: any) => {

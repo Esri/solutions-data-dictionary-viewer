@@ -36,6 +36,7 @@ import CategoriesCard from './CategoriesCard';
 import AssetTypeCard from './AssetTypeCard';
 import { any } from 'prop-types';
 import './css/custom.css';
+import AssetTypesCard from './AssetTypesCard';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
 let searchIcon = require('jimu-ui/lib/icons/search.svg');
 let deleteIcon = require('jimu-ui/lib/icons/delete.svg');
@@ -84,6 +85,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       favoriteAlert: false,
       winHeight: document.body.clientHeight,
       cardWidth: (document.body.clientWidth - 425),
+      tocWidth: 400
     };
   }
   //https://pleblanc3.esri.com/server/rest/services/cav/FeatureServer
@@ -107,6 +109,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   componentWillMount() {
+    window.addEventListener('resize', this.handleResize);
+
     let newActive = [...this.state.activeCards];
     newActive[0] = [];
     newActive[1] = [];
@@ -184,7 +188,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     return <div className="widget-demo" style={{top:0, height:this.state.winHeight, backgroundColor:"#fff"}}>
       <div>
         <Collapse isOpen={this.state.showTree}>
-        {this.state.treeReady && <ServiceExplorerTree width={400} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />}
+        {this.state.treeReady && <ServiceExplorerTree width={this.state.tocWidth} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />}
         </Collapse>
       </div>
       <div id="serviceExplorerStage" style={{top:0, height:this.state.winHeight -5, left:this.state.contentStartLocation, position: "absolute", overflowX:"auto", overflowY:"auto", whiteSpace: "nowrap"}}>
@@ -202,7 +206,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           <Icon icon={treeIcon} size='17' color='#00f' />
         </Button>
         <br></br>
-        <Button id="addPanel" type="secondary" onClick={this.togglePanel2}>
+        <Button id="addPanel" type="secondary" onClick={()=> {this.togglePanel2(this.state.showPanel2)}}>
           <Icon icon={panelIcon} size='16' color='#333' />
         </Button>
         <br></br>
@@ -874,6 +878,38 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
   _processAssetTypes =(st:any, id:string, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
     let nodeData = [];
+    if(st) {
+      let arNode = {
+        id: this.replaceColon(id + "_assettypes"),
+        type: "Asset types",
+        text: "Asset types",
+        subNodeCount: 0,
+        icon: "",
+        data: null,
+        subtypes: st,
+        requestAdditional: false,
+        nodes: [],
+        clickable: true,
+        search: false,
+        crumb: crumb,
+        parent: parent
+      };
+      let newCrumb = [...crumb];
+      newCrumb.push({
+        type:"Asset types",
+        value:"Asset types",
+        node: arNode.id
+      });
+      //arNode["crumb"] = newCrumb;
+      arNode.nodes = this._processAssetType(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode, newCrumb, parent);
+      arNode.data = arNode.nodes;
+      nodeData.push(arNode);
+    }
+    return nodeData;
+  }
+
+  _processAssetType =(st:any, id:string, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
+    let nodeData = [];
     let atList = [];
     if(this.state.controllerDS !== null) {
       this.state.controllerDS.dataElement.domainNetworks.map((dn:any) => {
@@ -1124,6 +1160,21 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               />);
           break;
         }
+        case "Asset types": {
+          newActiveList.push(<AssetTypesCard data={dataNode} requestURL={this.state.requestURL}
+            key={dataNode.id}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
         case "Assettype": {
           newActiveList.push(<AssetTypeCard data={dataNode} controllerDS={this.state.controllerDS} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
               key={dataNode.id}
@@ -1156,7 +1207,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Relationship": {
-          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth}
+          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth} serviceElements={this.state.serviceElements}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}
@@ -1321,8 +1372,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Layer": {
-          newActiveList.push(<LayerCard key={dataNode.id} data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL}
+          newActiveList.push(<LayerCard key={dataNode.id} data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL} cacheData={this.state.cacheData}
             panel={slot}
+            config={this.props.config}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
             callbackLinkage={this.searchLaunchCard}
@@ -1628,6 +1680,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _callMovePanels=(dataNode: any, type:string, panel:number, direction:string) => {
+    console.log(dataNode);
     let diff = 0;
     let newPos = panel;
     if(direction === "right") {
@@ -1849,28 +1902,35 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
 
 
   //Helper Functions
-  togglePanel2 =() => {
+  togglePanel2 =(panel2State: boolean) => {
     let newState = false;
     let newSize = document.body.clientWidth;
     let newPanelCount = 0;
-    if(this.state.showPanel2) {
+    let existingPanel1Cards = this.state.activeCards;
+    if(panel2State) {
       newState = false;
       newPanelCount = 0;
       if(this.state.showTree) {
-        newSize = (document.body.clientWidth - 425);
+        newSize = (document.body.clientWidth - (this.state.tocWidth + 25));
       } else {
         newSize = (document.body.clientWidth - 75);
+      }
+      if(existingPanel1Cards.length > 1) {
+        existingPanel1Cards[1].map((ac:any) => {
+          this._callMovePanels(ac.props.data, ac.props.data.type, 1, "Left");
+        });
+        existingPanel1Cards[1] = [];
       }
     } else {
       newState = true;
       newPanelCount = 1;
       if(this.state.showTree) {
-        newSize = (document.body.clientWidth - 425) / 2;
+        newSize = (document.body.clientWidth - (this.state.tocWidth + 25)) / 2;
       } else {
         newSize = (document.body.clientWidth - 75) / 2;
       }
     }
-    this.setState({showPanel2: newState, stagePanels:newPanelCount, cardWidth:newSize});
+    this.setState({showPanel2: newState, stagePanels:newPanelCount, cardWidth:newSize, winHeight: document.body.clientHeight, activeCards:existingPanel1Cards});
 
   }
 
@@ -1880,13 +1940,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       if(this.state.showPanel2) {
         newSize = ((document.body.clientWidth - 90) / 2);
       }
-      this.setState({showTree: false, contentStartLocation:60, cardWidth:newSize});
+      this.setState({showTree: false, contentStartLocation:60, cardWidth:newSize, winHeight: document.body.clientHeight});
     } else {
-      let newSize = (document.body.clientWidth - 430);
+      let newSize = (document.body.clientWidth - (this.state.tocWidth + 30));
       if(this.state.showPanel2) {
-        newSize = ((document.body.clientWidth - 430) / 2);
+        newSize = ((document.body.clientWidth - (this.state.tocWidth + 30)) / 2);
       }
-      this.setState({showTree: true, contentStartLocation:400, cardWidth: newSize});
+      this.setState({showTree: true, contentStartLocation:this.state.tocWidth, cardWidth: newSize, winHeight: document.body.clientHeight});
     }
   }
 
@@ -2056,6 +2116,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     return value;
   }
 
+
+  handleResize =() => {
+    let currentTOCState = !this.state.showPanel2;
+    this.togglePanel2(currentTOCState);
+  }
+
+
   pullDataFromCache = async() => {
     return new Promise((resolve, reject) => {
       loadArcGISJSAPIModules(['esri/portal/Portal','esri/portal/PortalItem', 'esri/portal/PortalUser']).then(async ([Portal, PortalItem, PortalUser]) => {
@@ -2089,6 +2156,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       });
     });
   }
+
 
 
 }

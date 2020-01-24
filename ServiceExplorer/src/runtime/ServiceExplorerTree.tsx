@@ -146,9 +146,9 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
         const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
         const item = <React.Fragment key={id}>
           <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-            {<div style={{ paddingLeft: `${15 * lvl}px` }}>
-              {node.nodes && <Button type="tertiary" id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
-              {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)}>{node.text}</span>}
+            {<div style={{ paddingLeft: `${10 * lvl}px` }}>
+              {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+              {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)} title={node.text}>{node.text}</span>}
             </div>}
           </ListGroupItem>
           {node.nodes &&
@@ -162,9 +162,9 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
           const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
           const item = <React.Fragment key={id}>
             <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-              {<div style={{ paddingLeft: `${15 * lvl}px` }}>
-                {node.nodes && <Button type="tertiary" id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</Button>}
-                {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)}>{node.text}</span>}
+              {<div style={{ paddingLeft: `${10 * lvl}px` }}>
+                {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+                {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)} title={node.text}>{node.text}</span>}
               </div>}
             </ListGroupItem>
             {node.nodes &&
@@ -229,9 +229,9 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
     let isActive = this.checkActives(text);
     if(isActive){
       color = "#007ac2";
-      return {"color":color, "fontWeight":"bold", cursor:"pointer"};
+      return {"color":color, "fontWeight":"bold", cursor:"pointer", overflowWrap: "break-word"};
     } else {
-      return {"color":color, cursor:"pointer"};
+      return {"color":color, cursor:"pointer", overflowWrap: "break-word"};
     }
 
   }
@@ -538,6 +538,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
       return comparison;
     }
   }
+
 
 
 

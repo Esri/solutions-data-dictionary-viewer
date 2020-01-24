@@ -12,6 +12,7 @@ interface IProps {
   data: any,
   key: any,
   width: any,
+  serviceElements: any,
   panel:number,
   callbackClose: any,
   callbackSave: any,
@@ -67,7 +68,7 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
             <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
             <div style={{paddingBottom: 15}}></div>
-            <Table>
+            <Table style={{width:"100%"}}>
               <tbody>
                 <tr>
                   <td style={{fontWeight:"bold"}}>Cardinality: </td><td>{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
@@ -75,15 +76,15 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
                 </tr>
                 <tr>
                   <td style={{fontWeight:"bold"}}>Origin Name: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.backwardPathLabel,"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
-                  <td style={{fontWeight:"bold"}}>Destination: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.forwardPathLabel,"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId),"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
+                  <td style={{fontWeight:"bold"}}>Destination Name: </td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId),"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
                 </tr>
                 <tr>
                   <td style={{fontWeight:"bold"}}>Origin Primary Key: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this.state.nodeData.backwardPathLabel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
                   <td style={{fontWeight:"bold"}}>Origin Foreign Key: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this.state.nodeData.forwardPathLabel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.destinationLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
                 </tr>
               </tbody>
             </Table>
@@ -167,6 +168,25 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     } else {
       return code;
     }
+  }
+
+  _layerForLinkageLookup =(layerId:number) => {
+    let foundLayer = "";
+    let filterSETables = this.props.serviceElements.tables.filter((se:any) => {
+      return(se.id === layerId);
+    });
+    if(filterSETables.length > 0) {
+      foundLayer = filterSETables[0].name;
+    } else {
+      //if it's not a table, see if it's a lyer
+      let filterSELayers = this.props.serviceElements.layers.filter((se:any) => {
+        return(se.id === layerId);
+      });
+      if(filterSELayers.length > 0) {
+        foundLayer = filterSELayers[0].name;
+      }
+    }
+    return foundLayer;
   }
 
 }

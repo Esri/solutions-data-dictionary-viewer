@@ -163,6 +163,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                 <thead>
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Field Name</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Domain</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Default Value</th>
                 </tr>
@@ -371,7 +372,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                   });
                   arrList.push(
                     <tr key={i}>
-                      <td style={{fontSize:"small"}} onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}>{d.name}</td>
+                      <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}><Icon icon={linkIcon} size='12' color='#333' /> {d.name}</div></td>
                       <td style={{fontSize:"small"}}>{d.code}</td>
                       <td style={{fontSize:"small", wordWrap: "break-word"}}>{(filtered.length > 0)?filtered[0].description:""}</td>
                     </tr>
@@ -409,15 +410,16 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         let fieldObj = this._matchField(fi.fieldName);
         let defaultVal = fi.defaultValue;
         let fieldName = fi.fieldName;
+        let alias = "";
         usedFields.push(fieldName);
         if(fieldObj.length > 0) {
-          let alias = fieldObj[0].aliasName;
+          alias = fieldObj[0].aliasName;
           //check metadata for specific alias
           let aliasFromMetadata = this._matchFieldAliasInMetadata(fieldName);
           if(aliasFromMetadata !== "") {
             alias = aliasFromMetadata;
           }
-          fieldName = <span><div style={{textAlign: "left"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {alias}</div><div style={{textAlign: "left"}}>{"("+fi.fieldName+")"}</div></span>;
+          fieldName = <span><div style={{textAlign: "left"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {fi.fieldName}</div></span>;
         }
         if(domain.length > 0) {
           if(domain[0].hasOwnProperty("codedValues")) {
@@ -435,7 +437,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         } else {
           //keep whatever value it is.
         }
-        arrList.push(<tr key={i}><td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
+        arrList.push(<tr key={i}><td style={{fontSize:"small", textAlign: "left", verticalAlign: "top", whiteSpace: "nowrap"}}>
         <div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
         <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
           this.toggleFields(fi.fieldName);
@@ -445,11 +447,15 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           {(fieldDetailsTable !== null)? fieldDetailsTable: ""}
         </Collapse>
         </td>
+        <td style={{fontSize:"small"}}>{alias}</td>
         <td style={{fontSize:"small"}}>
-        <div onClick={()=>{this.props.callbackLinkage(fi.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}>{(fi.domainName !== "")?<Icon icon={linkIcon} size='12' color='#333' />:''}</div>
-          <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
-            this.toggleDomains(fi.domainName);
-          }}>{(fi.domainName !== "")?(this.state.domainHolder[fi.domainName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:""} {fi.domainName}</div>
+          <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", whiteSpace: "nowrap"}}>
+            <div onClick={()=>{this.props.callbackLinkage(fi.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, whiteSpace: "nowrap"}}>{(fi.domainName !== "")?<Icon icon={linkIcon} size='12' color='#333' />:''}</div>
+            <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", wordBreak:"break-word"}} onClick={()=>{
+              this.toggleDomains(fi.domainName);
+            }}>{(fi.domainName !== "")?(this.state.domainHolder[fi.domainName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:""}</div>
+          </div>
+          <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", whiteSpace: "nowrap"}}> {fi.domainName}</div>
           <Collapse isOpen={this.state.domainHolder[fi.domainName]}>
             {domainTable}
           </Collapse>
@@ -638,40 +644,42 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
     let ATDesc = [];
     let metadata = this.state.metadataElements;
     let metaLevel = metadata.getElementsByTagName("metadata");
-    let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
-    if(eaInfoLevel.length > 0) {
-      let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
-      if(detailedLevel.length > 0) {
-        for (let i=0; i < detailedLevel.length; i++) {
-          let subTypeCodeLevel = detailedLevel[i].getElementsByTagName("enttypdv");
-          if(subTypeCodeLevel.length > 0) {
-            //loop thorugh details and get code node and see if it's the current code card is on.
-            if(parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
-              //this tag stores the descriptions
-              let subTypeDescLevel = detailedLevel[i].getElementsByTagName("enttypd");
-              if(subTypeDescLevel.length > 0) {
-                description = subTypeDescLevel[0].innerHTML;
-              }
-              //now add only fields that pertain to this subtype
-              let attrLevel = detailedLevel[i].getElementsByTagName("attr");
-              if(attrLevel.length > 0) {
-                for (let z=0; z < attrLevel.length; z++) {
-                  let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
-                  let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
-                  if(fieldName.length > 0) {
-                    fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
-                    if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
-                      //get AT descriptions
-                      let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
-                      if(attrdomvLevel.length > 0) {
-                        let edomLevel = attrdomvLevel[0].getElementsByTagName("edom");
-                        if(edomLevel.length > 0) {
-                          for (let e=0; e < edomLevel.length; e++) {
-                            let edomvLevel = edomLevel[e].getElementsByTagName("edomv");
-                            let edomvddLevel = edomLevel[e].getElementsByTagName("edomvdd");
-                            //where AT desc is stored
-                            if(edomvddLevel.length > 0) {
-                              ATDesc.push({code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML})
+    if(metaLevel.length > 0) {
+      let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
+      if(eaInfoLevel.length > 0) {
+        let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
+        if(detailedLevel.length > 0) {
+          for (let i=0; i < detailedLevel.length; i++) {
+            let subTypeCodeLevel = detailedLevel[i].getElementsByTagName("enttypdv");
+            if(subTypeCodeLevel.length > 0) {
+              //loop thorugh details and get code node and see if it's the current code card is on.
+              if(parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
+                //this tag stores the descriptions
+                let subTypeDescLevel = detailedLevel[i].getElementsByTagName("enttypd");
+                if(subTypeDescLevel.length > 0) {
+                  description = subTypeDescLevel[0].innerHTML;
+                }
+                //now add only fields that pertain to this subtype
+                let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+                if(attrLevel.length > 0) {
+                  for (let z=0; z < attrLevel.length; z++) {
+                    let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
+                    let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
+                    if(fieldName.length > 0) {
+                      fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
+                      if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
+                        //get AT descriptions
+                        let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
+                        if(attrdomvLevel.length > 0) {
+                          let edomLevel = attrdomvLevel[0].getElementsByTagName("edom");
+                          if(edomLevel.length > 0) {
+                            for (let e=0; e < edomLevel.length; e++) {
+                              let edomvLevel = edomLevel[e].getElementsByTagName("edomv");
+                              let edomvddLevel = edomLevel[e].getElementsByTagName("edomvdd");
+                              //where AT desc is stored
+                              if(edomvddLevel.length > 0) {
+                                ATDesc.push({code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML})
+                              }
                             }
                           }
                         }
@@ -679,13 +687,13 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                     }
                   }
                 }
-              }
 
+              }
             }
           }
         }
-      }
 
+      }
     }
     this.setState({description:description, validFieldsChecker:fieldFilter, assetTypeDesc: ATDesc});
   }

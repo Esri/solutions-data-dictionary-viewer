@@ -61,9 +61,9 @@ export default class TableCard extends React.Component <IProps, IState> {
   }
 
   componentWillMount() {
-    console.log(this.props.data);
-    console.log(this.props.controllerDS);
-    console.log(this.props.dataElements);
+    //console.log(this.props.data);
+    //console.log(this.props.controllerDS);
+    //console.log(this.props.dataElements);
   }
 
   componentDidMount() {
@@ -238,7 +238,7 @@ export default class TableCard extends React.Component <IProps, IState> {
     let arrList = [];
 
     let processRules =(rules:any) => {
-      console.log(rules);
+      //console.log(rules);
       let rowList = [];
       rules.map((fv: any, i:number) => {
         rowList.push(<tr key={fv.attributes.ruletypename+i}>
@@ -321,30 +321,34 @@ export default class TableCard extends React.Component <IProps, IState> {
     var rulesTable = this.props.dataElements.filter((de:any) =>{
       return de.dataElement.aliasName === "Rules";
     });
-    var datElm = this.props.dataElements.map((de:any) =>{
+    this.props.dataElements.map((de:any) =>{
       if(de.dataElement.hasOwnProperty("domainNetworks")) {
         unde = de.dataElement;
-        var domNet = de.dataElement.domainNetworks.some((dn:any) =>{
+        de.dataElement.domainNetworks.map((dn:any) =>{
           sources = [...sources, ...dn.edgeSources];
           sources = [...sources, ...dn.junctionSources];
-          sourceId = dn.edgeSources.filter((es:any) =>{
-            return es.layerId === this.props.data.parentId;
-          });
-          if(sourceId.length <= 0) {
-            sourceId = dn.junctionSources.filter((js:any) =>{
-              return js.layerId === this.props.data.parentId;
+          if(sourceId === null) {
+            sourceId = sources.filter((es:any) =>{
+              return es.layerId === this.props.data.parentId;
             });
+          } else {
+            if(sourceId.length <=0 ) {
+              sourceId = sources.filter((es:any) =>{
+                return es.layerId === this.props.data.parentId;
+              });
+            }
           }
           return sourceId.length > 0;
         });
       }
     });
     if(rulesTable.length > 0) {
+      let whereClause = "";
       let url = this.props.requestURL + "/" + rulesTable[0].dataElement.layerId + "/query?where="+whereClause+"&f=pjson";
       //if(this.props.config.useCache) {
       //  url = this.props.config.cachePath + "/connectivityRules/" + rulesTable[0].dataElement.layerId + ".json";
       //} else {
-        let whereClause = "(fromassettype = " + this.state.nodeData.assetTypeCode + " AND fromassetgroup = " + this.props.data.subtypeCode;
+        whereClause = "(fromassettype = " + this.state.nodeData.assetTypeCode + " AND fromassetgroup = " + this.props.data.subtypeCode;
         if((sourceId.length > 0)) {
           whereClause = whereClause + " AND fromnetworksourceid = " + sourceId[0].sourceId;
         }
@@ -357,7 +361,6 @@ export default class TableCard extends React.Component <IProps, IState> {
         url = this.props.requestURL + "/" + rulesTable[0].dataElement.layerId + "/query?where="+whereClause+"&f=pjson";
       //}
 
-      console.log(url);
       await fetch(url, {
         method: 'GET'
       })
@@ -382,19 +385,25 @@ export default class TableCard extends React.Component <IProps, IState> {
             feat.attributes["ruletypename"] = this._matchRuleType(feat.attributes.ruletype);
             feat.attributes["toassettypename"] = descriptions.toassettypename;
             feat.attributes["toassetgroupname"] = descriptions.toassetgroupname;
-            feat.attributes["tolayername"] = (descriptions.toassettypename === this.state.nodeData.assetTypeName && feat.attributes.toassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(toSource[0]);
+            if(toSource.length > 0) {
+              feat.attributes["tolayername"] = (descriptions.toassettypename === this.state.nodeData.assetTypeName && feat.attributes.toassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(toSource[0]);
+            } else {
+              feat.attributes["tolayername"] = null;
+            }
             feat.attributes["fromassettypename"] = descriptions.fromassettypename;
             feat.attributes["fromassetgroupname"] = descriptions.fromassetgroupname;
-            feat.attributes["fromlayername"] = (descriptions.fromassettypename === this.state.nodeData.assetTypeName && feat.attributes.fromassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(fromSource[0]);
+            if(fromSource.length > 0) {
+              feat.attributes["fromlayername"] = (descriptions.fromassettypename === this.state.nodeData.assetTypeName && feat.attributes.fromassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(fromSource[0]);
+            } else {
+              feat.attributes["fromlayername"] = null;
+            }
             feat.attributes["toterminalconfig"] = descriptions.toTerminalConfig;
             feat.attributes["fromterminalconfig"] = descriptions.fromTerminalConfig;
             feat.attributes["toterminalidname"] = descriptions.toTerminalId;
             feat.attributes["fromterminalidname"] = descriptions.fromTerminalId;
             rulesList[ruleDesc].push(feat);
           });
-          this.setState({rulesElements: data, sourceId: sourceId[0].sourceId, rulesList:rulesList, expandRuleType:distinctRuleType}, () =>{
-            console.log(this.state.rulesList);
-          });
+          this.setState({rulesElements: data, sourceId: sourceId[0].sourceId, rulesList:rulesList, expandRuleType:distinctRuleType});
         }
       });
     }

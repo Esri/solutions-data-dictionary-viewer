@@ -2,7 +2,8 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import './css/custom.css';
-import { Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, Tooltip, DropdownMenu } from 'jimu-ui';
+import {Tooltip} from 'reactstrap';
+import { Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, DropdownMenu } from 'jimu-ui';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
 let closeIcon = require('jimu-ui/lib/icons/close.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
@@ -80,9 +81,9 @@ export default class CardHeader extends React.Component <IProps, IState> {
 */
 
     return (
-    <div style={{width:"100%", float:"left", display:"inline-block"}}>
+    <div id={this.props.title+"_header"} style={{width:"100%", float:"left", display:"inline-block"}}>
       <Navbar color="dark" expand="md">
-        <NavbarBrand><h4 style={{color:"#fff"}}>{this.props.title}</h4></NavbarBrand>
+        <NavbarBrand><div style={{width:"100%", color:"#fff", overflowWrap:"break-word"}}>{this._dynamicHeaderSize(this.props.title)}</div></NavbarBrand>
         <Nav className="ml-auto"  tabs>
           <NavItem>
             <NavLink>
@@ -97,21 +98,21 @@ export default class CardHeader extends React.Component <IProps, IState> {
 
       </DropdownMenu>
       <Tooltip placement="bottom" isOpen={this.state.tooltipOpen} autohide={false} target={this.props.id} toggle={this.toggleToolTip} tigger="hover" >
-        <table cellSpacing={0} cellPadding={0}>
+        <table cellSpacing={0} cellPadding={0} style={{backgroundColor:"#fff"}}>
           <tbody>
           <tr>
             <td></td>
-            <td onClick={()=>{(upValid)?this.props.onReorderCards("up"):''}}>{<Icon icon={upArrowIcon} size='16' color={(upValid())?'#000':'#ccc'} />}</td>
+            <td style={{cursor:"pointer"}} onClick={()=>{(upValid)?this.props.onReorderCards("up"):''}}>{<Icon icon={upArrowIcon} size='16' color={(upValid())?'#000':'#ccc'} />}</td>
             <td></td>
           </tr>
           <tr>
-            <td>{<Icon icon={leftArrowIcon} size='14' color={(leftValid)?'#000':'#ccc'} onClick={()=>{(leftValid)?this.props.onMove("left"):''}} />}</td>
+            <td style={{cursor:"pointer"}} onClick={()=>{(leftValid)?this.props.onMove("left"):''}}>{<Icon icon={leftArrowIcon} size='14' color={(leftValid)?'#000':'#ccc'} />}</td>
             <td></td>
-            <td>{<Icon icon={rightArrowIcon} size='14' color={(rightValid)?'#000':'#ccc'} onClick={()=>{(rightValid)?this.props.onMove("right"):''}} />}</td>
+            <td style={{cursor:"pointer"}} onClick={()=>{(rightValid)?this.props.onMove("right"):''}}>{<Icon icon={rightArrowIcon} size='14' color={(rightValid)?'#000':'#ccc'} />}</td>
           </tr>
           <tr>
             <td></td>
-            <td>{<Icon icon={downArrowIcon} size='14' color={(downValid())?'#000':'#ccc'} onClick={()=>{(downValid)?this.props.onReorderCards("down"):''}} />}</td>
+            <td style={{cursor:"pointer"}} onClick={()=>{(downValid)?this.props.onReorderCards("down"):''}}>{<Icon icon={downArrowIcon} size='14' color={(downValid())?'#000':'#ccc'} />}</td>
             <td></td>
           </tr>
           </tbody>
@@ -137,6 +138,23 @@ export default class CardHeader extends React.Component <IProps, IState> {
       });
     }
     return tab;
+  }
+
+  _dynamicHeaderSize =(title:string) => {
+    let newTitleSize = title;
+    if(this.props.panel > 0) {
+      if(title.length > 35) {
+        let split1 = title.substring(0,35);
+        let split2 = title.substring(35,title.length);
+        newTitleSize = split1 + "<br>" + split2;
+      } else {
+        newTitleSize = title;
+      }
+    } else {
+      let headerdiv = document.getElementById(this.props.title+"_header");
+      newTitleSize = title;
+    }
+    return newTitleSize;
   }
 
 
