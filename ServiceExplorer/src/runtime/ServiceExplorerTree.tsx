@@ -148,7 +148,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
           <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
             {<div style={{ paddingLeft: `${10 * lvl}px` }}>
               {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
-              {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)} title={node.text}>{node.text}</span>}
+              {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
             </div>}
           </ListGroupItem>
           {node.nodes &&
@@ -164,7 +164,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
             <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
               {<div style={{ paddingLeft: `${10 * lvl}px` }}>
                 {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
-                {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text)} title={node.text}>{node.text}</span>}
+                {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
               </div>}
             </ListGroupItem>
             {node.nodes &&
@@ -213,20 +213,23 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
     this.props.callback(node, node.type);
   }
 
-  checkActives =(text:string) => {
+  checkActives =(text:string, id: any) => {
     let masterActive = this.props.callbackActiveCards();
     let active = false;
-    active = masterActive.some((m:any) => {
-        return m.some((a:any) => {
-          return (a.props.data.text === text);
+    let matchList = [];
+    masterActive.map((m:any) => {
+      if(!active) {
+        active= m.some((a:any) => {
+          return (a.props.data.text === text && a.props.data.id === id);
         });
+      }
     });
     return active;
   }
 
-  setNodeColor =(text:string) => {
+  setNodeColor =(text:string, id:any) => {
     let color = "#000000";
-    let isActive = this.checkActives(text);
+    let isActive = this.checkActives(text, id);
     if(isActive){
       color = "#007ac2";
       return {"color":color, "fontWeight":"bold", cursor:"pointer", overflowWrap: "break-word"};
