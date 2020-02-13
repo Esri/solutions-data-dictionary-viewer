@@ -7,7 +7,7 @@ import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
 import { arr } from '@interactjs/utils';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
@@ -31,7 +31,8 @@ interface IState {
   nodeData: any,
   activeTab: string,
   expandActive: boolean,
-  expandAT: any
+  expandAT: any,
+  minimizedDetails: boolean
 }
 
 export default class CategoryCard extends React.Component <IProps, IState> {
@@ -42,13 +43,13 @@ export default class CategoryCard extends React.Component <IProps, IState> {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
       expandActive: false,
-      expandAT: {}
+      expandAT: {},
+      minimizedDetails: false
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.dataElements);
     let atCopy = {...this.state.expandAT};
     let dn = this._findUN();
     if(dn !== null) {
@@ -77,25 +78,30 @@ export default class CategoryCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
-        <TabPane tabId="Properties">
-        <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Category used in</div>
-          <Collapse isOpen={this.state.expandActive}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {(this._findUN() !== null)?this._createActiveTable():"No domains exist"}
-            </div>
-          </Collapse>
-          <div style={{paddingBottom: 15}}></div>
-        </div>
-        </TabPane>
-      </TabContent>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="Properties">
+          <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.name}</div>
+            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Category used in</span></div>
+            <Collapse isOpen={this.state.expandActive}>
+              <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                {(this._findUN() !== null)?this._createActiveTable():"No domains exist"}
+              </div>
+            </Collapse>
+            <div style={{paddingBottom: 15}}></div>
+          </div>
+          </TabPane>
+        </TabContent>
+      }
     </div>);
   }
 
@@ -159,6 +165,17 @@ export default class CategoryCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************

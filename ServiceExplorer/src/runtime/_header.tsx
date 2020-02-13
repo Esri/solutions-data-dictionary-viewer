@@ -11,6 +11,7 @@ let leftArrowIcon = require('jimu-ui/lib/icons/arrow-left.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let upArrowIcon = require('jimu-ui/lib/icons/arrow-up-8.svg');
 let moveIcon = require('jimu-ui/lib/icons/tool-drag.svg');
+let minimizeIcon = require('jimu-ui/lib/icons/carret.svg');
 let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
 let pageIcon = require('jimu-ui/lib/icons/page.svg');
 let chartIcon = require('jimu-ui/lib/icons/chart.svg');
@@ -28,6 +29,7 @@ interface IProps {
   onSave: any,
   onTabSwitch: any,
   onMove: any,
+  onMinimize:any,
   onReorderCards: any,
   showProperties:boolean,
   showStatistics:boolean,
@@ -40,7 +42,8 @@ interface IState {
   propertyBadge: string,
   statsBadge: string,
   diagramsBadge: string,
-  tooltipOpen: boolean
+  tooltipOpen: boolean,
+  minimized: boolean
 }
 
 export default class CardHeader extends React.Component <IProps, IState> {
@@ -52,18 +55,17 @@ export default class CardHeader extends React.Component <IProps, IState> {
       propertyBadge: "primary",
       statsBadge: "dark",
       diagramsBadge: "dark",
-      tooltipOpen: false
+      tooltipOpen: false,
+      minimized: false
     };
 
     this.toggleToolTip = this.toggleToolTip.bind(this);
 
   }
 
-  componentWillMount() {
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-  }
+  componentDidMount() {}
 
   render(){
 
@@ -81,15 +83,18 @@ export default class CardHeader extends React.Component <IProps, IState> {
 */
 
     return (
-    <div id={this.props.title+"_header"} style={{width:"100%", float:"left", display:"inline-block"}}>
+    <div id={this.props.title+"_header"} style={{width:"100%", display:"inline-block"}}>
       <Navbar color="dark" expand="md">
-        <NavbarBrand><div style={{width:"100%", color:"#fff", overflowWrap:"break-word"}}>{this._dynamicHeaderSize(this.props.title)}</div></NavbarBrand>
+        <NavbarBrand>
+          <div style={{display:"inline-block"}} onClick={()=>{this.toggleMinimize()}} title={(this.state.minimized?"Maximize card":"Minimize card")}><Icon icon={rightArrowIcon} size='16' rotate={(this.state.minimized?0:90)} color={"#fff"} /></div>
+          <div style={{display:"inline-block", width:"100%", color:"#fff", overflowWrap:"break-word", paddingLeft:5}}>{this._dynamicHeaderSize(this.props.title)}</div>
+        </NavbarBrand>
         <Nav className="ml-auto"  tabs>
           <NavItem>
             <NavLink>
-                <div style={{display:"inline-block"}} id={this.props.id} onClick={this.toggleToolTip}><Icon icon={moveIcon} size='16' color='#000'/></div>
-                <div style={{display:"inline-block"}} onClick={()=> {this.props.onSave().then(()=>{this.setState(this.state)})}}><Icon icon={heartIcon} size='16' color={(isFavorite())?'#fbaa33':"#000"} /></div>
-                <div style={{display:"inline-block"}} onClick={()=>{this.props.onClose()}}><Icon icon={closeIcon} size='16' color='#e20053'/></div>
+                <div style={{display:"inline-block"}} id={this.props.id} onClick={this.toggleToolTip} title="Move card"><Icon icon={moveIcon} size='16' color='#000'/></div>
+                <div style={{display:"inline-block"}} onClick={()=> {this.props.onSave().then(()=>{this.setState(this.state)})}} title="Save card"><Icon icon={heartIcon} size='16' color={(isFavorite())?'#fbaa33':"#000"} /></div>
+                <div style={{display:"inline-block"}} onClick={()=>{this.props.onClose()}} title="Close card"><Icon icon={closeIcon} size='16' color='#e20053'/></div>
             </NavLink>
           </NavItem>
         </Nav>
@@ -138,6 +143,11 @@ export default class CardHeader extends React.Component <IProps, IState> {
       });
     }
     return tab;
+  }
+
+  toggleMinimize =() => {
+    let toggleState = this.props.onMinimize();
+    this.setState({minimized:toggleState});
   }
 
   _dynamicHeaderSize =(title:string) => {

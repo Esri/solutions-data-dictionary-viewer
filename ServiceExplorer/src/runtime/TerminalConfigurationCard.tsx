@@ -6,7 +6,8 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import esriLookup from './_constants';
+let linkIcon = require('./assets/launch.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
@@ -30,7 +31,9 @@ interface IState {
   nodeData: any,
   activeTab: string,
   expandTerminal: boolean,
-  expandTerminalPaths: boolean
+  expandTerminalPaths: boolean,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class TerminalConfigurationCard extends React.Component <IProps, IState> {
@@ -41,18 +44,16 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
       nodeData: this.props.data.data,
       activeTab: 'Properties',
       expandTerminal: false,
-      expandTerminalPaths: false
+      expandTerminalPaths: false,
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
-  componentWillMount() {
-    console.log(this.state.nodeData);
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
     return (
@@ -64,33 +65,38 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
-        <TabPane tabId="Properties">
-        <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.terminalConfigurationName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Default Configuration: <span style={{fontWeight:"bold"}}>{this.state.nodeData.defaultConfiguration}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Traversability: <span style={{fontWeight:"bold"}}>{this.state.nodeData.traversabilityModel}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminals()}}>{(this.state.expandTerminal)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Terminals:</div>
-          <Collapse isOpen={this.state.expandTerminal}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {(this.state.nodeData.terminals.length > 0)?this._createTerminalTable():"No terminals exist"}
-            </div>
-          </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalsPaths()}}>{(this.state.expandTerminalPaths)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Paths:</div>
-          <Collapse isOpen={this.state.expandTerminalPaths}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {(this.state.nodeData.terminals.length > 0)?this._createTerminalPathsTable():"No terminals paths"}
-            </div>
-          </Collapse>
-          <div style={{paddingBottom: 15}}></div>
-        </div>
-        </TabPane>
-      </TabContent>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="Properties">
+          <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.terminalConfigurationName}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Default Configuration:</span> {this.state.nodeData.defaultConfiguration}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Traversability:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.traversabilityModel)}</div>
+            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminals()}}>{(this.state.expandTerminal)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Terminals</span></div>
+            <Collapse isOpen={this.state.expandTerminal}>
+              <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                {(this.state.nodeData.terminals.length > 0)?this._createTerminalTable():"No terminals exist"}
+              </div>
+            </Collapse>
+            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalsPaths()}}>{(this.state.expandTerminalPaths)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Valid Paths</span></div>
+            <Collapse isOpen={this.state.expandTerminalPaths}>
+              <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                {(this.state.nodeData.terminals.length > 0)?this._createTerminalPathsTable():"No terminals paths"}
+              </div>
+            </Collapse>
+            <div style={{paddingBottom: 15}}></div>
+          </div>
+          </TabPane>
+        </TabContent>
+      }
     </div>);
   }
 
@@ -156,6 +162,17 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
     });
     return currPos;
   }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
   //****** UI components and UI Interaction
   //********************************************
   toggleTerminals =() => {
@@ -177,7 +194,6 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
   _createTerminalTable =() => {
     let arrList = [];
     this.state.nodeData.terminals.map((t: any, i: number) => {
-      console.log(t);
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>{t.terminalName}</td>
@@ -204,7 +220,6 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
     let arrPath = [];
     this.state.nodeData.validConfigurationPaths.sort(this._compare("name"));
     this.state.nodeData.validConfigurationPaths.map((vp: any, i: number) => {
-      console.log(vp);
       arrPath = [];
       vp.terminalPaths.map((tp: any, z: number) => {
         arrPath.push(

@@ -3,13 +3,13 @@ import {BaseWidget, React, classNames, FormattedMessage, defaultMessages as jimu
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 import { TabContent, TabPane, Collapse, Icon,Table} from 'jimu-ui';
-import CAVWorkSpace from './CAVWorkSpace';
+import CAVWorkSpace from './_CAVWorkSpace';
 import CardHeader from './_header';
 import './css/custom.css';
-
+import esriLookup from './_constants';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 
 interface IProps {
@@ -46,7 +46,9 @@ interface IState {
   expandFields: boolean,
   expandCAV: boolean,
   expandAR: boolean,
-  expandAT: boolean
+  expandAT: boolean,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class SubtypeCard extends React.Component <IProps, IState> {
@@ -69,16 +71,18 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       expandFields: false,
       expandCAV: false,
       expandAR: false,
-      expandAT: false
+      expandAT: false,
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
+    //console.log(this.props.data);
     //test
     this._requestMetadata().then(()=> {
-      console.log(this.state.metadataElements);
+      //console.log(this.state.metadataElements);
       this._processMetaData();
 
       let tempFieldList = [...this.state.nodeData.fieldInfos];
@@ -139,26 +143,31 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={true}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal"}}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subtypeName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Code: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subtypeCode}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5, width:"100%", wordWrap: "break-word", whiteSpace: "normal"}}>Description: <span style={{fontWeight:"bold"}}>{this.state.description}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAT()}}>{(this.state.expandAT)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types:</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.subtypeName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Code:</span> {this.state.nodeData.subtypeCode}</div>
+          <div style={{paddingTop:5, paddingBottom:5, width:"100%", wordWrap: "break-word", whiteSpace: "normal"}}><span style={{fontWeight:"bold"}}>Description:</span> {this.state.description}</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAT()}}>{(this.state.expandAT)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Asset Types</span></div>
           <Collapse isOpen={this.state.expandAT}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createAssetTypeTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Fields:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           <Collapse isOpen={this.state.expandFields}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+            {(this.state.validFields.length > 0)?
               <Table hover>
                 <thead>
                 <tr>
@@ -172,18 +181,21 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                   {this._createFieldList()}
                 </tbody>
               </Table>
+              :
+              "No fields available"
+            }
           </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Attributes Rules:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Attributes Rules</span></div>
           <Collapse isOpen={this.state.expandAR}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createARTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCAV()}}>{(this.state.expandCAV)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Contingent Attribute Values:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCAV()}}>{(this.state.expandCAV)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Contingent Attribute Values</span></div>
           <Collapse isOpen={this.state.expandCAV}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              <CAVWorkSpace data={this.props.data} domains={this.props.domains} requestURL={this.props.requestURL} fieldGroups={this.props.data.fieldGroups}></CAVWorkSpace>
+              <CAVWorkSpace data={this.props.data} domains={this.props.domains} requestURL={this.props.requestURL} fieldGroups={this.props.data.fieldGroups} config={this.props.config} cacheData={this.props.cacheData}></CAVWorkSpace>
             </div>
           </Collapse>
           <div style={{paddingBottom: 15}}></div>
@@ -206,6 +218,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -277,6 +290,17 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************
@@ -355,37 +379,38 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
   }
 
   _createAssetTypeTable =() => {
-      let _createATList =() => {
-        let desc = this.state.assetTypeDesc;
-        let arrList = [];
-        let filterAT = this.state.nodeData.fieldInfos.filter((at: any, i: number)=>{
-          return(at.fieldName.toLowerCase() === "assettype");
-        });
-        if(filterAT.length > 0) {
-          filterAT.map((at: any, i: number) => {
-            let domainList = this._matchDomain(at.domainName);
-            if(domainList.length > 0) {
-              if(domainList[0].hasOwnProperty("codedValues")) {
-                domainList[0].codedValues.map((d:any, i:number) => {
-                  let filtered = desc.filter((f:any)=> {
-                    return parseInt(f.code) === parseInt(d.code);
-                  });
-                  arrList.push(
-                    <tr key={i}>
-                      <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}><Icon icon={linkIcon} size='12' color='#333' /> {d.name}</div></td>
-                      <td style={{fontSize:"small"}}>{d.code}</td>
-                      <td style={{fontSize:"small", wordWrap: "break-word"}}>{(filtered.length > 0)?filtered[0].description:""}</td>
-                    </tr>
-                  );
+    let _createATList =() => {
+      let desc = this.state.assetTypeDesc;
+      let arrList = [];
+      let filterAT = this.state.nodeData.fieldInfos.filter((at: any, i: number)=>{
+        return(at.fieldName.toLowerCase() === "assettype");
+      });
+      if(filterAT.length > 0) {
+        filterAT.map((at: any, i: number) => {
+          let domainList = this._matchDomain(at.domainName);
+          if(domainList.length > 0) {
+            if(domainList[0].hasOwnProperty("codedValues")) {
+              domainList[0].codedValues.map((d:any, i:number) => {
+                let filtered = desc.filter((f:any)=> {
+                  return parseInt(f.code) === parseInt(d.code);
                 });
-              }
+                arrList.push(
+                  <tr key={i}>
+                    <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}><Icon icon={linkIcon} size='12' color='#333' /> {d.name}</div></td>
+                    <td style={{fontSize:"small"}}>{d.code}</td>
+                    <td style={{fontSize:"small", wordWrap: "break-word"}}>{(filtered.length > 0)?filtered[0].description:""}</td>
+                  </tr>
+                );
+              });
             }
-          });
-        }
-        return arrList;
+          }
+        });
       }
+      return arrList;
+    }
+    let rows = _createATList();
 
-      return(<Table hover>
+      return((rows.length > 0)?<Table hover>
         <thead>
         <tr>
           <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
@@ -394,9 +419,11 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         </tr>
         </thead>
         <tbody>
-          {_createATList()}
+          {rows}
         </tbody>
-      </Table>);
+        </Table>:
+        "No Asset types"
+      );
   }
 
   _createFieldList = () => {
@@ -525,7 +552,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         vals.push(
           <tr key={keyNode}>
             <td style={{fontSize:"small"}}>{keyNode}</td>
-            <td style={{fontSize:"small"}}>{v}</td>
+            <td style={{fontSize:"small"}}>{(typeof(v) === "string")?(v.indexOf("esri") > -1)?this.state.esriValueList.lookupValue(v):v:v}</td>
           </tr>
         );
       }
@@ -556,22 +583,31 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
 
   _createARTable =() => {
     if(this.props.data.attributeRules.length > 0) {
-      return(<Table hover>
-        <thead>
-        <tr>
-          <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
-          <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
-          <th style={{fontSize:"small", fontWeight:"bold"}}>Priority</th>
-        </tr>
-        </thead>
-        <tbody>
-          {this._createARList()}
-        </tbody>
-      </Table>);
+      let rows = this._createARList();
+      return(
+        (rows.length > 0)?
+          <Table hover>
+          <thead>
+          <tr>
+            <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
+            <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
+            <th style={{fontSize:"small", fontWeight:"bold"}}>Priority</th>
+          </tr>
+          </thead>
+          <tbody>
+            {this._createARList()}
+          </tbody>
+          </Table>
+         :
+          <Table hover>
+          <tbody>
+            <tr><td>No attribute rules configured</td></tr>
+          </tbody>
+          </Table>);
     } else {
       return(<Table hover>
         <tbody>
-          <tr><td>Sorry, no Attribute Rules configured</td></tr>
+          <tr><td>No attribute rules configured</td></tr>
         </tbody>
       </Table>);
     }

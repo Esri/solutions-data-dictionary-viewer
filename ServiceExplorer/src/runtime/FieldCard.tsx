@@ -6,9 +6,10 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
+import esriLookup from './_constants';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -37,7 +38,9 @@ interface IState {
   expandFields: boolean,
   expandCAV: boolean,
   expandAR: boolean,
-  expandDomain: boolean
+  expandDomain: boolean,
+  minimizedDetails: boolean
+  esriValueList: any
 }
 
 export default class FieldCard extends React.Component <IProps, IState> {
@@ -55,13 +58,15 @@ export default class FieldCard extends React.Component <IProps, IState> {
       expandFields: false,
       expandCAV: false,
       expandAR: false,
-      expandDomain: false
+      expandDomain: false,
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
+    //console.log(this.props.data);
     let filtered = this.props.domains.map((d:any) => {
       return d.name === this.props.data.text;
     });
@@ -87,34 +92,38 @@ export default class FieldCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={true}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Alias: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("aliasName"))?this.props.data.data.aliasName:this.props.data.data.alias}</span></div>
-          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}>Model Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.modelName}</span></div>:""}
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Alias:</span> {(this.props.data.data.hasOwnProperty("aliasName"))?this.props.data.data.aliasName:this.props.data.data.alias}</div>
+          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Model Name:</span> {this.props.data.data.modelName}</div>:""}
           {
             (this.props.data.data.hasOwnProperty("isNullable"))?
-            <div style={{paddingTop:5, paddingBottom:5}}>Allow Null: <span style={{fontWeight:"bold"}}>{(this.props.data.data.isNullable)? "True" : "False"}</span></div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Allow Null:</span> {(this.props.data.data.isNullable)? "True" : "False"}</div>
             :
-            <div style={{paddingTop:5, paddingBottom:5}}>Allow Null: <span style={{fontWeight:"bold"}}>{(this.props.data.data.nullable)? "True" : "False"}</span></div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Allow Null:</span> {(this.props.data.data.nullable)? "True" : "False"}</div>
           }
-          <div style={{paddingTop:5, paddingBottom:5}}>Required: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("required"))? (this.props.data.data.required)? "True" : "False" : "False"}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Default Value: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("defaultValue"))? this.props.data.data.defaultValve : ""}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.type}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Length: <span style={{fontWeight:"bold"}}>{this.props.data.data.length}</span></div>
-          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}>Precision: <span style={{fontWeight:"bold"}}>{this.props.data.data.precision}</span></div>:""}
-          {(this.props.data.data.hasOwnProperty("scale"))?<div style={{paddingTop:5, paddingBottom:5}}>Scale: <span style={{fontWeight:"bold"}}>{this.props.data.data.scale}</span></div>:""}
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Required:</span> {(this.props.data.data.hasOwnProperty("required"))? (this.props.data.data.required)? "True" : "False" : "False"}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Default Value:</span> {(this.props.data.data.hasOwnProperty("defaultValue"))? this.props.data.data.defaultValve : ""}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Type:</span> {this.state.esriValueList.lookupValue(this.props.data.data.type)}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Length:</span> {this.props.data.data.length}</div>
+          {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Precision:</span> {this.props.data.data.precision}</div>:""}
+          {(this.props.data.data.hasOwnProperty("scale"))?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Scale:</span> {this.props.data.data.scale}</div>:""}
           {
             (this.props.data.data.hasOwnProperty("domain"))?
               (this.props.data.data.domain !== null) &&
-              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain: <span style={{fontWeight:"bold"}}>{(this.props.data.data.domain !== null)?this.props.data.data.domain.domainName: "None"}</span></div>
-            :<div style={{paddingTop:5, paddingBottom:5}}>Domain: <span style={{fontWeight:"bold"}}>{"None"}</span></div>
+              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Domain:</span> {(this.props.data.data.domain !== null)?this.props.data.data.domain.domainName: "None"}</div>
+            :<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Domain:</span> {"None"}</div>
           }
           {
             (this.props.data.data.hasOwnProperty("domain"))?
@@ -136,6 +145,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
           <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -201,6 +211,17 @@ export default class FieldCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
 
   //****** UI components and UI Interaction

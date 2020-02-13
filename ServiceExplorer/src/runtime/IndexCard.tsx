@@ -6,9 +6,10 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
+import esriLookup from './_constants';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -36,7 +37,9 @@ interface IState {
   fieldHolder: any,
   expandFields: boolean,
   expandCAV: boolean,
-  expandAR: boolean
+  expandAR: boolean,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class IndexCard extends React.Component <IProps, IState> {
@@ -54,13 +57,14 @@ export default class IndexCard extends React.Component <IProps, IState> {
       fieldHolder: [],
       expandFields: false,
       expandCAV: false,
-      expandAR: false
+      expandAR: false,
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
     let fieldList = {};
     let fields = [];
     if(this.props.data.data.fields.hasOwnProperty("fieldArray")) {
@@ -91,24 +95,29 @@ export default class IndexCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Ascending: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("isAscending"))? (this.props.data.data.isAscending)? "True" : "False" : "False"}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Unique: <span style={{fontWeight:"bold"}}>{(this.props.data.data.hasOwnProperty("isUnique"))? (this.props.data.data.isUnique)? "True" : "False" : "False"}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Fields:</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Ascending:</span> {(this.props.data.data.hasOwnProperty("isAscending"))? (this.props.data.data.isAscending)? "True" : "False" : "False"}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Unique:</span> {(this.props.data.data.hasOwnProperty("isUnique"))? (this.props.data.data.isUnique)? "True" : "False" : "False"}</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           <Collapse isOpen={this.state.expandFields}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover>
                 <thead>
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Field Name</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -121,6 +130,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -185,7 +195,17 @@ export default class IndexCard extends React.Component <IProps, IState> {
     });
     return currPos;
   }
-
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
   //****** UI components and UI Interaction
   //********************************************
 
@@ -218,10 +238,10 @@ export default class IndexCard extends React.Component <IProps, IState> {
           fieldDetailsTable = this._createFieldsExpand(fi);
         }
         let alias = (fi.hasOwnProperty("aliasName"))?fi.aliasName:fi;
-        let fieldName = <span><div style={{textAlign: "left"}}>{(fieldDetailsTable !== null)? (this.state.fieldHolder[fi.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:''} {alias}</div><div style={{textAlign: "left"}}>{"("+(fi.hasOwnProperty("name"))?fi.name:fi+")"}</div></span>;
+        let fieldName = <span><div style={{textAlign: "left"}}>{(fieldDetailsTable !== null)? (this.state.fieldHolder[fi.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:''} {fi.hasOwnProperty("name")?fi.name:fi}</div></span>;
         arrList.push(<tr key={z}>
           <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
           {
             (fieldDetailsTable !== null)?
               <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
@@ -234,6 +254,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
               {(fieldDetailsTable !== null)? fieldDetailsTable: <div></div>}
             </Collapse>
           </td>
+          <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}><div style={{textAlign: "left"}}>{alias}</div></td>
         </tr>);
       }
     });

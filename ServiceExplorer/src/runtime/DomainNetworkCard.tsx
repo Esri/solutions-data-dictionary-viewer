@@ -6,7 +6,8 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import esriLookup from './_constants';
+let linkIcon = require('./assets/launch.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
@@ -43,6 +44,8 @@ interface IState {
   expandEdgeLayers: any,
   expandEdgeAG: any,
   expandEdgeAT: any,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class DomainNetworkCard extends React.Component <IProps, IState> {
@@ -65,14 +68,14 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       expandEdgeSources: false,
       expandEdgeLayers: {},
       expandEdgeAG: {},
-      expandEdgeAT: {}
+      expandEdgeAT: {},
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.state.nodeData);
-    console.log(this.props.dataElements);
     let tiersCopy = {...this.state.expandTiers};
     let tiersVDCopy = {...this.state.expandTiersValidDevice};
     let tiersVLCopy = {...this.state.expandTiersValidLine};
@@ -126,30 +129,34 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.domainNetworkAliasName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Field Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subnetworkLabelFieldName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Tier Definition: <span style={{fontWeight:"bold"}}>{this.state.nodeData.tierDefinition}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Tiers</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.domainNetworkAliasName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Name:</span> {this.state.nodeData.subnetworkLabelFieldName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Tier Definition:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.tierDefinition)}</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tiers</span></div>
           <Collapse isOpen={this.state.expandTierGroup}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.tiers.length > 0)?this._createTiersTable():"No tiers exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Junction Sources</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Junction Sources</span></div>
           <Collapse isOpen={this.state.expandJunctionSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.junctionSources.length > 0)?this._createJunctionSourceTable():"No junctions exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Edge Sources</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Edge Sources</span></div>
           <Collapse isOpen={this.state.expandEdgeSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.edgeSources.length > 0)?this._createEdgeSourceTable():"No edges exist"}
@@ -159,6 +166,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -223,6 +231,17 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************
@@ -353,7 +372,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           <td style={{fontSize:"small"}}>{ft.tierGroupName}</td>
           <td style={{fontSize:"small"}}>{ft.rank}</td>
           <td style={{fontSize:"small"}}>{ft.subnetworkFieldName}</td>
-          <td style={{fontSize:"small"}}>{ft.tierTopology}</td>
+          <td style={{fontSize:"small"}}>{this.state.esriValueList.lookupValue(ft.tierTopology)}</td>
         </tr>
       );
       arrList.push(

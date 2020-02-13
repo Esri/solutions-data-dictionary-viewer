@@ -6,7 +6,7 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -27,6 +27,7 @@ interface IProps {
 interface IState {
   activeTab: string,
   nodeData: any,
+  minimizedDetails: boolean
 }
 
 export default class RelationshipCard extends React.Component <IProps, IState> {
@@ -36,18 +37,14 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     this.state = {
       activeTab: 'Properties',
       nodeData: this.props.data.data,
+      minimizedDetails: false,
     };
 
   }
 
-  componentWillMount() {
-    //test
-    console.log(this.state.nodeData);
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
     return (
@@ -59,39 +56,44 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
-        <TabPane tabId="Properties">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-            <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-            <div style={{paddingBottom: 15}}></div>
-            <Table style={{width:"100%"}}>
-              <tbody>
-                <tr>
-                  <td style={{fontWeight:"bold"}}>Cardinality: </td><td>{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
-                  <td style={{fontWeight:"bold"}}>Type: </td><td>{(this.state.nodeData.composite)?"Composite":"Simple"}</td>
-                </tr>
-                <tr>
-                  <td style={{fontWeight:"bold"}}>Origin Name: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId),"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
-                  <td style={{fontWeight:"bold"}}>Destination Name: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId),"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
-                </tr>
-                <tr>
-                  <td style={{fontWeight:"bold"}}>Origin Primary Key: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
-                  <td style={{fontWeight:"bold"}}>Origin Foreign Key: </td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.destinationLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
-                </tr>
-              </tbody>
-            </Table>
-            <div style={{paddingBottom: 15}}></div>
-          </div>
-        </TabPane>
-      </TabContent>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="Properties">
+            <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
+              <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+              <div style={{paddingBottom: 15}}></div>
+              <table style={{width:"100%"}} cellPadding={0} cellSpacing={0}>
+                <tbody>
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Cardinality: </td><td className="relationshipTableStyle">{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
+                    <td className="relationshipTableStyleHeader">Type: </td><td className="relationshipTableStyle">{(this.state.nodeData.composite)?"Composite":"Simple"}</td>
+                  </tr>
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Origin Name: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId),"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
+                    <td className="relationshipTableStyleHeader">Destination Name: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId),"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
+                  </tr>
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Origin Primary Key: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
+                    <td className="relationshipTableStyleHeader">Origin Foreign Key: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.destinationLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{paddingBottom: 15}}></div>
+            </div>
+          </TabPane>
+        </TabContent>
+      }
     </div>);
   }
   //**** breadCrumb */
@@ -154,7 +156,17 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     });
     return currPos;
   }
-
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
   //****** helper functions and request functions
   //********************************************
   _cardinalityLookup =(code: string) => {

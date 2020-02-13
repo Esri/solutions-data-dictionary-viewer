@@ -6,7 +6,7 @@ import {DataSourceSelector, SelectedDataSourceJson, AllDataSourceTypes} from 'ji
 import {ArcGISDataSourceTypes} from 'jimu-arcgis';
 import {IMConfig} from '../config';
 import defaultI18nMessages from './translations/default';
-import { DataActionDropDown, SettingRow, SettingSection } from 'jimu-ui';
+import { DataActionDropDown } from 'jimu-ui';
 
 interface State{
   query: any;
@@ -16,6 +16,7 @@ interface State{
   datasource: DataSource;
   fields: { [jimuName: string]: FieldSchema };
   serviceURL: string;
+  cacheFileName: string;
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
@@ -38,7 +39,8 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       showCacheButton: (this.props.config.useCache)?this.props.config.useCache:false,
       datasource: null,
       fields: {},
-      serviceURL: ""
+      serviceURL: "",
+      cacheFileName: (this.props.config.cacheFileName)?this.props.config.cacheFileName:""
     };
   }
 
@@ -103,6 +105,14 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       config: this.props.config.set('useCache', evt.currentTarget.checked)
     });
     this.setState({showCacheButton: evt.currentTarget.checked});
+  }
+
+  onCacheNameChange = (evt: React.FormEvent<HTMLInputElement>) => {
+    this.props.onSettingChange({
+      id: this.props.id,
+      config: this.props.config.set('cacheFileName', evt.currentTarget.value)
+    });
+    this.setState({cacheFileName: evt.currentTarget.value});
   }
 
   /*
@@ -172,6 +182,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
       {(this.state.showCacheButton)?
         <div>
+          <div style={{paddingBottom:10}}>Name of Cache: <input defaultValue={this.state.cacheFileName} onChange={this.onCacheNameChange} style={{width:"90%"}} value={this.state.cacheFileName}/></div>
           <div style={{paddingBottom:10}}>Build cache: <input defaultValue="Build Cache" onClick={this.checkCreatePortalItem} type="button"/></div>
           <div style={{paddingBottom:10}}>{this.state.cacheStatus}</div>
         </div>
@@ -191,7 +202,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       });
       portal.load().then(() => {
         let queryParams = {
-          query: "tags:Data Dictionary Support Files AND owner:"+this.props.user.username,
+          query: "tags:" + this.state.cacheFileName + " Data Dictionary Support Files AND owner:"+this.props.user.username,
           num: 1
         };
         portal.queryItems(queryParams).then((response:any) => {
@@ -207,8 +218,8 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
               params: {
                   f : "json",
                   token: this.props.token,
-                  tags: "Data Dictionary Support Files",
-                  title: "Data Dictionary Support Files",
+                  tags: this.state.cacheFileName + " Data Dictionary Support Files",
+                  title: this.state.cacheFileName,
                   type: "Application",
               }
             })
@@ -233,26 +244,26 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
   requestServiceInfo = async(itemId:any) => {
     let url = this.state.serviceURL;
     //grab feature Service json to store
-    this.setState({cacheStatus: "Step 1 of 7: Saving Feature Service"});
+    this.setState({cacheStatus: "Step 1 of 9: Saving Feature Service"});
     await this.fetchRequest(url+"/?f=pjson",{type:"featureServer"},itemId,"").then(async(response:any) => {
 
       //Grab all Domains
-      this.setState({cacheStatus: "Step 2 of 7: Saving Domains"});
+      this.setState({cacheStatus: "Step 2 of 9: Saving Domains"});
       let qDomainURL = url + "/queryDomains/?f=pjson";
       await this.fetchRequest(qDomainURL,{type:"queryDomains"},itemId,"");
 
       //Grab all CAVs
-      this.setState({cacheStatus: "Step 3 of 7: Saving Contingent Attribute Values"});
+      this.setState({cacheStatus: "Step 3 of 9: Saving Contingent Attribute Values"});
       let qCAVURL = url + "/queryContingentValues/?f=pjson";
       await this.fetchRequest(qCAVURL,{type:"contingentValues"},itemId,"");
 
       //Grab all Relationships
       let qRelUrl = url + "/relationships/?f=pjson";
-      this.setState({cacheStatus: "Step 4 of 7: Saving Relationships"});
+      this.setState({cacheStatus: "Step 4 of 9: Saving Relationships"});
       await this.fetchRequest(qRelUrl,{type:"relationships"},itemId,"");
 
       //Grab all Data Elements
-      this.setState({cacheStatus: "Step 5 of 7: Saving Data Elements"});
+      this.setState({cacheStatus: "Step 5 of 9: Saving Data Elements"});
       let qDEUrl = url + "/queryDataElements/?f=pjson";
       await this.fetchRequest(qDEUrl,{type:"queryDataElements"},itemId,"").then(async(response:any) => {
         //do connectivity rules by layer and subtype
@@ -260,22 +271,33 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           return de.dataElement.aliasName === "Rules";
         });
         if(rulesTable.length > 0) {
-          this.setState({cacheStatus: "Step 6 of 7: Saving Connectivity Rules"});
+          this.setState({cacheStatus: "Step 6 of 9: Saving Connectivity Rules"});
           await this.prepConnectivityRulesCache(response, url, rulesTable[0].dataElement.layerId ,itemId);
         }
       });
 
       //grab layers json to store
-      this.setState({cacheStatus: "Step 7 of 7: Saving Layers and Metadata"});
+      this.setState({cacheStatus: "Step 7 of 9: Saving Layers and Metadata"});
       response.layers.map(async(lyr:any, i:number) => {
         let newURL = url + "/" + lyr.id+"/?f=pjson";
         await this.fetchRequest(newURL,{type:"layers"},itemId,"");
 
         let metadataUrl = url + "/" + lyr.id +"/metadata";
         await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
+      });
 
-        if(i === response.layers.length - 1) {
-          this.setState({cacheStatus: "Done"});
+      //grab tables json to store
+      this.setState({cacheStatus: "Step 8 of 9: Saving Tables and Metadata"});
+      console.log(response);
+      response.tables.map(async(tbl:any, i:number) => {
+        let newURL = url + "/" + tbl.id+"/?f=pjson";
+        await this.fetchRequest(newURL,{type:"tables"},itemId,"");
+
+        let metadataUrl = url + "/" + tbl.id +"/metadata";
+        await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
+
+        if(i === response.tables.length - 1) {
+          this.setState({cacheStatus: "Step 9 of 9: Finished"});
         }
       });
 
@@ -284,7 +306,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
   }
 
 
-  fetchRequest = (url, params, itemId, subCat) => {
+  fetchRequest = (url:string, params:any, itemId:any, subCat:string) => {
     return new Promise((resolve, reject) => {
       let response = {};
       let requestURL = url;
@@ -358,7 +380,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           params: {
             f : "json",
             token: this.props.token,
-            tags: "Data Dictionary Support Files",
+            tags: this.state.cacheFileName + " Data Dictionary Support Files",
             overwrite: true,
             text: JSON.stringify(currStruct),
             access: "public"

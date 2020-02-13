@@ -8,7 +8,7 @@ import CardHeader from './_header';
 import './css/custom.css';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -16,6 +16,7 @@ interface IProps {
   dataElements: any,
   requestURL: string,
   key: any,
+  relationships: any,
   panel:number,
   config: any,
   callbackClose: any,
@@ -38,7 +39,8 @@ interface IState {
   rulesElements: any,
   sourceId: number,
   rulesList: any,
-  expandRuleType: any
+  expandRuleType: any,
+  minimizedDetails: boolean
 }
 
 export default class TableCard extends React.Component <IProps, IState> {
@@ -55,7 +57,8 @@ export default class TableCard extends React.Component <IProps, IState> {
       rulesElements: {},
       sourceId: -1,
       rulesList: [],
-      expandRuleType : []
+      expandRuleType : [],
+      minimizedDetails: false
     };
 
   }
@@ -68,7 +71,6 @@ export default class TableCard extends React.Component <IProps, IState> {
 
   componentDidMount() {
     //this._processData();
-    //this._requestObject()
     //this._createFieldList();
     this._requestRules();
   }
@@ -85,31 +87,44 @@ export default class TableCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
+      {
+        (this.state.minimizedDetails)?""
+        :
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Code: <span style={{fontWeight:"bold"}}>{this.state.nodeData.assetTypeCode}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Terminal Configuration: <span style={{fontWeight:"bold"}}>{this._lookupTC(this.state.nodeData.terminalConfigurationId)}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRules();}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Rules</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> <span>{this.state.nodeData.assetTypeName}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Code:</span> <span>{this.state.nodeData.assetTypeCode}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Terminal Configuration:</span> <span>{this._lookupTC(this.state.nodeData.terminalConfigurationId)}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRules();}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Rules</span></div>
           <Collapse isOpen={this.state.expandRules}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
             {this._createRulesList()}
           </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCategories();}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Categories</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCategories();}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Categories</span></div>
           <Collapse isOpen={this.state.expandCategories}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+            {(this.props.data.data.categories.length > 0)?
               <Table hover width={"100%"}>
-                <tbody>
-                  {this._createCategoriesList()}
-                </tbody>
-              </Table>
+              <thead>
+              <tr>
+                <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
+              </tr>
+              </thead>
+              <tbody>
+                {this._createCategoriesList()}
+              </tbody>
+            </Table>
+            :
+              <div style={{paddingLeft: "5px"}}>No network categories available</div>
+            }
           </div>
           </Collapse>
           <div style={{paddingBottom: 15}}></div>
@@ -123,15 +138,24 @@ export default class TableCard extends React.Component <IProps, IState> {
           <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
   //**** breadCrumb */
   buildCrumb =() => {
     let list = [];
+    let passST = null;
     this.props.data.crumb.map((c:any, i:number) => {
+      if(c.type === "Subtype") {
+        passST = c.value;
+      }
       list.push(<span key={i} onClick={()=>{
-        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        if(passST !== null) {
+          this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent, passST);
+        } else {
+          this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        }
         this.headerCallClose();
       }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
     });
@@ -187,6 +211,17 @@ export default class TableCard extends React.Component <IProps, IState> {
     });
     return currPos;
   }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
 
   //****** UI components and UI Interaction
   //********************************************
@@ -215,23 +250,6 @@ export default class TableCard extends React.Component <IProps, IState> {
       newRuleState[val] = true;
       this.setState({expandRuleType: newRuleState});
     }
-  }
-
-  _createStatsOutput =() => {
-    let output = [];
-    let atList = this._validAssetTypes("assettype");
-    output.push(<div key={"all"}>Number of {this.props.data.text} in the System: {(this.state.siteStats.hasOwnProperty("all")? this.state.siteStats.all.count : 0 )}</div>);
-    output.push(<div key={"spacer"} style={{paddingTop:15}}>Breakdown by type ({Object.keys(this.state.siteStats).length - 2} / {atList[0].codedValues.length})</div>);
-    for(let keyNode in this.state.siteStats) {
-      if(keyNode === "all" || keyNode === "notConnected") {
-        //skip, will add at front
-      } else {
-        output.push(<div key={keyNode}>Number of type: {keyNode} in the System: {(this.state.siteStats.hasOwnProperty(keyNode)? this.state.siteStats[keyNode].count : 0 )}</div>);
-      }
-    }
-    output.push(<div key={"spacerConnected"} style={{paddingTop:15}}>Validity</div>);
-    output.push(<div key={"notConnected"}>Number of {this.props.data.text} NOT connected: {(this.state.siteStats.hasOwnProperty("notConnected")? this.state.siteStats.notConnected.count : 0 )}</div>);
-    this.setState({statsOutput: output});
   }
 
   _createRulesList = () => {
@@ -267,24 +285,30 @@ export default class TableCard extends React.Component <IProps, IState> {
       return rowList;
     }
 
-    for(let key in this.state.rulesList){
-      let codeBlock = <div key={key} style={{width:"100%"}}>
-        <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRuleType(key);}}>{(this.state.expandRuleType[key])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {key}</div>
-        <Collapse isOpen={this.state.expandRuleType[key]}>
-        <Table key={key}>
-          <thead>
-          <tr>
-            <th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal</th>
-            <th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal</th>
-          </tr>
-          </thead>
-          <tbody>
-            {processRules(this.state.rulesList[key])}
-          </tbody>
-        </Table>
-        </Collapse>
-      </div>;
-      arrList.push(codeBlock);
+    if(Object.keys(this.state.rulesList).length > 0) {
+      for(let key in this.state.rulesList){
+        let codeBlock = <div key={key} style={{width:"100%"}}>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandRuleType(key);}}>{(this.state.expandRuleType[key])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {key}</div>
+          <Collapse isOpen={this.state.expandRuleType[key]}>
+          <Table key={key}>
+            <thead>
+            <tr>
+              <th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal</th>
+              <th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Type</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal Config</th><th style={{fontSize:"small", fontWeight:"bold"}}>From Terminal</th>
+            </tr>
+            </thead>
+            <tbody>
+              {processRules(this.state.rulesList[key])}
+            </tbody>
+          </Table>
+          </Collapse>
+        </div>;
+        arrList.push(codeBlock);
+      }
+    } else {
+      arrList.push(
+        <div key={0} style={{paddingLeft:15, paddingTop:10}}>No rules available</div>
+      );
     }
 
     //this.setState({fieldHolder: arrList});
@@ -298,7 +322,7 @@ export default class TableCard extends React.Component <IProps, IState> {
         arrList.push(
           <tr key={+i}>
             <td style={{fontSize:"small"}}>
-              <div onClick={()=>{this.props.callbackLinkage(c,"Category", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' />{c}</div>
+              <div onClick={()=>{this.props.callbackLinkage(c,"Category", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</div>
             </td>
           </tr>
         );
@@ -315,9 +339,30 @@ export default class TableCard extends React.Component <IProps, IState> {
   //****** helper functions and request functions
   //********************************************
   _requestRules = async () => {
-    var sources = [];
-    var sourceId = null;
-    var unde = null;
+    let sources = [];
+    let correctId = this.props.data.parentId;
+    let unde = null;
+    let sourceId = null;
+    let relFilter = [];
+      //need to check if subtype is a table, if so, find it's target feature class that's it related to to get junction and edge sources
+      let checkTables = this.props.data.crumb.some((c:any) => {
+        return c.type === "Table";
+      });
+      if(checkTables) {
+        relFilter = this.props.relationships.filter((re:any) => {
+          return (re.destinationLayerId === parseInt(this.props.data.parentId) || re.originLayerId === parseInt(this.props.data.parentId));
+        });
+        if(relFilter.length > 0) {
+          if(relFilter[0].destinationLayerId !== parseInt(this.props.data.parentId)) {
+            correctId = relFilter[0].destinationLayerId;
+          } else if(relFilter[0].originLayerId !== parseInt(this.props.data.parentId)) {
+            correctId = relFilter[0].originLayerId;
+          } else {
+            //keep it the same
+          }
+        }
+      }
+      //end table check
     var rulesTable = this.props.dataElements.filter((de:any) =>{
       return de.dataElement.aliasName === "Rules";
     });
@@ -329,12 +374,12 @@ export default class TableCard extends React.Component <IProps, IState> {
           sources = [...sources, ...dn.junctionSources];
           if(sourceId === null) {
             sourceId = sources.filter((es:any) =>{
-              return es.layerId === this.props.data.parentId;
+              return es.layerId === correctId;
             });
           } else {
             if(sourceId.length <=0 ) {
               sourceId = sources.filter((es:any) =>{
-                return es.layerId === this.props.data.parentId;
+                return es.layerId === correctId;
               });
             }
           }
@@ -409,24 +454,6 @@ export default class TableCard extends React.Component <IProps, IState> {
     }
   }
 
-  _requestObject = async(clause: string, category: string) => {
-    let url = this.props.requestURL + "/" + this.props.data.parentId + "/query?where="+ clause +"&returnCountOnly=true&f=pjson";
-    fetch(url, {
-      method: 'GET'
-    })
-    .then((response) => {return response.json()})
-    .then((data) => {
-      if(data.hasOwnProperty("count")) {
-        let updateStat = {...this.state.siteStats};
-        updateStat[category] = {
-          count: data.count
-        }
-        this.setState({siteStats: updateStat});
-        this._createStatsOutput();
-      }
-    });
-  }
-
   _compare =(prop: any) => {
     return function(a: any, b: any) {
       let comparison = 0;
@@ -495,27 +522,6 @@ export default class TableCard extends React.Component <IProps, IState> {
       });
     }
     return terminalConfig;
-  }
-
-  _validAssetTypes =(lookup: string) => {
-    let domainVals = [];
-    let currentAT = this.state.nodeData.fieldInfos.filter((fi:any)=> {
-      return(fi.fieldName === lookup);
-    });
-    if(currentAT.length > 0) {
-      domainVals = this.props.domains.filter((d:any)=> {
-        return(d.name === currentAT[0].domainName);
-      });
-    }
-    return domainVals;
-  }
-
-  _matchDomain =(lookup: string) => {
-    let domainVals = [];
-    domainVals = this.props.domains.filter((d:any)=> {
-      return(d.name === lookup);
-    });
-    return domainVals;
   }
 
   _matchField =(lookup: string) => {

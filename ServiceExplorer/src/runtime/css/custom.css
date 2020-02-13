@@ -74,7 +74,6 @@ table {
 table {
   display: table;
   border-collapse: separate;
-  border-spacing: 2px;
   border-color: grey;
 }
 
@@ -122,4 +121,22 @@ table {
 .leftRightPadder5 {
   padding-left: 5px;
   padding-right: 5px;
+}
+
+.leftRightPadder10 {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.relationshipTableStyleHeader {
+  font-weight:bold;
+  padding:10px;
+  border-spacing:0px;
+  border-bottom:thin solid #c1c1c1;
+}
+
+.relationshipTableStyle {
+  padding:10px;
+  border-spacing:0px;
+  border-bottom: thin solid #c1c1c1;
 }

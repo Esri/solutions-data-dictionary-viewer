@@ -6,10 +6,11 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Collapse, Icon, Table } from 'jimu-ui';
 
 import CardHeader from './_header';
+import esriLookup from './_constants';
 import './css/custom.css';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -43,7 +44,9 @@ interface IState {
   expandSubtypes: boolean,
   expandIndexes: boolean,
   metadataElements: any,
-  metadataDescription: string;
+  metadataDescription: string,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class LayerCard extends React.Component <IProps, IState> {
@@ -64,13 +67,15 @@ export default class LayerCard extends React.Component <IProps, IState> {
       expandSubtypes: false,
       expandIndexes: false,
       metadataElements : null,
-      metadataDescription: ""
+      metadataDescription: "",
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
+    //console.log(this.props.data);
     let fieldList = {};
     let fields = [];
     let indexes = [];
@@ -96,7 +101,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
     this._requestMetadata().then(()=> {
       if(this.state.metadataElements !== null) {
         layerDesc = this._removeTags(this._unescapeHTML(this._processMetaData()));
-        console.log(layerDesc);
+        //console.log(layerDesc);
       }
       this.setState({fieldHolder:fieldList, fields:fields, indexes: indexes, metadataDescription: layerDesc});
     });
@@ -118,32 +123,36 @@ export default class LayerCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal"}}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.aliasName:this.state.nodeData.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}} dangerouslySetInnerHTML={{ __html: (this.state.metadataDescription !== "")?this.state.metadataDescription:this.state.nodeData.dataElement.description}}></span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Layer Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Global Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Object Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.aliasName:this.state.nodeData.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> <span dangerouslySetInnerHTML={{ __html: (this.state.metadataDescription !== "")?this.state.metadataDescription:this.state.nodeData.dataElement.description}}></span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Layer Id:</span> {(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Global Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Object Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</div>
           {
             (this.state.nodeData.hasOwnProperty("capabilities")) &&
-            <div style={{paddingTop:5, paddingBottom:5}}>Capabilities: <span style={{fontWeight:"bold"}}>{this.state.nodeData.capabilities}</span></div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Capabilities:</span> {this.state.nodeData.capabilities}</div>
           }
           {
             (this.state.nodeData.hasOwnProperty("dataElement"))?
               (this.state.nodeData.dataElement.hasOwnProperty("subtypeFieldName")) &&
-              <div style={{paddingTop:5, paddingBottom:5}}>Subtype Field: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.subtypeFieldName}</span></div>
+              <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subtype Field:</span> {this.state.nodeData.dataElement.subtypeFieldName}</div>
             :""
           }
           { (this.state.nodeData.hasOwnProperty("dataElement"))?
               (this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
-              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Subtypes:</div>
+              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Subtypes</span></div>
             :""
           }
           { (this.state.nodeData.hasOwnProperty("dataElement"))?
@@ -166,7 +175,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
             :""
           }
           {(this.state.fields.length > 0) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Fields:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           }
           {(this.state.fields.length > 0) &&
           <Collapse isOpen={this.state.expandFields}>
@@ -186,7 +195,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
           </Collapse>
           }
           {(this.state.indexes.length > 0) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Indexes:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Indexes</span></div>
           }
           {(this.state.indexes.length > 0) &&
           <Collapse isOpen={this.state.expandIndexes}>
@@ -216,6 +225,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
           <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -279,6 +289,17 @@ export default class LayerCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************

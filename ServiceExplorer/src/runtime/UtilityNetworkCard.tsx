@@ -6,7 +6,7 @@ import {IMConfig} from '../config';
 import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
 import CardHeader from './_header';
 import './css/custom.css';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
@@ -30,7 +30,8 @@ interface IState {
   expandCategories: boolean,
   expandDomainNetworks: boolean,
   expandNetworkAttributes: boolean,
-  expandTerminalConfigurations: boolean
+  expandTerminalConfigurations: boolean,
+  minimizedDetails: boolean
 }
 
 export default class UtilityNetworkCard extends React.Component <IProps, IState> {
@@ -43,18 +44,15 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       expandCategories: false,
       expandDomainNetworks: false,
       expandNetworkAttributes: false,
-      expandTerminalConfigurations: false
+      expandTerminalConfigurations: false,
+      minimizedDetails: false
     };
 
   }
 
-  componentWillMount() {
-    console.log(this.props.data);
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
 
@@ -67,34 +65,38 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleCategories()}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Categories:</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.dataElement.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleCategories()}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Categories</span></div>
           <Collapse isOpen={this.state.expandCategories}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createCatTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomainNetworks()}}>{(this.state.expandDomainNetworks)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Domain Networks:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomainNetworks()}}>{(this.state.expandDomainNetworks)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Domain Networks</span></div>
           <Collapse isOpen={this.state.expandDomainNetworks}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createDomainNetworkTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleNetworkAttributes()}}>{(this.state.expandNetworkAttributes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Network Attributes:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleNetworkAttributes()}}>{(this.state.expandNetworkAttributes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Network Attributes</span></div>
           <Collapse isOpen={this.state.expandNetworkAttributes}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createNetworkAttributeTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalConfigurations()}}>{(this.state.expandTerminalConfigurations)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Terminal Configurations:</div>
+          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalConfigurations()}}>{(this.state.expandTerminalConfigurations)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Terminal Configurations</span></div>
           <Collapse isOpen={this.state.expandTerminalConfigurations}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createTerminalsTable()}
@@ -104,6 +106,7 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
   }
 
@@ -168,6 +171,17 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************

@@ -7,7 +7,7 @@ import { Button, Image, ListGroup, ListGroupItem, Input, Collapse, Icon, Popover
 let ArrowUpIcon = require('jimu-ui/lib/icons/arrow-up-8.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let moreIcon = require('jimu-ui/lib/icons/more.svg');
+let moreIcon = require('jimu-ui/lib/icons/filter.svg');
 let searchIcon = require('jimu-ui/lib/icons/search.svg');
 
 interface IProps {
@@ -83,7 +83,6 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
 
   componentWillMount() {
    //this._processData();
-   console.log(this.props.data);
    this.setState({serviceNodes: [...this.props.data], masterServiceNodes: [...this.props.data]}, () => {
     this._popSearchParameters();
    });
@@ -104,7 +103,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
       <div style={{paddingLeft:58, width:this.props.width, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
         <div style={{display:"inline", width:"100%"}}>
           <div style={{display:"inline-block", width:this.props.width - 120}}>
-            <Input placeholder="Search the Table of Contents" value={this.state.searchValue} onChange={(e:any)=>{
+            <Input placeholder="Search" value={this.state.searchValue} onChange={(e:any)=>{
               e.persist();
               this.setState({searchValue: e.target.value},()=>{
                 if(e.target.value == "") {
@@ -129,7 +128,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
           <Popover className="popOverBG" innerClassName="popOverBG" hideArrow={true} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
             <PopoverHeader><div className="leftRightPadder5">Search Options</div></PopoverHeader>
             <PopoverBody>
-            <div  className="leftRightPadder5" style={{paddingBottom:"10px"}}>Check the boxes you want to include in the search.</div>
+            <div  className="leftRightPadder5" style={{paddingBottom:"10px"}}>Select the elements to include in the search results.</div>
             {this.searchOptionsTable()}
             </PopoverBody>
           </Popover>
@@ -414,9 +413,9 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
         <div style={{width:"100%"}} key={obj}>
           <div style={{fontWeight:"bold", width:"100%", backgroundColor:"#e1e1e1"}}>
           <div className="leftRightPadder5" style={{display:"inline-block", float:"left"}}>
-          <Input type="checkbox" theme={this.props.theme} aria-label={"Include " +currObj.display+ " in search"} checked={currObj.check} onChange={(e:any)=> {this.searchGroupCheck(e, obj)}} /></div>
+          <Input type="checkbox" aria-label={"Include " +currObj.display+ " in search"} checked={currObj.check} onChange={(e:any)=> {this.searchGroupCheck(e, obj)}} /></div>
           <div style={{display:"inline-block", paddingLeft:"5px"}}>{currObj.display}</div>
-          <div className="leftRightPadder5" style={{display:"inline-block", float:"right"}}><a onClick={()=>{this.toggleSearchExpand(obj)}}><Icon icon={(currObj.expand)?downArrowIcon:rightArrowIcon} size='16' color='#333' /></a></div>
+          <div className="leftRightPadder10" style={{display:"inline-block", float:"right"}}><a onClick={()=>{this.toggleSearchExpand(obj)}}><Icon icon={(currObj.expand)?downArrowIcon:rightArrowIcon} size='16' color='#333' /></a></div>
           </div>
           <div style={{paddingLeft:"20px", paddingTop:"5px", display:(currObj.expand)?"block":"none"}}>
             {currSection}
@@ -456,24 +455,28 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
   }
 
   toggleIndividualOption = (event:any, value: string, key:string) => {
-    let parentCheck = true;
+    let parentCheck = false;
     let newState = {...this.state.searchOptionState};
     if(event.target.checked) {
       newState[key].subs.map((n:any) => {
         if(n.name === value) {
           n.check = true;
-        }
-        if(n.check === false) {
-          parentCheck = false;
+          parentCheck = true;
         }
       });
     } else {
       newState[key].subs.map((n:any) => {
         if(n.name === value) {
           n.check = false;
-          parentCheck = false;
         }
       });
+    }
+    //see any any subcheckboxes are check, if so, keep parent checked
+    let someChecked = newState[key].subs.some((n:any) => {
+      return n.check;
+    });
+    if(someChecked) {
+      parentCheck = true;
     }
     newState[key].check = parentCheck;
     this.setState({searchOptionState:newState});

@@ -4,7 +4,7 @@ import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 import {loadArcGISJSAPIModules} from 'jimu-arcgis';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Image, ButtonDropdown, Popover, PopoverHeader, PopoverBody, Icon, Input,
-  Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Alert } from 'jimu-ui';
+  Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Alert, Progress } from 'jimu-ui';
 import defaultMessages from './translations/default';
 import {ServiceExplorerTree} from './ServiceExplorerTree';
 import SubtypeCard from './SubtypeCard';
@@ -41,7 +41,7 @@ let heartIcon = require('jimu-ui/lib/icons/heart.svg');
 let searchIcon = require('jimu-ui/lib/icons/search.svg');
 let deleteIcon = require('jimu-ui/lib/icons/delete.svg');
 let treeIcon = require('jimu-ui/lib/icons/datasource.svg');
-let panelIcon = require('jimu-ui/lib/icons/toc-add-page.svg');
+let panelIcon = require('jimu-ui/lib/icons/snap-to-right.svg');
 
 export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   constructor(props){
@@ -188,12 +188,26 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     return <div className="widget-demo" style={{top:0, height:this.state.winHeight, backgroundColor:"#fff"}}>
       <div>
         <Collapse isOpen={this.state.showTree}>
-        {this.state.treeReady && <ServiceExplorerTree width={this.state.tocWidth} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />}
+        {(this.state.treeReady)?
+          <ServiceExplorerTree width={this.state.tocWidth} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />
+          :
+          <div style={{paddingLeft:58, width:this.state.tocWidth, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
+            <Progress animated color="Primary" value="100" />
+            Loading...
+          </div>
+        }
         </Collapse>
       </div>
       <div id="serviceExplorerStage" style={{top:0, height:this.state.winHeight -5, left:this.state.contentStartLocation, position: "absolute", overflowX:"auto", overflowY:"auto", whiteSpace: "nowrap"}}>
         <div key={"stage0"} id={"stage0"} style={{height:"99%", width:this.state.cardWidth+10, overflowX:"auto", overflowY:"auto", backgroundColor:"#efefef", border:2, borderColor:"#aaa", borderStyle:"dashed", display:"inline-block"}}>
-        {this.state.activeCards[0]}
+        {
+          (this.state.activeCards[0].length > 0)?
+            this.state.activeCards[0]
+          :
+            <div style={{width:"100%", textAlign:"center", paddingTop:"25%"}}>
+              Click on topics in the table of contents to load more information.
+            </div>
+        }
         </div>
         {this.state.showPanel2 &&
           <div key={"stage1"} id={"stage1"} style={{height:"99%", width:this.state.cardWidth+10, overflowX:"auto", overflowY:"auto", backgroundColor:"#efefef", border:2, borderColor:"#aaa", borderStyle:"dashed", display:"inline-block"}}>
@@ -202,20 +216,20 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       </div>
       <div id="serviceExplorerSidebar" style={{top:0, left: 0, position: "relative", width:"60px", textAlign: "left", display:this.state.showActiveOptions}}>
-        <Button id="PopoverTree" type="secondary" onClick={this.toggleTree}>
-          <Icon icon={treeIcon} size='17' color='#00f' />
+        <Button id="PopoverTree" type="secondary" onClick={this.toggleTree} aria-label="Expand and collapse table of content">
+          <div title="Expand and collapse table of content"><Icon icon={treeIcon} size='17' color='#00f' /></div>
         </Button>
         <br></br>
         <Button id="addPanel" type="secondary" onClick={()=> {this.togglePanel2(this.state.showPanel2)}}>
-          <Icon icon={panelIcon} size='16' color='#333' />
+          <div title="Split the canvas"><Icon icon={panelIcon} size='16' color='#333' /></div>
         </Button>
         <br></br>
         <Button id="popoverDelete" type="secondary" onClick={this.deleteAllActiveAsk}>
-          <Icon icon={deleteIcon} size='16' color='#f00' />
+          <div title="Clear all cards"><Icon icon={deleteIcon} size='16' color='#f00' /></div>
         </Button>
         <br></br>
         <Button id="PopoverClick" type="secondary" onClick={this.toggleHistory}>
-          <Icon icon={heartIcon} size='16' color='#FFA500' />
+          <div title="View and manage saved cards"><Icon icon={heartIcon} size='16' color='#FFA500' /></div>
         </Button>
         <Popover innerClassName="popOverBG" placement="right" isOpen={this.state.popoverOpen} target="PopoverClick">
           <PopoverHeader><div className="leftRightPadder5" style={{float:"left"}}>Favorites</div><div className="leftRightPadder5" style={{float:"right"}} onClick={this.deleteAllFavoritesAsk}><Icon icon={deleteIcon} size='18' color='#333' /></div></PopoverHeader>
@@ -235,7 +249,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         </ModalBody>
         <ModalFooter>
           <Button type="danger" onClick={this.deleteAllYes}>Yes</Button>{' '}
-          <Button color="secondary" onClick={this.deleteAllNo}>No</Button>
+          <Button type="secondary" onClick={this.deleteAllNo}>No</Button>
         </ModalFooter>
       </Modal>
       <div style={{width:225, position: "relative", top: 0, left:0}}>
@@ -911,52 +925,74 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   _processAssetType =(st:any, id:string, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
     let nodeData = [];
     let atList = [];
-    if(this.state.controllerDS !== null) {
-      this.state.controllerDS.dataElement.domainNetworks.map((dn:any) => {
-        var junctionSource = dn.junctionSources.filter((js:any) => {
-          return js.layerId === parseInt(parentId);
+    let relFilter = [];
+    let sourceId = parentId;
+      //need to check if subtype is a table, if so, find it's target feature class that's it related to to get junction and edge sources
+      let checkTables = crumb.some((c:any) => {
+        return c.type === "Table";
+      });
+      if(checkTables) {
+        relFilter = this.state.relationshipElements.filter((re:any) => {
+          return (re.destinationLayerId === parseInt(parentId) || re.originLayerId === parseInt(parentId));
         });
-        if(junctionSource.length > 0) {
-          var assetGroup = junctionSource[0].assetGroups.filter((ag:any) => {
-            return ag.assetGroupCode === parseInt(st.subtypeCode);
-          });
-          if(assetGroup.length > 0) {
-            atList = assetGroup[0].assetTypes;
+        if(relFilter.length > 0) {
+          if(relFilter[0].destinationLayerId !== parseInt(parentId)) {
+            sourceId = relFilter[0].destinationLayerId;
+          } else if(relFilter[0].originLayerId !== parseInt(parentId)) {
+            sourceId = relFilter[0].originLayerId;
+          } else {
+            //keep it the same
           }
-        } else {
-          var edgeSource = dn.edgeSources.filter((es:any) => {
-            return es.layerId === parseInt(parentId);
+        }
+      }
+      //end table check to get FL id
+      if(this.state.controllerDS !== null) {
+        this.state.controllerDS.dataElement.domainNetworks.map((dn:any) => {
+          var junctionSource = dn.junctionSources.filter((js:any) => {
+            return js.layerId === parseInt(sourceId);
           });
-          if(edgeSource.length > 0) {
-            var assetGroup = edgeSource[0].assetGroups.filter((ag:any) => {
+          if(junctionSource.length > 0) {
+            var assetGroup = junctionSource[0].assetGroups.filter((ag:any) => {
               return ag.assetGroupCode === parseInt(st.subtypeCode);
             });
             if(assetGroup.length > 0) {
               atList = assetGroup[0].assetTypes;
             }
+          } else {
+            var edgeSource = dn.edgeSources.filter((es:any) => {
+              return es.layerId === parseInt(sourceId);
+            });
+            if(edgeSource.length > 0) {
+              var assetGroup = edgeSource[0].assetGroups.filter((ag:any) => {
+                return ag.assetGroupCode === parseInt(st.subtypeCode);
+              });
+              if(assetGroup.length > 0) {
+                atList = assetGroup[0].assetTypes;
+              }
+            }
           }
-        }
-      });
-    }
-    if(atList.length > 0) {
-      atList.sort(this._compare("assetTypeName"));
-      atList.map((at: any) => {
-        nodeData.push({
-          id: this.replaceColon(id+ "_" + at.assetTypeCode),
-          type: "Assettype",
-          text: at.assetTypeName,
-          icon: "",
-          requestAdditional: true,
-          data: at,
-          clickable: true,
-          search: false,
-          parentId: parentId,
-          subtypeCode: subtypeCode,
-          crumb: crumb,
-          parent: parent
         });
-      });
-    }
+      }
+      if(atList.length > 0) {
+        atList.sort(this._compare("assetTypeName"));
+        atList.map((at: any) => {
+          nodeData.push({
+            id: this.replaceColon(id+ "_" + at.assetTypeCode),
+            type: "Assettype",
+            text: at.assetTypeName,
+            icon: "",
+            requestAdditional: true,
+            data: at,
+            clickable: true,
+            search: false,
+            parentId: parentId,
+            subtypeCode: subtypeCode,
+            crumb: crumb,
+            parent: parent
+          });
+        });
+      }
+
 
     return nodeData;
   }
@@ -1177,6 +1213,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
         case "Assettype": {
           newActiveList.push(<AssetTypeCard data={dataNode} controllerDS={this.state.controllerDS} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
+              relationships={this.state.relationshipElements}
               key={dataNode.id}
               panel={slot}
               config={this.props.config}
@@ -1357,7 +1394,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Table": {
-          newActiveList.push(<TableCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL}
+          newActiveList.push(<TableCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL} cacheData={this.state.cacheData}
+            config={this.props.config}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}
