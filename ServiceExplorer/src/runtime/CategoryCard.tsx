@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
+import {Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import { arr } from '@interactjs/utils';
@@ -91,7 +92,7 @@ export default class CategoryCard extends React.Component <IProps, IState> {
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.name}</div>
-            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Category used in</span></div>
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleActiveCat()}}>{(this.state.expandActive)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Category used in</span></div>
             <Collapse isOpen={this.state.expandActive}>
               <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 {(this._findUN() !== null)?this._createActiveTable():"No domains exist"}
@@ -210,9 +211,9 @@ export default class CategoryCard extends React.Component <IProps, IState> {
             if(atTable !== null) {
               arrList.push(
                 <tr key={i}>
-                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(js.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(js.layerId)}</span></td>
-                  <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, this._layerLookup(js.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
-                    <span onClick={()=>{this.toggleActiveATList(ag.assetGroupName)}}>{(this.state.expandAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} </span>
+                  <td style={{fontSize:"small", cursor:"pointer"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(js.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(js.layerId)}</span></td>
+                  <td style={{fontSize:"small", cursor:"pointer"}}><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, this._layerLookup(js.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+                    <span style={{cursor:"pointer"}} onClick={()=>{this.toggleActiveATList(ag.assetGroupName)}}>{(this.state.expandAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} </span>
                    {ag.assetGroupName}
                    <Collapse isOpen={this.state.expandAT[ag.assetGroupName]}>
                     {atTable}

@@ -2,7 +2,8 @@
 import {BaseWidget, React, classNames, FormattedMessage, defaultMessages as jimuCoreDefaultMessage, IMDataSourceInfo, DataSource, DataSourceComponent} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-import { TabContent, TabPane, Collapse, Icon,Table} from 'jimu-ui';
+import {Collapse, Icon,Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CAVWorkSpace from './_CAVWorkSpace';
 import CardHeader from './_header';
 import './css/custom.css';
@@ -79,8 +80,6 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
   }
 
   componentWillMount() {
-    //console.log(this.props.data);
-    //test
     this._requestMetadata().then(()=> {
       //console.log(this.state.metadataElements);
       this._processMetaData();
@@ -158,13 +157,18 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.subtypeName}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Code:</span> {this.state.nodeData.subtypeCode}</div>
           <div style={{paddingTop:5, paddingBottom:5, width:"100%", wordWrap: "break-word", whiteSpace: "normal"}}><span style={{fontWeight:"bold"}}>Description:</span> {this.state.description}</div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAT()}}>{(this.state.expandAT)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Asset Types</span></div>
+          {
+            (this.props.data.hasOwnProperty("nodes"))?
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandAT()}}>{(this.state.expandAT)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Asset Types</span></div>
+            :
+            ""
+          }
           <Collapse isOpen={this.state.expandAT}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createAssetTypeTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           <Collapse isOpen={this.state.expandFields}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
             {(this.state.validFields.length > 0)?
@@ -186,36 +190,25 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
             }
           </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Attributes Rules</span></div>
+          {
+            (this.props.data.attributeRules.length > 0)?
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Attributes Rules</span></div>
+            :
+            ""
+          }
           <Collapse isOpen={this.state.expandAR}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createARTable()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandCAV()}}>{(this.state.expandCAV)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Contingent Attribute Values</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandCAV()}}>{(this.state.expandCAV)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Contingent Attribute Values</span></div>
           <Collapse isOpen={this.state.expandCAV}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              <CAVWorkSpace data={this.props.data} domains={this.props.domains} requestURL={this.props.requestURL} fieldGroups={this.props.data.fieldGroups} config={this.props.config} cacheData={this.props.cacheData}></CAVWorkSpace>
+              <CAVWorkSpace data={this.props.data} domains={this.props.domains} requestURL={this.props.requestURL} fieldGroups={this.props.data.fieldGroups} config={this.props.config} cacheData={this.props.cacheData} assetType={""}></CAVWorkSpace>
             </div>
           </Collapse>
           <div style={{paddingBottom: 15}}></div>
         </div>
-        </TabPane>
-        <TabPane tabId="Statistics">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10}}>
-            <div><h4>Site Statistics</h4></div>
-            {this.state.statsOutput}
-          </div>
-          <div style={{paddingBottom: 15}}></div>
-        </TabPane>
-        <TabPane tabId="Diagrams">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10}}>
-            <div><h4>Others (WIP)</h4></div>
-            <div style={{width: "100%", overflowX:"auto"}}>
-
-            </div>
-          </div>
-          <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
       }
@@ -396,7 +389,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                 });
                 arrList.push(
                   <tr key={i}>
-                    <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}><Icon icon={linkIcon} size='12' color='#333' /> {d.name}</div></td>
+                    <td style={{fontSize:"small"}}><div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(d.name,"Assettype", this.props.panel, this.props.data.parent, this.state.nodeData.subtypeName)}}><Icon icon={linkIcon} size='12' color='#333' /> {d.name}</div></td>
                     <td style={{fontSize:"small"}}>{d.code}</td>
                     <td style={{fontSize:"small", wordWrap: "break-word"}}>{(filtered.length > 0)?filtered[0].description:""}</td>
                   </tr>
@@ -446,7 +439,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           if(aliasFromMetadata !== "") {
             alias = aliasFromMetadata;
           }
-          fieldName = <span><div style={{textAlign: "left"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {fi.fieldName}</div></span>;
+          fieldName = <span><div style={{textAlign: "left", cursor:"pointer"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {fi.fieldName}</div></span>;
         }
         if(domain.length > 0) {
           if(domain[0].hasOwnProperty("codedValues")) {
@@ -465,8 +458,8 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
           //keep whatever value it is.
         }
         arrList.push(<tr key={i}><td style={{fontSize:"small", textAlign: "left", verticalAlign: "top", whiteSpace: "nowrap"}}>
-        <div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
-        <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{
+        <div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div>
+        <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", cursor:"pointer"}} onClick={()=>{
           this.toggleFields(fi.fieldName);
         }}>{fieldName}
         </div>
@@ -477,8 +470,8 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         <td style={{fontSize:"small"}}>{alias}</td>
         <td style={{fontSize:"small"}}>
           <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", whiteSpace: "nowrap"}}>
-            <div onClick={()=>{this.props.callbackLinkage(fi.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, whiteSpace: "nowrap"}}>{(fi.domainName !== "")?<Icon icon={linkIcon} size='12' color='#333' />:''}</div>
-            <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", wordBreak:"break-word"}} onClick={()=>{
+            <div onClick={()=>{this.props.callbackLinkage(fi.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, whiteSpace: "nowrap", cursor:"pointer"}}>{(fi.domainName !== "")?<Icon icon={linkIcon} size='12' color='#333' />:''}</div>
+            <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", wordBreak:"break-word", cursor:"pointer"}} onClick={()=>{
               this.toggleDomains(fi.domainName);
             }}>{(fi.domainName !== "")?(this.state.domainHolder[fi.domainName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:""}</div>
           </div>
@@ -622,7 +615,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
       filterAR.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
+            <td style={{fontSize:"small"}}><div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>

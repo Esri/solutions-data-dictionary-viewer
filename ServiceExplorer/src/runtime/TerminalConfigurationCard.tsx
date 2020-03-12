@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
+import {Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
@@ -80,13 +81,13 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.terminalConfigurationName}</div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Default Configuration:</span> {this.state.nodeData.defaultConfiguration}</div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Traversability:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.traversabilityModel)}</div>
-            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminals()}}>{(this.state.expandTerminal)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Terminals</span></div>
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTerminals()}}>{(this.state.expandTerminal)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Terminals</span></div>
             <Collapse isOpen={this.state.expandTerminal}>
               <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 {(this.state.nodeData.terminals.length > 0)?this._createTerminalTable():"No terminals exist"}
               </div>
             </Collapse>
-            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTerminalsPaths()}}>{(this.state.expandTerminalPaths)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Valid Paths</span></div>
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTerminalsPaths()}}>{(this.state.expandTerminalPaths)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Valid Paths</span></div>
             <Collapse isOpen={this.state.expandTerminalPaths}>
               <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 {(this.state.nodeData.terminals.length > 0)?this._createTerminalPathsTable():"No terminals paths"}

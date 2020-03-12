@@ -2,7 +2,6 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
-
 import {Icon, Collapse, Table} from 'jimu-ui';
 import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
@@ -28,24 +27,20 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
-  expandCategories: boolean,
-  expandDomainNetworks: boolean,
-  expandNetworkAttributes: boolean,
-  expandTerminalConfigurations: boolean,
+  expandLayers: boolean,
+  expandTables: boolean,
   minimizedDetails: boolean
 }
 
-export default class UtilityNetworkCard extends React.Component <IProps, IState> {
+export default class FeatureServiceCard extends React.Component <IProps, IState> {
   constructor(props: IProps){
     super(props);
 
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
-      expandCategories: false,
-      expandDomainNetworks: false,
-      expandNetworkAttributes: false,
-      expandTerminalConfigurations: false,
+      expandLayers: false,
+      expandTables: false,
       minimizedDetails: false
     };
 
@@ -77,30 +72,20 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
         <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.dataElement.name}</div>
-          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleCategories()}}>{(this.state.expandCategories)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Categories</span></div>
-          <Collapse isOpen={this.state.expandCategories}>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Title:</span> {this.state.nodeData.documentInfo.Title}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subject:</span> {this.state.nodeData.documentInfo.Subject}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this._removeTags(this._unescapeHTML(this.state.nodeData.serviceDescription))}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Version:</span> {this.state.nodeData.currentVersion}</div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleLayers()}}>{(this.state.expandLayers)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Layers</span></div>
+          <Collapse isOpen={this.state.expandLayers}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createCatTable()}
+              {this._createLayersList()}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleDomainNetworks()}}>{(this.state.expandDomainNetworks)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Domain Networks</span></div>
-          <Collapse isOpen={this.state.expandDomainNetworks}>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTables()}}>{(this.state.expandTables)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tables</span></div>
+          <Collapse isOpen={this.state.expandTables}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createDomainNetworkTable()}
-            </div>
-          </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleNetworkAttributes()}}>{(this.state.expandNetworkAttributes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Network Attributes</span></div>
-          <Collapse isOpen={this.state.expandNetworkAttributes}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createNetworkAttributeTable()}
-            </div>
-          </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTerminalConfigurations()}}>{(this.state.expandTerminalConfigurations)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Terminal Configurations</span></div>
-          <Collapse isOpen={this.state.expandTerminalConfigurations}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {this._createTerminalsTable()}
+              {this._createTablesList()}
             </div>
           </Collapse>
           <div style={{paddingBottom: 15}}></div>
@@ -186,48 +171,38 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
   }
   //****** UI components and UI Interaction
   //********************************************
-  toggleCategories =() => {
-    if(this.state.expandCategories) {
-      this.setState({expandCategories: false});
+  toggleLayers =() => {
+    if(this.state.expandLayers) {
+      this.setState({expandLayers: false});
     } else {
-      this.setState({expandCategories: true});
+      this.setState({expandLayers: true});
     }
   }
 
-  toggleDomainNetworks =() => {
-    if(this.state.expandDomainNetworks) {
-      this.setState({expandDomainNetworks: false});
+  toggleTables =() => {
+    if(this.state.expandTables) {
+      this.setState({expandTables: false});
     } else {
-      this.setState({expandDomainNetworks: true});
+      this.setState({expandTables: true});
     }
   }
 
-  toggleNetworkAttributes =() => {
-    if(this.state.expandNetworkAttributes) {
-      this.setState({expandNetworkAttributes: false});
-    } else {
-      this.setState({expandNetworkAttributes: true});
-    }
-  }
-
-  toggleTerminalConfigurations =() => {
-    if(this.state.expandTerminalConfigurations) {
-      this.setState({expandTerminalConfigurations: false});
-    } else {
-      this.setState({expandTerminalConfigurations: true});
-    }
-  }
-
-  _createCatTable = () => {
+  _createLayersList = () => {
     let arrList = [];
-    this.props.data.data.dataElement.categories.map((cat: any, i: number) => {
-      arrList.push(
-        <tr key={i}>
-          <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(cat.name,"Category", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {cat.name} </div>
-          </td>
-        </tr>
-      );
+    this.state.nodeData.layers.map((lyr: any, i: number) => {
+      if(lyr.name.indexOf("Errors") < 0 && lyr.name !== "Dirty Areas") {
+        let type = "Layer";
+        if(lyr.type === "Utility Network Layer") {
+          type = "Utility Network";
+        }
+        arrList.push(
+          <tr key={i}>
+            <td style={{fontSize:"small"}}>
+            <div onClick={()=>{this.props.callbackLinkage(lyr.name, type, this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {lyr.name} </div>
+            </td>
+          </tr>
+        );
+      }
     });
     let tableObj = <Table hover>
     <thead>
@@ -242,13 +217,13 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
     return tableObj;
   }
 
-  _createDomainNetworkTable = () => {
+  _createTablesList = () => {
     let arrList = [];
-    this.props.data.data.dataElement.domainNetworks.map((dn: any, i: number) => {
+    this.state.nodeData.tables.map((tbl: any, i: number) => {
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(dn.domainNetworkAliasName,"Domain Network", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {dn.domainNetworkAliasName} </div>
+          <div onClick={()=>{this.props.callbackLinkage(tbl.name,"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {tbl.name} </div>
           </td>
         </tr>
       );
@@ -319,5 +294,20 @@ export default class UtilityNetworkCard extends React.Component <IProps, IState>
 
   //****** helper functions and request functions
   //********************************************
+  _removeTags(str: string) {
+    if ((str===null) || (str===''))
+    return str;
+    else
+    str = str.toString();
+    return str.replace( /(<([^>]+)>)/ig, '');
+  }
+
+  _unescapeHTML =(html:string) => {
+    var el = document.createElement('div');
+    return html.replace(/\&#?[0-9a-z]+;/gi, function (enc) {
+        el.innerHTML = enc;
+        return el.innerText
+    });
+  }
 
 }

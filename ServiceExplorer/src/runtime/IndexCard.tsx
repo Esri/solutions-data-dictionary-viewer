@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
+import {Collapse, Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
@@ -110,7 +111,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Ascending:</span> {(this.props.data.data.hasOwnProperty("isAscending"))? (this.props.data.data.isAscending)? "True" : "False" : "False"}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Unique:</span> {(this.props.data.data.hasOwnProperty("isUnique"))? (this.props.data.data.isUnique)? "True" : "False" : "False"}</div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           <Collapse isOpen={this.state.expandFields}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover>
@@ -241,7 +242,7 @@ export default class IndexCard extends React.Component <IProps, IState> {
         let fieldName = <span><div style={{textAlign: "left"}}>{(fieldDetailsTable !== null)? (this.state.fieldHolder[fi.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />:''} {fi.hasOwnProperty("name")?fi.name:fi}</div></span>;
         arrList.push(<tr key={z}>
           <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /></div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div>
           {
             (fieldDetailsTable !== null)?
               <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top"}} onClick={()=>{

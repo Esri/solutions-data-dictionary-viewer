@@ -3,15 +3,15 @@ import {BaseWidget, React, ReactDOM, classNames, FormattedMessage, defaultMessag
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 import {loadArcGISJSAPIModules} from 'jimu-arcgis';
-import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Image, ButtonDropdown, Popover, PopoverHeader, PopoverBody, Icon, Input,
-  Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Alert, Progress } from 'jimu-ui';
+import {Button, Icon, Input, Modal, ModalBody, ModalFooter, Collapse, Alert, Progress } from 'jimu-ui';
+import {Popover, PopoverHeader, PopoverBody} from 'reactstrap';
 import defaultMessages from './translations/default';
 import {ServiceExplorerTree} from './ServiceExplorerTree';
 import SubtypeCard from './SubtypeCard';
 import SubtypesCard from './SubTypesCard';
 import RelationshipCard from './relationshipCard';
 import RelationshipsCard from './RelationshipsCard';
-import MinimizedCard from './MinimizedCard';
+import MinimizedCard from './_MinimizedCard';
 import AttributeRulesCard from './AttributeRulesCard';
 import AttributeRuleCard from './AttributeRuleCard';
 import FieldsCard from './FieldsCard';
@@ -34,6 +34,7 @@ import TerminalConfigurationsCard from './TerminalConfigurationsCard';
 import CategoryCard from './CategoryCard';
 import CategoriesCard from './CategoriesCard';
 import AssetTypeCard from './AssetTypeCard';
+import FeatureServiceCard from './FeatureServiceCard';
 import { any } from 'prop-types';
 import './css/custom.css';
 import AssetTypesCard from './AssetTypesCard';
@@ -42,6 +43,7 @@ let searchIcon = require('jimu-ui/lib/icons/search.svg');
 let deleteIcon = require('jimu-ui/lib/icons/delete.svg');
 let treeIcon = require('jimu-ui/lib/icons/datasource.svg');
 let panelIcon = require('jimu-ui/lib/icons/snap-to-right.svg');
+let linkIcon = require('./assets/launch.svg');
 
 export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   constructor(props){
@@ -76,6 +78,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       popoverOpen: false,
       popoverSearch: false,
       favoriteCards: [],
+      favoriteSearchValue: "",
       masterFavoriteCards: [],
       activeCards: [],
       masterActiveCards: [],
@@ -85,7 +88,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       favoriteAlert: false,
       winHeight: document.body.clientHeight,
       cardWidth: (document.body.clientWidth - 425),
-      tocWidth: 400
+      tocWidth: 400,
+      favoriteMessage: "Added to Favorites"
     };
   }
   //https://pleblanc3.esri.com/server/rest/services/cav/FeatureServer
@@ -140,7 +144,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
                 this._requestObject("queryDomains", -1).then(() => {
                   this._processData();
                   this.setState({treeReady:true});
-     // ReactDOM.render(<ServiceExplorerTree theme={this.props.theme} width={390} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />, document.getElementById("serviceExplorerTree"));
                   this._checkCookie();
                   this._parseStartUpURL();
                 });
@@ -232,10 +235,26 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           <div title="View and manage saved cards"><Icon icon={heartIcon} size='16' color='#FFA500' /></div>
         </Button>
         <Popover innerClassName="popOverBG" placement="right" isOpen={this.state.popoverOpen} target="PopoverClick">
-          <PopoverHeader><div className="leftRightPadder5" style={{float:"left"}}>Favorites</div><div className="leftRightPadder5" style={{float:"right"}} onClick={this.deleteAllFavoritesAsk}><Icon icon={deleteIcon} size='18' color='#333' /></div></PopoverHeader>
+          <PopoverHeader><div className="leftRightPadder5" style={{float:"left"}}>Favorites</div><div className="leftRightPadder5" style={{float:"right", cursor:"pointer"}} onClick={this.deleteAllFavoritesAsk}><Icon icon={deleteIcon} size='18' color='#333' /></div></PopoverHeader>
           <PopoverBody>
             <div className="leftRightPadder5">
-              <Input placeholder="Search favorites" ref="favoritesSearchValue" onChange={(e)=>{this.searchService(e.target.value, "favorites")}}></Input>
+              <Input placeholder="Search favorites" ref="favoritesSearchValue"
+                onKeyPress={(e:any) => {
+                  if(e.key === "Enter") {
+                    this.searchService(e.target.value, "favorites");
+                  }
+                }}
+                onChange={(e:any)=>{
+                  e.persist();
+                  this.setState({favoriteSearchValue: e.target.value},()=>{
+                    if(e.target.value == "") {
+                      this.searchService(e.target.value, "favorites");
+                    }
+                  });
+                }}
+                style={{width:"90%"}}>
+              </Input>
+              <div style={{float:"right", cursor:"pointer"}} onClick={()=> {this.searchService(this.state.favoriteSearchValue, "favorites")}}><Icon icon={searchIcon} size='18' color='#333' /></div>
               <div style={{paddingBottom:"5px"}}></div>
               {this.state.favoriteCards}
             </div>
@@ -254,9 +273,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       </Modal>
       <div style={{width:225, position: "relative", top: 0, left:0}}>
         <Alert color="warning" isOpen={this.state.favoriteAlert} toggle={()=> {this.setState({favoriteAlert:false})}}>
-          <div style={{width:"100%", height:"100%", fontWeight:"bold", fontSize:"smaller"}}>
-            Added to favorites.
-          </div>
+          <div style={{width:"100%", height:"100%", fontWeight:"bold", fontSize:"smaller"}}>{this.state.favoriteMessage}</div>
         </Alert>
       </div>
     </div>;
@@ -384,15 +401,15 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       }
     });
     let nodeStructure = {
-      id: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription,
+      id: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title.replace(/ /g,"_") + "_Service":data.serviceDescription.replace(/ /g,"_") + "_Service",
       type: "Feature Service",
-      text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription,
+      text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title + " Service":data.serviceDescription + " Service",
       subNodeCount: 0,
       icon: "",
       requestAdditional: false,
       root: true,
-      clickable: false,
-      data:unData,
+      clickable: true,
+      data: this.state.serviceElements,
       crumb:[],
       search: false,
       nodes: []
@@ -406,7 +423,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       data: this.state.serviceElements.layers,
       clickable: true,
       crumb:[
-        {type: "Feature Service",value:(data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id}
+        {type: "Feature Service",value:(data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id}
       ],
       search: false,
       nodes:[]
@@ -433,12 +450,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         clickable: true
       };
       subNode["crumb"]= [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
+        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
         {type: "Layers", value:"Layers", node: layersNode.id}
       ];
       if(this.state.hasDataElements) {
         let crumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
           {type: "Layers", value:"Layers", node: layersNode.id},
           {type: type, value:layer.name, node: subNode.id}
         ];
@@ -462,14 +479,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       data: this.state.serviceElements.tables,
       clickable: true,
       crumb:[
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
       ],
       search: false,
       nodes: []
     };
     data.tables.map((table: any, i:number) => {
       let newCrumb = [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
+        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
         {type: "Tables", value:"Tables", node:tablesNode.id},
       ];
       let simpleData = table;
@@ -488,7 +505,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       };
       if(this.state.hasDataElements) {
         let crumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node: nodeStructure.id},
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
           {type: "Tables", value:"Tables", node:tablesNode.id},
           {type: "Table", value:table.name, node: nodeStruct.id}
         ];
@@ -513,14 +530,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: relationship,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
         ],
         search: false,
         nodes: []
       };
       relationship.map((relship: any, i:number) => {
         let newCrumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
           {type: "Relationships", value:"Relationships", node:relationNode.id},
         ];
         let reSubNode = {
@@ -550,14 +567,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: domains,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
         ],
         search: false,
         nodes: []
       };
       domains.map((domain: any, i:number) => {
         let newCrumb = [
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
           {type: "Domains", value:"Domains", node:domainNode.id},
         ];
         domainNode.nodes.push({
@@ -586,20 +603,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         data: unData,
         clickable: true,
         crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id}
+          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
         ],
         search: false,
         nodes: []
       };
       let newCrumb = [
-        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title:data.serviceDescription, node:nodeStructure.id},
+        {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
         {type: "Controller Dataset", value:"Controller Dataset", node: domainNetworkNode.id},
       ];
       domainNetworkNode.nodes = this._processDataElements(unData.layerId, newCrumb, "Feature Service");
       nodeStructure.nodes.unshift(domainNetworkNode);
     }
 
-    console.log(nodeStructure);
     this.setState({serviceNodes: [nodeStructure]});
     //this._serviceList(rest);
   }
@@ -660,8 +676,11 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             node: arNode.id
           });
           //arNode["crumb"] = newCrumb;
-          arNode.nodes = this._processAttrRules(de.dataElement.attributeRules, de.layerId + "_attrRules", de.dataElement.subtypes, newCrumb, parent);
-          nodeData.push(arNode);
+          let ars = this._processAttrRules(de.dataElement.attributeRules, de.layerId + "_attrRules", de.dataElement.subtypes, newCrumb, parent);
+          if(ars.length > 0) {
+            arNode.nodes = this._processAttrRules(de.dataElement.attributeRules, de.layerId + "_attrRules", de.dataElement.subtypes, newCrumb, parent);
+            nodeData.push(arNode);
+          }
         }
         //Handing FIELD nodes
         if(de.dataElement.hasOwnProperty("fields")) {
@@ -883,14 +902,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           node: stNode.id
         });
         //stNode.crumb = newCrumb;
-        stNode.nodes = this._processAssetTypes(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode, newCrumb, parent);
+        let at = this._processAssetTypes(st, id + "_" + st.subtypeCode, fieldGroups, parentId, st.subtypeCode, newCrumb, parent);
+        if(at.length> 0) {
+          stNode.nodes = at;
+        } else {
+          delete stNode.nodes;
+        }
         nodeData.push(stNode);
       });
     }
     return nodeData;
   }
 
-  _processAssetTypes =(st:any, id:string, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
+  _processAssetTypes =(st:any, id:string, fieldGroups:any, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
     let nodeData = [];
     if(st) {
       let arNode = {
@@ -915,14 +939,17 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         node: arNode.id
       });
       //arNode["crumb"] = newCrumb;
-      arNode.nodes = this._processAssetType(st, id + "_" + st.subtypeCode, parentId, st.subtypeCode, newCrumb, parent);
-      arNode.data = arNode.nodes;
-      nodeData.push(arNode);
+      let at = this._processAssetType(st, id + "_" + st.subtypeCode, fieldGroups, parentId, st.subtypeCode, newCrumb, parent);
+      if(at.length> 0) {
+        arNode.nodes = at;
+        arNode.data = arNode.nodes;
+        nodeData.push(arNode);
+      }
     }
     return nodeData;
   }
 
-  _processAssetType =(st:any, id:string, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
+  _processAssetType =(st:any, id:string, fieldGroups:any, parentId: string, subtypeCode:number, crumb:any, parent:string) => {
     let nodeData = [];
     let atList = [];
     let relFilter = [];
@@ -983,6 +1010,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             icon: "",
             requestAdditional: true,
             data: at,
+            fieldGroups: fieldGroups,
             clickable: true,
             search: false,
             parentId: parentId,
@@ -1213,6 +1241,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
         case "Assettype": {
           newActiveList.push(<AssetTypeCard data={dataNode} controllerDS={this.state.controllerDS} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
+              domains={this.state.domainElements}
+              cacheData={this.state.cacheData}
               relationships={this.state.relationshipElements}
               key={dataNode.id}
               panel={slot}
@@ -1289,7 +1319,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Fields": {
-          newActiveList.push(<FieldsCard data={dataNode} requestURL={this.state.requestURL}
+          newActiveList.push(<FieldsCard data={dataNode} requestURL={this.state.requestURL} cacheData={this.state.cacheData}
+            config={this.props.config}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}
@@ -1304,7 +1335,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Field": {
-          newActiveList.push(<FieldCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL}
+          newActiveList.push(<FieldCard data={dataNode} domains={this.state.domainElements} requestURL={this.state.requestURL} cacheData={this.state.cacheData}
+            dataElements={this.state.dataElements}
+            config={this.props.config}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}
@@ -1578,6 +1611,20 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           />);
           break;
         }
+        case "Feature Service": {
+          newActiveList.push(<FeatureServiceCard key={dataNode.id} data={dataNode} requestURL={this.state.requestURL}
+            panel={slot}
+            callbackClose={this._callbackCloseChild}
+            callbackSave={this._callbackSaveChild}
+            callbackLinkage={this.searchLaunchCard}
+            callbackMove={this._callMovePanels}
+            callbackGetPanels={this._callbackGetPanels}
+            callbackReorderCards={this.callbackReorderCards}
+            callbackActiveCards={this._callbackGetActiveCards}
+            callbackGetFavorites={this._callbackGetFavorites}
+          />);
+          break;
+        }
         default:
           break;
       }
@@ -1596,8 +1643,22 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     });
     if(filterFC.length <= 0) {
       favoriteCard.push(<MinimizedCard key={dataNode.id} data={dataNode} width={250} height={35} callbackRestore={this._callbackRestoreChild} callbackDelete={this._callbackDeleteFavorite} />);
-      this.setState({favoriteCards: favoriteCard, masterFavoriteCards: favoriteCard}, ()=> {
+      this.setState({favoriteCards: favoriteCard, masterFavoriteCards: favoriteCard, favoriteMessage: "Add to favorites"}, ()=> {
         //save into cookie
+        let cookieList = [];
+        if(this.state.masterFavoriteCards.length > 0) {
+          this.state.masterFavoriteCards.map((mf:any) => {
+            let id = {id:mf.key, type:mf.props.data.type};
+            cookieList.push(JSON.stringify(id));
+          });
+          document.cookie = "favorites=" + cookieList.join("@") + ";path=/;";
+        }
+      });
+    } else {
+      let filterFC = favoriteCard.filter((fc) => {
+        return(fc.key !== (dataNode.id).toString());
+      });
+      this.setState({favoriteCards: filterFC, masterFavoriteCards: filterFC, favoriteMessage: "Removed from favorites"}, ()=> {
         let cookieList = [];
         if(this.state.masterFavoriteCards.length > 0) {
           this.state.masterFavoriteCards.map((mf:any) => {
@@ -1718,7 +1779,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _callMovePanels=(dataNode: any, type:string, panel:number, direction:string) => {
-    console.log(dataNode);
     let diff = 0;
     let newPos = panel;
     if(direction === "right") {
@@ -1859,9 +1919,15 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
       serviceNodes.map((sn: any, i:number) => {
-        sn.map((s:any) => {
-          hasSubNodes(s, i);
-        })
+        if(Array.isArray(sn)) {
+          sn.map((s:any) => {
+            hasSubNodes(s, i);
+          });
+        } else {
+          if((sn.props.data.text).toLowerCase().indexOf(value.toLowerCase()) > -1) {
+            matchList[0].push(sn);
+          }
+        }
       });
       activeSearching = true;
     } else {
@@ -1892,16 +1958,21 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           if(node.hasOwnProperty("parent")) {
             if(typeof(parent) !== "undefined") {
               let nodeParentVal = this.replaceSpaces(node.parent);
-              if((nodeParentVal).toLowerCase() === (parent).toLowerCase()) {
+              if((nodeParentVal).toLowerCase() === this.replaceSpaces((parent)).toLowerCase()) {
                 //see if there is another level of parent to search for example if "unknown" asset type is passed
                 if(typeof(parentSub) !== "undefined") {
-                  node.crumb.map((c: any) => {
-                    if((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
-                      if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
-                        matchNode = node;
+                  if((nodeText).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
+                    matchNode = node;
+                  }
+                  else {
+                    node.crumb.map((c: any) => {
+                      if((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
+                        if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
+                          matchNode = node;
+                        }
                       }
-                    }
-                  });
+                    });
+                  }
                 } else {
                   if((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
                     matchNode = node;
@@ -1918,6 +1989,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               matchNode = node;
             }
           }
+
         }
         if(node.hasOwnProperty("nodes")) {
           node.nodes.map((n: any) => {
@@ -2018,6 +2090,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
     }
+    if(this.props.queryObject.hasOwnProperty("cacheId")) {
+      this.setState({cacheId: this.props.queryObject.cacheId});
+    }
   }
 
   _parseStartUpURL =() => {
@@ -2033,6 +2108,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           });
         }
       }
+    } else {
+      this.searchLaunchCard(this.state.serviceNodes[0].text, "Feature Service", 0);
     }
   }
 

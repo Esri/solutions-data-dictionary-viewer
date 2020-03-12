@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';
@@ -181,13 +182,13 @@ export default class IndexesCard extends React.Component <IProps, IState> {
         arrFields.map((a: any, z: number) => {
           let value = (a.hasOwnProperty("name"))?a.name:a;
           fieldList.push(
-            <div key={z} onClick={()=>{this.props.callbackLinkage(value,"Field", this.props.panel, this.props.data.parent)}} style={{verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {value} </div>
+            <div key={z} onClick={()=>{this.props.callbackLinkage(value,"Field", this.props.panel, this.props.data.parent)}} style={{verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {value} </div>
           );
         });
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(f.name,"Index", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(f.name,"Index", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
             <td style={{fontSize:"small"}}>{(f.isAscending)?"True":"False"}</td>
             <td style={{fontSize:"small"}}>{(f.isUnique)?"True":"False"}</td>

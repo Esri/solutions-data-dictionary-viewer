@@ -140,3 +140,12 @@ table {
   border-spacing:0px;
   border-bottom: thin solid #c1c1c1;
 }
+
+.paddingTopBottom5 {
+  padding-Top: 5px;
+  padding-Bottom: 5px
+}
+
+.linkPointer {
+  cursor:"pointer";
+}

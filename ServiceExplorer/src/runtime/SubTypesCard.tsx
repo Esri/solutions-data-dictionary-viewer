@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
@@ -168,7 +169,7 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.data.subtypeName,"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.data.subtypeName,"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
             </td>
             <td style={{fontSize:"small"}}>{ar.data.subtypeCode}</td>
           </tr>

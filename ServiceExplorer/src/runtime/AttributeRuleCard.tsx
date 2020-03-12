@@ -2,8 +2,7 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';

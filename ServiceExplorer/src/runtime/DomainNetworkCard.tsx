@@ -2,8 +2,8 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
+import {Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
@@ -144,19 +144,19 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.domainNetworkAliasName}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Name:</span> {this.state.nodeData.subnetworkLabelFieldName}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Tier Definition:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.tierDefinition)}</div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tiers</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tiers</span></div>
           <Collapse isOpen={this.state.expandTierGroup}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.tiers.length > 0)?this._createTiersTable():"No tiers exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Junction Sources</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Junction Sources</span></div>
           <Collapse isOpen={this.state.expandJunctionSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.junctionSources.length > 0)?this._createJunctionSourceTable():"No junctions exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Edge Sources</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Edge Sources</span></div>
           <Collapse isOpen={this.state.expandEdgeSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.edgeSources.length > 0)?this._createEdgeSourceTable():"No edges exist"}
@@ -367,7 +367,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
           </td>
           <td style={{fontSize:"small"}}>{ft.tierGroupName}</td>
           <td style={{fontSize:"small"}}>{ft.rank}</td>
@@ -378,19 +378,19 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i+"_hidden"} style={{display:this.state.expandTiers[ft.name]}}>
           <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
-            <div onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
             <Collapse isOpen={this.state.expandTiersValidDevice[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validDevices, "Device", "junction")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersValidLine(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidLine(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
             <Collapse isOpen={this.state.expandTiersValidLine[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validLines, "Line", "edge")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
             <Collapse isOpen={this.state.expandTiersValidSubnetworkControllers[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validSubnetworkControllers, "Device", "junction")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
             <Collapse isOpen={this.state.expandTiersAggregatedLines[ft.name]}>
             <div>{this._createValidAssetsTable(ft.aggregatedLinesForSubnetLine, "Line", "edge")}</div>
             </Collapse>
@@ -429,7 +429,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       d.assetTypes.map((at: any, z: number) => {
         let validAT = this._ATCodeLookup(at.assetTypeCode, domainName);
         list.push(<div key={at.assetTypeCode+"_"+z}>
-        <div onClick={()=>{this.props.callbackLinkage(validAT,"Assettype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type, subtype)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' />{validAT}</div>
+        <div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(validAT,"Assettype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type, subtype)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' />{validAT}</div>
         </div>);
       });
       return list;
@@ -439,7 +439,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
           </td>
           <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain, validAsset.ag)}</td>
         </tr>
@@ -470,19 +470,19 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           let catList = [];
           at.categories.map((c:any, b: number) => {
             catList.push(
-              <div id={b+"_c"}><span  onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
+              <div id={b+"_c"}><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
             );
           });
           ATList.push(<tr id={a+"_at"}>
-            <td><span  onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
+            <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
             <td>{catList}</td>
           </tr>);
         });
 
         collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
+          <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
           <td>
-          <div onClick={()=>{this.toggleValidJunctionsAT(ag.assetGroupName)}}>{(this.state.expandJunctionAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleValidJunctionsAT(ag.assetGroupName)}}>{(this.state.expandJunctionAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
           <Collapse isOpen={this.state.expandJunctionAT[ag.assetGroupName]}>
             <table>
               <tr>
@@ -501,8 +501,8 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <span onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
-          <span onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
+          <span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+          <span style={{cursor:"pointer"}} onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
           </td>
         </tr>
       );
@@ -543,19 +543,19 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           let catList = [];
           at.categories.map((c:any, b: number) => {
             catList.push(
-              <div id={b+"_c"}><span  onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
+              <div id={b+"_c"}><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
             );
           });
           ATList.push(<tr id={a+"_at"}>
-            <td><span  onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
+            <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' />{at.assetTypeName}</span></td>
             <td>{catList}</td>
           </tr>);
         });
 
         collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
+          <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
           <td>
-          <div onClick={()=>{this.toggleValidEdgesAT(ag.assetGroupName)}}>{(this.state.expandEdgeAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleValidEdgesAT(ag.assetGroupName)}}>{(this.state.expandEdgeAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
           <Collapse isOpen={this.state.expandEdgeAT[ag.assetGroupName]}>
             <table>
               <tr>
@@ -574,8 +574,8 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <span onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
-          <span onClick={()=>{this.toggleValidEdges(j.layerId)}}>{(this.state.expandEdgeLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
+          <span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+          <span style={{cursor:"pointer"}} onClick={()=>{this.toggleValidEdges(j.layerId)}}>{(this.state.expandEdgeLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
           </td>
         </tr>
       );

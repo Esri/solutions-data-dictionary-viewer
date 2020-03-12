@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import './css/custom.css';
 import {Tooltip} from 'reactstrap';
-import { Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, DropdownMenu } from 'jimu-ui';
+import { Navbar, Nav, NavItem, NavLink, Icon, DropdownMenu } from 'jimu-ui';
+import {NavbarBrand} from 'reactstrap';
 let heartIcon = require('jimu-ui/lib/icons/heart.svg');
 let closeIcon = require('jimu-ui/lib/icons/close.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
@@ -86,7 +87,7 @@ export default class CardHeader extends React.Component <IProps, IState> {
     <div id={this.props.title+"_header"} style={{width:"100%", display:"inline-block"}}>
       <Navbar color="dark" expand="md">
         <NavbarBrand>
-          <div style={{display:"inline-block"}} onClick={()=>{this.toggleMinimize()}} title={(this.state.minimized?"Maximize card":"Minimize card")}><Icon icon={rightArrowIcon} size='16' rotate={(this.state.minimized?0:90)} color={"#fff"} /></div>
+          <div style={{display:"inline-block", cursor:"pointer"}} onClick={()=>{this.toggleMinimize()}} title={(this.state.minimized?"Maximize card":"Minimize card")}><Icon icon={rightArrowIcon} size='16' rotate={(this.state.minimized?0:90)} color={"#fff"} /></div>
           <div style={{display:"inline-block", width:"100%", color:"#fff", overflowWrap:"break-word", paddingLeft:5}}>{this._dynamicHeaderSize(this.props.title)}</div>
         </NavbarBrand>
         <Nav className="ml-auto"  tabs>

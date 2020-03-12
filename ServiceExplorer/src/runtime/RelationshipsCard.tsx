@@ -2,8 +2,8 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
@@ -171,7 +171,7 @@ export default class RelationshipsCard extends React.Component <IProps, IState> 
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(r.name,"Relationship", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {r.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(r.name,"Relationship", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {r.name} </div>
             </td>
             <td style={{fontSize:"small"}}>{r.backwardPathLabel}</td>
             <td style={{fontSize:"small"}}>{r.forwardPathLabel}</td>

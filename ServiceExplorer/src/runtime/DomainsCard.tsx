@@ -3,7 +3,8 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
@@ -175,7 +176,7 @@ export default class DomainsCard extends React.Component <IProps, IState> {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(f.name,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, wordWrap: "break-word", whiteSpace: "normal"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(f.name,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, wordWrap: "break-word", whiteSpace: "normal", cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
             <td style={{fontSize:"small"}}>{f.description}</td>
             <td style={{fontSize:"small"}}>{f.type}</td>

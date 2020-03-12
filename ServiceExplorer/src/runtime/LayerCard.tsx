@@ -2,9 +2,8 @@
 import {BaseWidget, React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Collapse, Icon, Table } from 'jimu-ui';
-
+import {Collapse, Icon, Table } from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';
@@ -75,7 +74,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
   }
 
   componentWillMount() {
-    //console.log(this.props.data);
+    console.log(this.props);
     let fieldList = {};
     let fields = [];
     let indexes = [];
@@ -109,7 +108,6 @@ export default class LayerCard extends React.Component <IProps, IState> {
   }
 
   componentDidMount() {
-
   }
 
   render(){
@@ -140,6 +138,19 @@ export default class LayerCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Layer Id:</span> {(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Global Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Object Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</div>
+            {
+            (this.state.nodeData.hasOwnProperty("dataElement"))?
+              (this.state.nodeData.dataElement.hasOwnProperty("controllerMemberships"))?
+                (this.state.nodeData.dataElement.controllerMemberships.length > 0)?
+                  (this.state.nodeData.dataElement.controllerMemberships.length > 1)?
+                  <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Controller Memberships:</span> {this._getControllerMemberships(this.state.nodeData.dataElement.controllerMemberships)}</div>
+                  :
+                  <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Controller Membership:</span> {this._getControllerMemberships(this.state.nodeData.dataElement.controllerMemberships)}</div>
+                :
+                "None"
+              :"None"
+            :this.state.nodeData.objectIdField
+            }
           {
             (this.state.nodeData.hasOwnProperty("capabilities")) &&
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Capabilities:</span> {this.state.nodeData.capabilities}</div>
@@ -152,7 +163,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
           }
           { (this.state.nodeData.hasOwnProperty("dataElement"))?
               (this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
-              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Subtypes</span></div>
+              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Subtypes</span></div>
             :""
           }
           { (this.state.nodeData.hasOwnProperty("dataElement"))?
@@ -175,7 +186,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
             :""
           }
           {(this.state.fields.length > 0) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
           }
           {(this.state.fields.length > 0) &&
           <Collapse isOpen={this.state.expandFields}>
@@ -195,7 +206,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
           </Collapse>
           }
           {(this.state.indexes.length > 0) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Indexes</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Indexes</span></div>
           }
           {(this.state.indexes.length > 0) &&
           <Collapse isOpen={this.state.expandIndexes}>
@@ -216,13 +227,6 @@ export default class LayerCard extends React.Component <IProps, IState> {
           }
           <div style={{paddingBottom: 15}}></div>
         </div>
-        </TabPane>
-        <TabPane tabId="Statistics">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10}}>
-            <div><h4>Site Statistics</h4></div>
-            {this.state.statsOutput}
-          </div>
-          <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
       }
@@ -399,7 +403,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
     this.state.nodeData.dataElement.subtypes.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.subtypeName,"Subtype", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.subtypeName}</div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.subtypeName,"Subtype", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.subtypeName}</div>
         </td>
         <td style={{fontSize:"small"}}>{fi.subtypeCode}</td>
       </tr>);
@@ -413,7 +417,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
     this.state.fields.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{(fi.hasOwnProperty("aliasName"))?fi.aliasName:fi.alias}</td>
       </tr>);
@@ -435,12 +439,12 @@ export default class LayerCard extends React.Component <IProps, IState> {
       }
       control.map((fi: any, i: number)=>{
         fieldList.push(
-          <div key={i} onClick={()=>{this.props.callbackLinkage((fi.hasOwnProperty("name"))?fi.name:fi,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {(fi.hasOwnProperty("name"))?fi.name:fi}</div>
+          <div key={i} onClick={()=>{this.props.callbackLinkage((fi.hasOwnProperty("name"))?fi.name:fi,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {(fi.hasOwnProperty("name"))?fi.name:fi}</div>
         );
       });
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{fieldList}</td>
       </tr>);
@@ -565,7 +569,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
       filterAR.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}><div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
+            <td style={{fontSize:"small"}}><div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>
@@ -687,6 +691,18 @@ export default class LayerCard extends React.Component <IProps, IState> {
       return(f.name === lookup);
     });
     return fieldVal;
+  }
+
+  _getControllerMemberships =(CltrMem: any) => {
+    let returnVal = [];
+    CltrMem.map((cm:any, i:number) => {
+      for (let key in cm) {
+        returnVal.push(
+          <div key={key+i} onClick={()=>{this.props.callbackLinkage(cm[key],"Domain Network", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {cm[key]}</div>
+        );
+      }
+    });
+    return returnVal;
   }
 
   _handleAliasBrackets =(alias: string, name: string) => {

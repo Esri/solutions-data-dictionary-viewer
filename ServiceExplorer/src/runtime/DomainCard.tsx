@@ -3,7 +3,8 @@ import { React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
+import {Collapse, Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
@@ -99,7 +100,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.props.data.data.description}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Type:</span> {this.state.esriValueList.lookupValue(this.props.data.data.fieldType)}</div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>{this._typeLookup(this.props.data.data.type)}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>{this._typeLookup(this.props.data.data.type)}</span></div>
           {(this.props.data.data.type === "range")?
             <Collapse isOpen={this.state.expandFields}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
@@ -134,7 +135,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
             </div>
             </Collapse>
           }
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}<span style={{fontWeight:"bold"}}> This domain is used in </span></div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}<span style={{fontWeight:"bold"}}> This domain is used in </span></div>
           <Collapse isOpen={this.state.expandSubtype}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 <Table hover>
@@ -282,7 +283,6 @@ export default class DomainCard extends React.Component <IProps, IState> {
   }
 
   createMatchSubtype =() => {
-    console.log(this.props.dataElements);
     let arrList = [];
     this.props.dataElements.map((de: any, z: number)=>{
       if(de.dataElement.hasOwnProperty("subtypes")) {
@@ -291,8 +291,8 @@ export default class DomainCard extends React.Component <IProps, IState> {
             if(fi.domainName === this.props.data.text) {
               arrList.push(
                 <tr key={st.subtypeName + fi.fieldName}>
-                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
                 </tr>
               );
             }

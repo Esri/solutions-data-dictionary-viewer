@@ -2,17 +2,22 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-import { TabContent, TabPane, Navbar, Nav, NavItem, NavLink, NavbarBrand, Badge, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
+let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
+let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
 interface IProps {
   data: any,
   requestURL: string,
   key: any,
   panel:number,
+  config: any,
+  cacheData: any,
   callbackClose: any,
   callbackSave: any,
   callbackLinkage:any,
@@ -27,7 +32,10 @@ interface IState {
   nodeData: any,
   activeTab: string,
   minimizedDetails: boolean,
-  esriValueList: any
+  esriValueList: any,
+  metadataElements: any,
+  subtypeList: any,
+  expandAlias: any
 }
 
 export default class FieldsCard extends React.Component <IProps, IState> {
@@ -35,15 +43,41 @@ export default class FieldsCard extends React.Component <IProps, IState> {
     super(props);
 
     this.state = {
-      nodeData: this.props.data.data,
+      nodeData: JSON.parse(JSON.stringify(this.props.data.data)),
       activeTab: 'Properties',
       minimizedDetails: false,
-      esriValueList: new esriLookup()
+      esriValueList: new esriLookup(),
+      metadataElements: null,
+      subtypeList: [],
+      expandAlias: []
     };
 
   }
 
-  componentWillMount() {}
+  componentWillMount() {
+    let cleanAlais = [...this.state.nodeData];
+    cleanAlais.map((f: any, i: number) => {
+      if(f.hasOwnProperty("aliasName")) {
+        f.aliasName = (f.aliasName.substring((f.aliasName.indexOf(":") + 1),f.aliasName.length)).split(",");
+        for(let z=0; z < f.aliasName.length; z++) {
+          f.aliasName[z] = f.aliasName[z].trim();
+        }
+      } else {
+        f.alias = (f.alias.substring((f.alias.indexOf(":") + 1),f.alias.length)).split(",");
+        for(let z=0; z < f.alias.length; z++) {
+          f.alias[z] = f.alias[z].trim();
+        }
+      }
+    });
+    this.setState({nodeData: cleanAlais}, () => {
+      this._fillExpandState();
+      this._requestMetadata().then(()=> {
+        this.setState({nodeData: cleanAlais}, () => {
+          this._processMetaData();
+        });
+      });
+    });
+  }
 
   componentDidMount() {}
 
@@ -168,13 +202,14 @@ export default class FieldsCard extends React.Component <IProps, IState> {
   //********************************************
   _createFList = () => {
     let arrList = [];
-      this.props.data.data.map((f: any, i: number) => {
+      this.state.nodeData.map((f: any, i: number) => {
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(f.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(f.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
-            <td style={{fontSize:"small", wordWrap: "break-word"}}>{(f.hasOwnProperty("aliasName"))?f.aliasName:f.alias}</td>
+            <td style={{fontSize:"small", wordWrap: "break-word"}}>{(f.hasOwnProperty("aliasName"))?this._createAliasList(f.name, f.aliasName):this._createAliasList(f.name, f.alias)}
+            </td>
             <td style={{fontSize:"small"}}>{this.state.esriValueList.lookupValue(f.type)}</td>
           </tr>
         );
@@ -182,7 +217,223 @@ export default class FieldsCard extends React.Component <IProps, IState> {
     return arrList;
   }
 
+  _createAliasList =(parent: string, values: any) => {
+    let list = [];
+    if(Array.isArray(values)) {
+      if(values.length > 1) {
+        values.map((v:any, i:number) => {
+          list.push(
+            <div key={i}>
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleExpandAlias(v)}}>{(this._getExpandStatus(v))?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {v}</div>
+              {
+                (this._getExpandStatus(v))?
+                <div style={{paddingLeft: "15px", paddingRight: "15px", paddingTop:"2px", paddingBottom:"10px"}}>{this._matchAliasandSubtype(v)}</div>
+                :
+                ""
+              }
+            </div>
+          );
+        });
+      } else {
+        values.map((v:any, i:number) => {
+          list.push(
+            <div key={i}>{v}</div>
+          );
+        });
+      }
+    } else {
+      list.push(
+        <div key={values}>{values}</div>
+      );
+    }
+    return list;
+  }
+
+  _matchAliasandSubtype =(alias: string) => {
+    let returnVal = "";
+    let stList = [];
+    this.state.subtypeList.map((st:any) => {
+      let matchField = st.fields.filter((f:any) => {
+        return (f.alias).trim() === (alias).trim();
+      });
+      if(matchField.length > 0) {
+        stList.push(st.subtype);
+      }
+    });
+    if(stList.length > 0) {
+      if(stList.length > 1) {
+        returnVal = "This alias is used in the following subtypes: " + (stList.join()).replace(/,/g, ", ");
+      } else {
+        returnVal = "This alias is used in the following subtype: " + (stList.join()).replace(/,/g, ", ");
+      }
+    } else {
+      returnVal = "Sorry, this alias is not used";
+    }
+    return returnVal;
+  }
+
+  toggleExpandAlias =(alias: string) => {
+    let newExpand = JSON.parse(JSON.stringify(this.state.expandAlias));
+    newExpand.map((e:any) => {
+      if(e.alias === alias) {
+        if(e.expand) {
+          e.expand = false;
+        } else {
+          e.expand = true;
+        }
+      }
+    });
+    this.setState({expandAlias: newExpand});
+  }
+
+  _getExpandStatus = (alias: string) => {
+    let expandStatus = false;
+    this.state.expandAlias.map((e:any) => {
+      if(e.alias === alias) {
+        expandStatus = e.expand;
+      }
+    });
+    return expandStatus;
+  }
+
   //****** helper functions and request functions
   //********************************************
+  _requestMetadata = async() => {
+    if(this.props.config.useCache) {
+      let data  = this.props.cacheData.metadata[this._getParentId(this.props.data.parent)];
+      let parser = new DOMParser();
+      let xmlDoc = parser.parseFromString(data,"text/xml");
+      this.setState({metadataElements: xmlDoc});
+    } else {
+      let url = this.props.requestURL + "/" + this.props.data.parentId + "/metadata";
+      await fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.text()})
+      .then((data) => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      });
+    }
+
+  }
+
+  _processMetaData =() => {
+    let subtypeList = [];
+    let metadata = this.state.metadataElements;
+    let metaLevel = metadata.getElementsByTagName("metadata");
+    if(metaLevel.length > 0) {
+      let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
+      if(eaInfoLevel.length > 0) {
+        let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
+        if(detailedLevel.length > 0) {
+          for (let i=0; i < detailedLevel.length; i++) {
+            let enttyplLevel = detailedLevel[i].getElementsByTagName("enttypl");
+            if(enttyplLevel.length > 0) {
+              let fieldList = [];
+              let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+              if(attrLevel.length > 0) {
+                for (let a=0; a < attrLevel.length; a++) {
+                  let attrlablLevel = attrLevel[a].getElementsByTagName("attrlabl");
+                  let attaliasLevel = attrLevel[a].getElementsByTagName("attalias");
+                  if(attaliasLevel.length > 0) {
+                    fieldList.push({
+                      "name": attrlablLevel[0].innerHTML,
+                      "alias": attaliasLevel[0].innerHTML
+                    });
+                  }
+                }
+              }
+              subtypeList.push(
+                {
+                  "subtype": enttyplLevel[0].innerHTML,
+                  "fields": fieldList
+                }
+              );
+            }
+          }
+        }
+      }
+    }
+    this.setState({subtypeList: subtypeList});
+  }
+
+
+  _getParentId =(value: string) => {
+    let returnVal = value;
+    let matchCrumb = this.props.data.crumb.filter((c:any) => {
+      return c.value === value;
+    });
+    if(matchCrumb.length > 0) {
+      returnVal = matchCrumb[0].node;
+    }
+    return returnVal;
+  }
+
+  _fillExpandState =() => {
+    let expand = [...this.state.expandAlias];
+    this.state.nodeData.map((f: any, i: number) => {
+      let alias = null;
+      if(f.hasOwnProperty("aliasName")) {
+        alias = f.aliasName;
+      } else {
+        alias = f.alias;
+      }
+      if(alias.length > 1) {
+        alias.map((a: any, i: number) => {
+          expand.push({
+            alias: a,
+            expand: false
+          });
+        });
+      }
+    });
+    this.setState({expandAlias: expand});
+  }
+
 
 }
+
+/*
+            let subTypeCodeLevel = detailedLevel[i].getElementsByTagName("enttypdv");
+            if(subTypeCodeLevel.length > 0) {
+              //loop thorugh details and get code node and see if it's the current code card is on.
+              if(parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
+                //this tag stores the descriptions
+                let subTypeDescLevel = detailedLevel[i].getElementsByTagName("enttypd");
+                if(subTypeDescLevel.length > 0) {
+                  description = subTypeDescLevel[0].innerHTML;
+                }
+                //now add only fields that pertain to this subtype
+                let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+                if(attrLevel.length > 0) {
+                  for (let z=0; z < attrLevel.length; z++) {
+                    let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
+                    let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
+                    if(fieldName.length > 0) {
+                      fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
+                      if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
+                        //get AT descriptions
+                        let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
+                        if(attrdomvLevel.length > 0) {
+                          let edomLevel = attrdomvLevel[0].getElementsByTagName("edom");
+                          if(edomLevel.length > 0) {
+                            for (let e=0; e < edomLevel.length; e++) {
+                              let edomvLevel = edomLevel[e].getElementsByTagName("edomv");
+                              let edomvddLevel = edomLevel[e].getElementsByTagName("edomvdd");
+                              //where AT desc is stored
+                              if(edomvddLevel.length > 0) {
+                                ATDesc.push({code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML})
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+              }
+            }
+*/

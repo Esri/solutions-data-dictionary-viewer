@@ -16,7 +16,8 @@ interface IProps {
   requestURL: string,
   fieldGroups: any,
   config:any,
-  cacheData:any
+  cacheData:any,
+  assetType:any
 }
 
 interface IState {
@@ -79,9 +80,32 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
         let filterbyLayer = data.contingentValueSets.filter((cvs: any) => {
           return (cvs.layerId === this.props.data.parentId);
         });
-        this.setState({allCAV: filterbyLayer},() => {
-          this._filterCurrentCAV();
-        });
+        if(filterbyLayer.length > 0) {
+          let isValid = false;
+          if(this.props.assetType !== "") {
+            let fieldgrps = filterbyLayer[0].fieldGroups;
+            fieldgrps.map((fg:any) => {
+              let validCont = fg.contingencies.filter((c:any) => {
+                return c.subtypeCode === this.props.data.data.subtypeCode;
+              });
+              if(validCont.length > 0) {
+                isValid = validCont.some((vc:any) => {
+                  return (vc.values.indexOf(this.props.assetType) > -1);
+                });
+              }
+            });
+            if(!isValid) {
+              filterbyLayer = [];
+            }
+          }
+          this.setState({allCAV: filterbyLayer},() => {
+            this._filterCurrentCAV();
+          });
+        } else {
+          this.setState({allCAV: []},() => {
+            this._filterCurrentCAV();
+          });
+        }
       }
     } else {
       let url = this.props.requestURL + "/queryContingentValues?layers="+this.props.data.parentId+"&f=pjson";
@@ -106,12 +130,21 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
     let activeCAVs = {};
     let unique = [];
     let cavList = [...this.state.allCAV];
+    let existingSelection = -1;
     if(cavList.length > 0) {
       cavList.map((ac:any) => {
         ac.fieldGroups.map((fg: any, z:number) => {
           let filterContigent = fg.contingencies.filter((c: any) => {
             return (c.subtypeCode === this.props.data.data.subtypeCode);
           });
+          if(this.props.assetType !== "") {
+            if(filterContigent.length > 0) {
+              filterContigent = filterContigent.filter((f:any)=> {
+                existingSelection = f.values.indexOf(this.props.assetType);
+                return (f.values.indexOf(this.props.assetType) > -1);
+              });
+            }
+          }
           if(filterContigent.length > 0) {
             let justValues = [];
             filterContigent.map((fc:any, i: number) => {
@@ -128,11 +161,22 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
               });
             });
             activeCAVs[fg.name] = justValues;
+            fg.contingencies = filterContigent;
             fg["allPossible"] = justValues;
             fg["uniqueValues"] = unique;
             fg["filteredPossible"] = justValues;
             fg["filteredUniqueValues"] = unique;
-            fg["filteredSelection"] = unique.map((u:any)=>{return -1});
+            fg["filteredSelection"] = unique.map((u:any, i:number)=>{
+              if(this.props.assetType !== "") {
+                if(existingSelection === i) {
+                  return this.props.assetType;
+                } else {
+                  return -1;
+                }
+              } else {
+                return -1;
+              }
+            });
           }
         });
       });
@@ -443,7 +487,13 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
       c.fieldGroups.map((fg:any) => {
         if(fg.name === fldGrp.name) {
           for(let i=0; i < fg.filteredSelection.length; i++) {
-            fg.filteredSelection[i] = -1;
+            if(this.props.assetType !== "") {
+              if(fg.filteredSelection[i] !== this.props.assetType) {
+                fg.filteredSelection[i] = -1;
+              }
+            } else {
+              fg.filteredSelection[i] = -1;
+            }
             doms.push(ReactDOM.findDOMNode(this.refs[fldGrp.name+i]));
           };
           fg.filteredUniqueValues = fg.uniqueValues;

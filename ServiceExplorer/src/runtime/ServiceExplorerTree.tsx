@@ -3,7 +3,8 @@ import {BaseWidget, React, ReactDOM,  defaultMessages as jimuCoreDefaultMessage,
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 import './css/custom.css';
-import { Button, Image, ListGroup, ListGroupItem, Input, Collapse, Icon, Popover, PopoverHeader, PopoverBody, Progress} from 'jimu-ui';
+import {ListGroup, ListGroupItem, Input, Collapse, Icon, Progress} from 'jimu-ui';
+import {Popover, PopoverHeader, PopoverBody} from 'reactstrap';
 let ArrowUpIcon = require('jimu-ui/lib/icons/arrow-up-8.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
@@ -103,7 +104,14 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
       <div style={{paddingLeft:58, width:this.props.width, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
         <div style={{display:"inline", width:"100%"}}>
           <div style={{display:"inline-block", width:this.props.width - 120}}>
-            <Input placeholder="Search" value={this.state.searchValue} onChange={(e:any)=>{
+            <Input placeholder="Search" value={this.state.searchValue} onKeyPress={(e:any) => {
+              if(e.key === "Enter") {
+                this.setState({searchWait:true, searchValue: this.state.searchValue}, ()=> {
+                  setTimeout(this.searchService,500, this.state.searchValue);
+                });
+              }
+            }}
+            onChange={(e:any)=>{
               e.persist();
               this.setState({searchValue: e.target.value},()=>{
                 if(e.target.value == "") {
@@ -114,7 +122,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
               style={{width:"100%"}}>
             </Input>
           </div>
-            <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px"}}>
+            <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px", cursor:"pointer"}}>
             <div id="seachTree" onClick={() => {
               this.setState({searchWait:true, searchValue: this.state.searchValue}, ()=> {
                 setTimeout(this.searchService,500, this.state.searchValue);
@@ -123,7 +131,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
               <Icon icon={searchIcon} size='16' color='#333' />
             </div>
             </div>
-          <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px"}} onClick={this._toggleSearchOption} id="iconSearchOptions"><Icon icon={moreIcon} size='16' color='#333' /></div>
+          <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px", cursor:"pointer"}} onClick={this._toggleSearchOption} id="iconSearchOptions"><Icon icon={moreIcon} size='16' color='#333' /></div>
           <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} animated color="Primary" value="100" /></div>
           <Popover className="popOverBG" innerClassName="popOverBG" hideArrow={true} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
             <PopoverHeader><div className="leftRightPadder5">Search Options</div></PopoverHeader>
@@ -141,37 +149,41 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
 
   mapper = (nodes: any, parentId: string, lvl: number) => {
     return nodes.map((node: any, index: number) => {
-      if(!this.state.searchActive) {
-        const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
-        const item = <React.Fragment key={id}>
-          <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-            {<div style={{ paddingLeft: `${10 * lvl}px` }}>
-              {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
-              {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
-            </div>}
-          </ListGroupItem>
-          {node.nodes &&
-            <Collapse isOpen={(node.hasOwnProperty('root'))? true : this.state[id]}>
-              {this.mapper(node.nodes, id, (lvl || 0) + 1)}
-            </Collapse>}
-        </React.Fragment>
-        return item;
-      } else {
-        if(node.search) {
-          const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
-          const item = <React.Fragment key={id}>
-            <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-              {<div style={{ paddingLeft: `${10 * lvl}px` }}>
-                {node.nodes && <div style={{display: "inline-block", paddingRight:"5px"}} id={id} style={{cursor:"pointer"}} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
-                {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
-              </div>}
-            </ListGroupItem>
-            {node.nodes &&
-              <Collapse isOpen={(node.search)? true : this.state[id]}>
-                {this.mapper(node.nodes, id, (lvl || 0) + 1)}
-              </Collapse>}
-          </React.Fragment>
-          return item;
+      if(node.text.indexOf("Errors") === -1) {
+        if(node.text !== "Dirty Areas") {
+          if(!this.state.searchActive) {
+            const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
+            const item = <React.Fragment key={id}>
+              <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
+                {<div style={{ paddingLeft: `${15 * lvl}px` }}>
+                  {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+                  {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
+                </div>}
+              </ListGroupItem>
+              {node.nodes &&
+                <Collapse isOpen={(node.hasOwnProperty('root'))? true : this.state[id]}>
+                  {this.mapper(node.nodes, id, (lvl || 0) + 1)}
+                </Collapse>}
+            </React.Fragment>
+            return item;
+          } else {
+            if(node.search) {
+              const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
+              const item = <React.Fragment key={id}>
+                <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
+                  {<div style={{ paddingLeft: `${15 * lvl}px` }}>
+                    {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+                    {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
+                  </div>}
+                </ListGroupItem>
+                {node.nodes &&
+                  <Collapse isOpen={(node.search)? true : this.state[id]}>
+                    {this.mapper(node.nodes, id, (lvl || 0) + 1)}
+                  </Collapse>}
+              </React.Fragment>
+              return item;
+            }
+          }
         }
       }
     });

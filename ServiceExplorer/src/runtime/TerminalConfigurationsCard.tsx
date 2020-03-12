@@ -2,7 +2,8 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';
@@ -180,7 +181,7 @@ export default class TerminalConfigurationsCard extends React.Component <IProps,
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.terminalConfigurationName,"Terminal Configuration",this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.terminalConfigurationName} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.terminalConfigurationName,"Terminal Configuration",this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.terminalConfigurationName} </div>
             </td>
             <td style={{fontSize:"small"}}>{this.state.esriValueList.lookupValue(ar.traversabilityModel)}</td>
             <td style={{fontSize:"small"}}>{ar.terminals.length}</td>

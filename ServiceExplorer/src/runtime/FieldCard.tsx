@@ -2,11 +2,12 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
+import {Collapse, Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
+import { userInfo } from 'os';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let linkIcon = require('./assets/launch.svg');
@@ -17,6 +18,9 @@ interface IProps {
   requestURL: string,
   key: any,
   panel:number,
+  config: any,
+  dataElements: any,
+  cacheData: any,
   callbackClose: any,
   callbackSave: any,
   callbackLinkage:any,
@@ -40,7 +44,11 @@ interface IState {
   expandAR: boolean,
   expandDomain: boolean,
   minimizedDetails: boolean
-  esriValueList: any
+  esriValueList: any,
+  metadataElements: any,
+  subtypeList: any,
+  expandAlias: any,
+  ARList: any;
 }
 
 export default class FieldCard extends React.Component <IProps, IState> {
@@ -48,7 +56,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
     super(props);
 
     this.state = {
-      nodeData: this.props.data.data,
+      nodeData: JSON.parse(JSON.stringify(this.props.data.data)),
       siteStats: {},
       statsOutput: [],
       activeTab: 'Properties',
@@ -60,19 +68,45 @@ export default class FieldCard extends React.Component <IProps, IState> {
       expandAR: false,
       expandDomain: false,
       minimizedDetails: false,
-      esriValueList: new esriLookup()
+      esriValueList: new esriLookup(),
+      metadataElements: null,
+      subtypeList: [],
+      expandAlias: [],
+      ARList: []
     };
 
   }
 
   componentWillMount() {
-    //console.log(this.props.data);
-    let filtered = this.props.domains.map((d:any) => {
-      return d.name === this.props.data.text;
+    let cleanAlais = {...this.state.nodeData};
+      if(cleanAlais.hasOwnProperty("aliasName")) {
+        cleanAlais.aliasName = (cleanAlais.aliasName.substring((cleanAlais.aliasName.indexOf(":") + 1),cleanAlais.aliasName.length)).split(",");
+        for(let z=0; z < cleanAlais.aliasName.length; z++) {
+          cleanAlais.aliasName[z] = cleanAlais.aliasName[z].trim();
+        }
+      } else {
+        cleanAlais.alias = (cleanAlais.alias.substring((cleanAlais.alias.indexOf(":") + 1),cleanAlais.alias.length)).split(",");
+        for(let z=0; z < cleanAlais.alias.length; z++) {
+          cleanAlais.alias[z] = cleanAlais.alias[z].trim();
+        }
+      }
+    this.setState({nodeData: cleanAlais}, () => {
+      this._fillExpandState();
+      let filtered = this.props.domains.map((d:any) => {
+        return d.name === this.props.data.text;
+      });
+      if(filtered.length > 0) {
+        this.setState({domainHolder:filtered});
+      }
+      this._requestMetadata().then(()=> {
+        this.setState({nodeData: cleanAlais}, () => {
+          this._processMetaData();
+
+          this._checkARuse(this.props.data.parentId);
+        });
+      });
     });
-    if(filtered.length > 0) {
-      this.setState({domainHolder:filtered});
-    }
+
   }
 
   componentDidMount() {
@@ -105,7 +139,24 @@ export default class FieldCard extends React.Component <IProps, IState> {
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Alias:</span> {(this.props.data.data.hasOwnProperty("aliasName"))?this.props.data.data.aliasName:this.props.data.data.alias}</div>
+           {
+            (this.state.nodeData.hasOwnProperty("aliasName"))?
+              (this.state.nodeData.aliasName.length > 1)?
+                <div style={{paddingTop:5, paddingBottom:5}}>
+                  <div><span style={{fontWeight:"bold"}}>Alias</span></div>
+                  {this._listAlias(this.state.nodeData.aliasName)}
+                </div>
+              :
+                <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Alias:</span> {this.state.nodeData.aliasName}</div>
+            :
+              (this.state.nodeData.alias.length > 1)?
+                <div style={{paddingTop:5, paddingBottom:5}}>
+                  <div><span style={{fontWeight:"bold"}}>Alias</span></div>
+                  {this._listAlias(this.state.nodeData.alias)}
+                </div>
+              :
+                <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Alias:</span> {this.state.nodeData.alias}</div>
+          }
           {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Model Name:</span> {this.props.data.data.modelName}</div>:""}
           {
             (this.props.data.data.hasOwnProperty("isNullable"))?
@@ -122,7 +173,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
           {
             (this.props.data.data.hasOwnProperty("domain"))?
               (this.props.data.data.domain !== null) &&
-              <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Domain:</span> {(this.props.data.data.domain !== null)?this.props.data.data.domain.domainName: "None"}</div>
+              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleDomain()}}>{(this.state.expandDomain)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Domain:</span> {(this.props.data.data.domain !== null)?this.props.data.data.domain.domainName: "None"}</div>
             :<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Domain:</span> {"None"}</div>
           }
           {
@@ -134,15 +185,25 @@ export default class FieldCard extends React.Component <IProps, IState> {
               </Collapse>
             :""
           }
+
+          {
+            (this.state.ARList.length > 0)?
+              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>The following Attribute Rules use this field</span></div>
+            :
+              ""
+          }
+          {
+            (this.state.ARList.length > 0)?
+              <Collapse isOpen={this.state.expandAR}>
+              <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                {this._createARExpand()}
+              </div>
+              </Collapse>
+            :
+              ""
+          }
           <div style={{paddingBottom: 15}}></div>
         </div>
-        </TabPane>
-        <TabPane tabId="Statistics">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10}}>
-            <div><h4>Site Statistics</h4></div>
-            {this.state.statsOutput}
-          </div>
-          <div style={{paddingBottom: 15}}></div>
         </TabPane>
       </TabContent>
       }
@@ -233,6 +294,15 @@ export default class FieldCard extends React.Component <IProps, IState> {
       this.setState({expandDomain:true});
     }
   }
+
+  toggleAR =() => {
+    if(this.state.expandAR) {
+      this.setState({expandAR:false});
+    } else {
+      this.setState({expandAR:true});
+    }
+  }
+
   _substAlias =(alias: string) => {
     let substitute = alias;
     if(substitute.indexOf("[") > -1) {
@@ -243,7 +313,6 @@ export default class FieldCard extends React.Component <IProps, IState> {
   }
 
   _createDomainExpand =(domain: any) => {
-    console.log(domain);
     let domainTable = null;
     let headerName = "Name";
     let headerValue = "Code";
@@ -280,11 +349,28 @@ export default class FieldCard extends React.Component <IProps, IState> {
     return domainTable;
   }
 
-  _createStatsOutput =() => {
-    let output = [];
-    output.push(<div key={"all"}>Number of records in the System: {(this.state.siteStats.hasOwnProperty("all")? this.state.siteStats.all.count : 0 )}</div>);
-    output.push(<div key={"blank"}>Number of records with {this.props.data.text} not populated: {(this.state.siteStats.hasOwnProperty("isNull")? this.state.siteStats.isNull.count : 0 )}</div>);
-    this.setState({statsOutput: output});
+  _createARExpand =() => {
+    let arTable = null;
+    let vals = [];
+    this.state.ARList.map((ar: any, z: number) =>{
+      vals.push(
+        <tr key={z}>
+          <td style={{fontSize:"small"}}><span onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}} style={{cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></span> {ar.name}</td>
+        </tr>
+      );
+    });
+
+    arTable = <Table>
+      <thead>
+      <tr>
+        <th style={{fontSize:"small", fontWeight:"bold"}}>Attribute Rule</th>
+      </tr>
+      </thead>
+      <tbody>
+        {vals}
+      </tbody>
+    </Table>;
+    return arTable;
   }
 
   //****** helper functions and request functions
@@ -296,14 +382,12 @@ export default class FieldCard extends React.Component <IProps, IState> {
     })
     .then((response) => {return response.json()})
     .then((data) => {
-      console.log(data);
       if(data.hasOwnProperty("count")) {
         let updateStat = {...this.state.siteStats};
         updateStat[category] = {
           count: data.count
         }
         this.setState({siteStats: updateStat});
-        this._createStatsOutput();
       }
     });
   }
@@ -348,6 +432,173 @@ export default class FieldCard extends React.Component <IProps, IState> {
     });
     return fieldVal;
   }
+
+  _listAlias =(aliasList: any) => {
+    let list = [];
+    if(aliasList.length > 1) {
+      aliasList.map((v:any, i:number) => {
+        list.push(
+          <div key={i}>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleExpandAlias(v)}}>{(this._getExpandStatus(v))?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {v}</div>
+            {
+              (this._getExpandStatus(v))?
+              <div style={{paddingLeft: "15px", paddingRight: "15px", paddingTop:"2px", paddingBottom:"10px"}}>{this._matchAliasandSubtype(v)}</div>
+              :
+              ""
+            }
+          </div>
+        );
+      });
+    }
+    return list;
+  }
+
+  _matchAliasandSubtype =(alias: string) => {
+    let returnVal = "";
+    let stList = [];
+    this.state.subtypeList.map((st:any) => {
+      let matchField = st.fields.filter((f:any) => {
+        return (f.alias).trim() === (alias).trim();
+      });
+      if(matchField.length > 0) {
+        stList.push(st.subtype);
+      }
+    });
+    if(stList.length > 0) {
+      if(stList.length > 1) {
+        returnVal = "This alias is used in the following subtypes: " + (stList.join()).replace(/,/g, ", ");
+      } else {
+        returnVal = "This alias is used in the following subtype: " + (stList.join()).replace(/,/g, ", ");
+      }
+    } else {
+      returnVal = "Sorry, this alias is not used";
+    }
+    return returnVal;
+  }
+
+  toggleExpandAlias =(alias: string) => {
+    let newExpand = JSON.parse(JSON.stringify(this.state.expandAlias));
+    newExpand.map((e:any) => {
+      if(e.alias === alias) {
+        if(e.expand) {
+          e.expand = false;
+        } else {
+          e.expand = true;
+        }
+      }
+    });
+    this.setState({expandAlias: newExpand});
+  }
+
+  _getExpandStatus = (alias: string) => {
+    let expandStatus = false;
+    this.state.expandAlias.map((e:any) => {
+      if(e.alias === alias) {
+        expandStatus = e.expand;
+      }
+    });
+    return expandStatus;
+  }
+
+  _fillExpandState =() => {
+    let expand = [...this.state.expandAlias];
+    let alias = null;
+    if(this.state.nodeData.hasOwnProperty("aliasName")) {
+      alias = this.state.nodeData.aliasName;
+    } else {
+      alias = this.state.nodeData.alias;
+    }
+    if(alias.length > 1) {
+      alias.map((a: any, i: number) => {
+        expand.push({
+          alias: a,
+          expand: false
+        });
+      });
+    }
+    this.setState({expandAlias: expand});
+  }
+
+  _requestMetadata = async() => {
+    if(this.props.config.useCache) {
+      let data  = this.props.cacheData.metadata[this.props.data.parentId];
+      let parser = new DOMParser();
+      let xmlDoc = parser.parseFromString(data,"text/xml");
+      this.setState({metadataElements: xmlDoc});
+    } else {
+      let url = this.props.requestURL + "/" + this.props.data.parentId + "/metadata";
+      await fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.text()})
+      .then((data) => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      });
+    }
+
+  }
+
+  _processMetaData =() => {
+    let subtypeList = [];
+    let metadata = this.state.metadataElements;
+    let metaLevel = metadata.getElementsByTagName("metadata");
+    if(metaLevel.length > 0) {
+      let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
+      if(eaInfoLevel.length > 0) {
+        let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
+        if(detailedLevel.length > 0) {
+          for (let i=0; i < detailedLevel.length; i++) {
+            let enttyplLevel = detailedLevel[i].getElementsByTagName("enttypl");
+            if(enttyplLevel.length > 0) {
+              let fieldList = [];
+              let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+              if(attrLevel.length > 0) {
+                for (let a=0; a < attrLevel.length; a++) {
+                  let attrlablLevel = attrLevel[a].getElementsByTagName("attrlabl");
+                  let attaliasLevel = attrLevel[a].getElementsByTagName("attalias");
+                  if(attaliasLevel.length > 0) {
+                    fieldList.push({
+                      "name": attrlablLevel[0].innerHTML,
+                      "alias": attaliasLevel[0].innerHTML
+                    });
+                  }
+                }
+              }
+              subtypeList.push(
+                {
+                  "subtype": enttyplLevel[0].innerHTML,
+                  "fields": fieldList
+                }
+              );
+            }
+          }
+        }
+      }
+    }
+    this.setState({subtypeList: subtypeList});
+  }
+
+
+  _checkARuse =(layerId: any) => {
+    let ARList = [];
+    let filteredDE = this.props.dataElements.filter((de: any) => {
+      return parseInt(de.layerId) === parseInt(layerId);
+    });
+    if(filteredDE.length > 0) {
+      console.log(filteredDE[0].dataElement);
+      let ar = filteredDE[0].dataElement.attributeRules;
+      let usedAR = ar.filter((a:any) => {
+        return (a.scriptExpression.indexOf("$feature."+this.props.data.data.name) > -1)
+      });
+      if(usedAR.length > 0) {
+        ARList = usedAR;
+      }
+    }
+    this.setState({ARList:ARList});
+  }
+
 
 
 }

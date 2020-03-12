@@ -2,8 +2,8 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
+import {Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import esriLookup from './_constants';
 import './css/custom.css';
@@ -78,9 +78,9 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
             <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.name}</div>
-            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Domain Name:</span> {(this.state.nodeData.domainName !== "") ? <span  onClick={()=>{this.props.callbackLinkage(this.state.nodeData.domainName, "Domain", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this.state.nodeData.domainName}</span>:<span> </span>}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Domain Name:</span> {(this.state.nodeData.domainName !== "") ? <span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this.state.nodeData.domainName, "Domain", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this.state.nodeData.domainName}</span>:<span> </span>}</div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Data Type:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.dataType)}</div>
-            <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleAssignment()}}>{(this.state.expandAssignment)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}  <span style={{fontWeight:"bold"}}>Assignment</span></div>
+            <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleAssignment()}}>{(this.state.expandAssignment)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}  <span style={{fontWeight:"bold"}}>Assignment</span></div>
             <Collapse isOpen={this.state.expandAssignment}>
               <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 {(this.state.nodeData.assignments.length > 0)?this._createAssignmentTable():"No assignments exist"}
@@ -182,8 +182,8 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
     this.state.nodeData.assignments.map((as: any, i: number) => {
       arrList.push(
         <tr key={i}>
-          <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage(this._layerLookup(as.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(as.layerId)}</span></td>
-          <td style={{fontSize:"small"}}><span  onClick={()=>{this.props.callbackLinkage((as.evaluator.fieldName).toLowerCase(), "Field", this.props.panel, this._layerLookup(as.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> {as.evaluator.fieldName}</span></td>
+          <td style={{fontSize:"small"}}><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this._layerLookup(as.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this._layerLookup(as.layerId)}</span></td>
+          <td style={{fontSize:"small"}}><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage((as.evaluator.fieldName).toLowerCase(), "Field", this.props.panel, this._layerLookup(as.layerId))}}><Icon icon={linkIcon} size='12' color='#333' /> {as.evaluator.fieldName}</span></td>
         </tr>
       );
     });
