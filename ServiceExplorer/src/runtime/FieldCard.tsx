@@ -188,7 +188,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
 
           {
             (this.state.ARList.length > 0)?
-              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>The following Attribute Rules use this field</span></div>
+              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleAR()}}>{(this.state.expandAR)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Some Attribute Rules, such as below, are using this field</span></div>
             :
               ""
           }
@@ -587,16 +587,36 @@ export default class FieldCard extends React.Component <IProps, IState> {
       return parseInt(de.layerId) === parseInt(layerId);
     });
     if(filteredDE.length > 0) {
-      console.log(filteredDE[0].dataElement);
+      let searchArray = [
+        "$feature."+this.props.data.data.name,
+        "$originalFeature."+this.props.data.data.name,
+        "[\"" + this.props.data.data.name + "\"]",
+        "[\'" + this.props.data.data.name + "\']",
+      ];
       let ar = filteredDE[0].dataElement.attributeRules;
       let usedAR = ar.filter((a:any) => {
-        return (a.scriptExpression.indexOf("$feature."+this.props.data.data.name) > -1)
+
+        return (this._MultiwordSearch(a.scriptExpression, searchArray));
+        //return (a.scriptExpression.indexOf("$feature."+this.props.data.data.name) > -1)
       });
       if(usedAR.length > 0) {
         ARList = usedAR;
       }
     }
     this.setState({ARList:ARList});
+  }
+
+  _MultiwordSearch =(stack: any, pin: any) =>{
+    let returnVal = false;
+    var a = stack.toLowerCase();
+
+    for(var i=0; i< pin.length; i++){
+        if (a.indexOf(pin[i].toLowerCase()) != -1){
+          returnVal = true;
+        }
+    }
+
+    return returnVal;
   }
 
 

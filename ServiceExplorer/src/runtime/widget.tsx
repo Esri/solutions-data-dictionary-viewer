@@ -43,6 +43,7 @@ let searchIcon = require('jimu-ui/lib/icons/search.svg');
 let deleteIcon = require('jimu-ui/lib/icons/delete.svg');
 let treeIcon = require('jimu-ui/lib/icons/datasource.svg');
 let panelIcon = require('jimu-ui/lib/icons/snap-to-right.svg');
+let closeIcon = require('jimu-ui/lib/icons/close.svg');
 let linkIcon = require('./assets/launch.svg');
 
 export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
@@ -224,11 +225,11 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         </Button>
         <br></br>
         <Button id="addPanel" type="secondary" onClick={()=> {this.togglePanel2(this.state.showPanel2)}}>
-          <div title="Split the canvas"><Icon icon={panelIcon} size='16' color='#333' /></div>
+      <div title="Split the canvas">{(this.state.showPanel2)?<Icon icon={panelIcon} size='16' color='#333' rotate='180' />:<Icon icon={panelIcon} size='16' color='#333' />}</div>
         </Button>
         <br></br>
         <Button id="popoverDelete" type="secondary" onClick={this.deleteAllActiveAsk}>
-          <div title="Clear all cards"><Icon icon={deleteIcon} size='16' color='#f00' /></div>
+          <div title="Clear all cards"><Icon icon={closeIcon} size='16' color='#f00' /></div>
         </Button>
         <br></br>
         <Button id="PopoverClick" type="secondary" onClick={this.toggleHistory}>
@@ -390,7 +391,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     let relationship = [...this.state.relationshipElements];
     let unData = null;
     let checkNodes = null;
-    domains.sort(this._compare("name"));
+    //domains.sort(this._compare("name"));
 
     data.layers.map((layer: any, i:number) => {
       checkNodes = this._queryDataElement(layer.id);
@@ -873,7 +874,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processSubTypes =(subTypes: any, id: string, parentId: string, fields:any, fieldGroups:any, attributeRules: any, crumb:any, parent:string) => {
-    subTypes.sort(this._compare("subtypeName"));
+    //subTypes.sort(this._compare("subtypeName"));
     let nodeData = [];
     if(subTypes.length > 0) {
       subTypes.map((st: any) => {
@@ -1001,7 +1002,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
       }
       if(atList.length > 0) {
-        atList.sort(this._compare("assetTypeName"));
+        //atList.sort(this._compare("assetTypeName"));
         atList.map((at: any) => {
           nodeData.push({
             id: this.replaceColon(id+ "_" + at.assetTypeCode),
@@ -1026,7 +1027,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processAttrRules =(ar: any, id: string, subtypes: any, crumb:any, parent:string) => {
-    ar.sort(this._compare("name"));
+    //ar.sort(this._compare("name"));
     let nodeData = [];
     if(ar.length > 0) {
       ar.map((fd: any, i: number) => {
@@ -1049,7 +1050,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processFields =(fields: any, id: string, subtypes: any,  parentId: string, crumb:any, parent:string) => {
-    fields.sort(this._compare("name"));
+    //fields.sort(this._compare("name"));
     let nodeData = [];
     if(fields.length > 0) {
       fields.map((fd: any) => {
@@ -1073,7 +1074,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processIndexes =(indexes: any, id:string, crumb:any, parent:string) => {
-    indexes.sort(this._compare("name"));
+    //indexes.sort(this._compare("name"));
     let nodeData = [];
     if(indexes.length > 0) {
       indexes.map((idx: any) => {
@@ -1098,7 +1099,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processCategories =(categories: any, id: string, crumb:any) => {
-    categories.sort(this._compare("name"));
+    //categories.sort(this._compare("name"));
     let nodeData = [];
     if(categories.length > 0) {
       categories.map((cat: any) => {
@@ -1120,7 +1121,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processDomainNetworks =(domainNetworks: any, id: string, crumb:any) => {
-    domainNetworks.sort(this._compare("domainNetworkAliasName"));
+    //domainNetworks.sort(this._compare("domainNetworkAliasName"));
     let nodeData = [];
     if(domainNetworks.length > 0) {
       domainNetworks.map((dn: any) => {
@@ -1141,7 +1142,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processNetworkAttributes =(networkAttributes: any, id: string, crumb:any) => {
-    networkAttributes.sort(this._compare("name"));
+    //networkAttributes.sort(this._compare("name"));
     let nodeData = [];
     if(networkAttributes.length > 0) {
       networkAttributes.map((na: any) => {
@@ -1163,7 +1164,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   _processTerminalConfigurations =(terminalConfigurations: any, id: string, crumb:any) => {
-    terminalConfigurations.sort(this._compare("terminalConfigurationName"));
+    //terminalConfigurations.sort(this._compare("terminalConfigurationName"));
     let nodeData = [];
     if(terminalConfigurations.length > 0) {
       terminalConfigurations.map((tc: any) => {
@@ -1643,7 +1644,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     });
     if(filterFC.length <= 0) {
       favoriteCard.push(<MinimizedCard key={dataNode.id} data={dataNode} width={250} height={35} callbackRestore={this._callbackRestoreChild} callbackDelete={this._callbackDeleteFavorite} />);
-      this.setState({favoriteCards: favoriteCard, masterFavoriteCards: favoriteCard, favoriteMessage: "Add to favorites"}, ()=> {
+      this.setState({favoriteCards: favoriteCard, masterFavoriteCards: favoriteCard, favoriteMessage: "Added to favorites"}, ()=> {
         //save into cookie
         let cookieList = [];
         if(this.state.masterFavoriteCards.length > 0) {

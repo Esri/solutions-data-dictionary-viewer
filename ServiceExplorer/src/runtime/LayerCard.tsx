@@ -138,6 +138,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Layer Id:</span> {(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Global Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Object Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Shape:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.esriValueList.lookupValue(this.state.nodeData.dataElement.shapeType):""}</div>
             {
             (this.state.nodeData.hasOwnProperty("dataElement"))?
               (this.state.nodeData.dataElement.hasOwnProperty("controllerMemberships"))?
