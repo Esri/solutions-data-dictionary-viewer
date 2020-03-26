@@ -64,9 +64,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
 
   }
 
-  componentWillMount() {
-    console.log(this.props.data);
-  }
+  componentWillMount() {}
 
   componentDidMount() {
     //this._processData();
@@ -141,6 +139,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
                 <Table hover>
                   <thead>
                   <tr>
+                    <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Subtype</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Field</th>
                   </tr>
@@ -291,6 +290,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
             if(fi.domainName === this.props.data.text) {
               arrList.push(
                 <tr key={st.subtypeName + fi.fieldName}>
+                <td><div onClick={()=>{this.props.callbackLinkage(de.dataElement.aliasName,"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {de.dataElement.aliasName}</div></td>
                   <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
                   <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
                 </tr>

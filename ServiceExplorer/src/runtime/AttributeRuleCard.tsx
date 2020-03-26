@@ -78,8 +78,15 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule type is:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.type)}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule is batched:</span> {(this.state.nodeData.batch)? "True" : "False"}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Priority:</span> {this.state.nodeData.evaluationOrder}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>References External Services:</span> {(this.state.nodeData.referencesExternalService)? "True" : "False"}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Script</span></div>
           <div style={{overflowY:"auto", paddingBottom:5, paddingLeft:5, paddingRight:5, paddingTop:5, backgroundColor: "#e1e1e1", borderWidth:2, borderStyle:"solid", borderColor:"#000"}} dangerouslySetInnerHTML={this._processCodeBlock(this.state.nodeData.scriptExpression)}></div>
+          {
+            (this.state.nodeData.errorMessage !== "\"\"")?
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Error Message:</span> {"Code "+ this.state.nodeData.errorNumber}</div>
+            :
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Error Message:</span> {"Code "+ this.state.nodeData.errorNumber + ": " + this.state.nodeData.errorMessage}</div>
+          }
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>

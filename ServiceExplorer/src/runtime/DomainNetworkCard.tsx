@@ -36,6 +36,7 @@ interface IState {
   expandTiersValidLine: any,
   expandTiersValidSubnetworkControllers: any,
   expandTiersAggregatedLines: any,
+  expandTiersTraceConfig: any,
   expandClassSources: boolean,
   expandClassLayers: any,
   expandClassAG: any,
@@ -61,6 +62,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       expandTiersValidLine: {},
       expandTiersValidSubnetworkControllers: {},
       expandTiersAggregatedLines: {},
+      expandTiersTraceConfig: {},
       expandClassSources: false,
       expandClassLayers: {},
       expandClassAG: {},
@@ -81,6 +83,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     let tiersVLCopy = {...this.state.expandTiersValidLine};
     let tiersVSCCopy = {...this.state.expandTiersValidSubnetworkControllers};
     let tiersAGLCopy = {...this.state.expandTiersAggregatedLines};
+    let tiersTraceConfigCopy = {...this.state.expandTiersTraceConfig};
     let classLayerCopy = {...this.state.expandClassLayers};
     let classAGCopy = {...this.state.expandClassAG};
     let classATCopy = {...this.state.expandClassAT};
@@ -93,6 +96,7 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       tiersVLCopy[t.name] = false;
       tiersVSCCopy[t.name] = false;
       tiersAGLCopy[t.name] = false;
+      tiersTraceConfigCopy[t.name] = false;
     });
     this.state.nodeData.junctionSources.map((j:any) => {
       classLayerCopy[j.layerId] = "none";
@@ -109,14 +113,16 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       });
     });
     this.setState({expandTiers:tiersCopy, expandTiersValidDevice: tiersVDCopy, expandTiersValidLine: tiersVLCopy, expandTiersValidSubnetworkControllers: tiersVSCCopy,
-      expandTiersAggregatedLines: tiersAGLCopy, expandClassLayers: classLayerCopy, expandClassAG:classAGCopy, expandClassAT:classATCopy,
+      expandTiersAggregatedLines: tiersAGLCopy, expandTiersTraceConfig: tiersTraceConfigCopy,  expandClassLayers: classLayerCopy, expandClassAG:classAGCopy, expandClassAT:classATCopy,
       expandEdgeLayers: edgeLayerCopy, expandEdgeAG: edgeAGCopy, expandEdgeAT: edgeATCopy
     });
   }
 
   componentDidMount() {
     //this._processData();
-    console.log(this.state.nodeData.junctionSources);
+   // console.log(this.props.dataElements);
+   // console.log(this.state.nodeData.junctionSources);
+   // console.log(this.state.nodeData.tiers);
   }
 
   render(){
@@ -301,6 +307,16 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       this.setState({expandTiersAggregatedLines: tierGroupCopy});
     }
   }
+  toggleTiersTraceConfig =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersTraceConfig};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersTraceConfig: tierGroupCopy});
+    } else {
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersTraceConfig: tierGroupCopy});
+    }
+  }  
   toggleClassSources =() => {
     if(this.state.expandClassSources) {
       this.setState({expandClassSources: false});
@@ -372,23 +388,27 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       );
       arrList.push(
         <tr key={i+"_hidden"} style={{display:this.state.expandTiers[ft.name]}}>
-          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
+          <td colSpan={5} style={{fontSize:"small", paddingLeft:25}} >
             <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
             <Collapse isOpen={this.state.expandTiersValidDevice[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validDevices, "Device", "junction")}</div>
             </Collapse>
-            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidLine(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersValidLine(ft.name)}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
             <Collapse isOpen={this.state.expandTiersValidLine[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validLines, "Line", "edge")}</div>
             </Collapse>
-            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
             <Collapse isOpen={this.state.expandTiersValidSubnetworkControllers[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validSubnetworkControllers, "Device", "junction")}</div>
             </Collapse>
-            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
             <Collapse isOpen={this.state.expandTiersAggregatedLines[ft.name]}>
             <div>{this._createValidAssetsTable(ft.aggregatedLinesForSubnetLine, "Line", "edge")}</div>
             </Collapse>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersTraceConfig(ft.name)}}>{(this.state.expandTiersTraceConfig[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Trace Configuration</div>
+            <Collapse isOpen={this.state.expandTiersTraceConfig[ft.name]}>
+            <div>{this._createTraceConfigTable(ft.updateSubnetworkTraceConfiguration)}</div>
+            </Collapse>            
           </td>
         </tr>
       );
@@ -455,6 +475,111 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     return tableObj;
   }
 
+  _createTraceConfigTable =(tc: any) => {
+    let tableObj = <Table hover>
+      <tr><td>Traversability Scope: </td><td>{tc.traversabilityScope}</td></tr>
+      <tr><td>Condition Barriers: </td><td>{this._handleConditions(tc.conditionBarriers)}</td></tr>
+      <tr><td>Function Barriers: </td><td>{this._handleBarriers(tc.functionBarriers)}</td></tr>
+      <tr><td>Filter Function Barriers: </td><td>{this._handleBarriers(tc.filterFunctionBarriers)}</td></tr>
+      <tr><td>Functions: </td><td>{this._handleFunctions(tc.functions)}</td></tr>
+      <tr><td>Output Filters: </td><td>{this._handleOutputFilters(tc.outputFilters)}</td></tr>
+      <tr><td>Output Conditions: </td><td>{this._handleConditions(tc.outputConditions)}</td></tr>            
+    </Table>
+    return tableObj;
+    //      <tr><td>Propagators: </td><td>{tc.traversabilityScope}</td></tr> 
+    // <tr><td>Arcade Expression Barrier: </td><td>{tc.arcadeExpressionBarrier}</td></tr>
+  }
+
+  _handleConditions = (cond: any) => {
+    let list = [];
+    cond.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.name + " " + c.operator + " " + c.value;
+      if(cond.length > 1) {
+        if(i < cond.length - 1) {
+          if(c.combineUsingOr) {
+            valueStr = valueStr + " or ";
+          } else {
+            valueStr = valueStr + " and ";
+          }
+        }
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleBarriers = (barr: any) => {
+    let list = [];
+    barr.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.functionType + " where " + c.networkAttributeName + " " + c.operator + " " + c.value;
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleFunctions = (func: any) => {
+    let list = [];
+    func.map((f:any, i:number) => {
+      //c.type
+      list.push(
+        <div key={i} style={{paddingBottom:10}}>
+          <div>{f.functionType} {f.networkAttributeName} into {f.summaryAttributeName} where</div>
+          <div>{this._handleConditions(f.conditions)}</div>
+        </div>
+      );
+    });
+    return list;
+  }
+
+  _handleFilters = (cond: any) => {
+    let list = [];
+    cond.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.name + " " + c.operator + " " + c.value;
+      if(cond.length > 1) {
+        if(i < cond.length - 1) {
+          if(c.combineUsingOr) {
+            valueStr = valueStr + " or ";
+          } else {
+            valueStr = valueStr + " and ";
+          }
+        }
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleOutputFilters =(of:any) => {
+    let list = [];
+    if(of.length > 0) {
+      list.push(
+        <div>Output will only consist of: </div>
+      );      
+    }
+    of.map((c:any, i:number) => {
+      let data = this._sourceIdLookup(c.assetGroupCode, c.assetTypeCode, c.networkSourceId);
+      let valueStr = c.assetGroupCode + " - " + c.assetTypeCode;
+      if(data.hasOwnProperty("assetgroup")) {
+        valueStr = "Layer: " + data.layer + ", Subtype: " + data.assetgroup + ", Asset type: " + data.assettype;
+      } else {
+        valueStr = "Layer: " + c.networkSourceId + ", Subtype: " + c.assetGroupCode + ", Asset type: " + c.assetTypeCode;
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;    
+  }
+
   _createSourceTable =() => {
     let arrList = [];
     let validAG =(j:any, layerName:string) => {
@@ -474,8 +599,11 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           }
           ATList.push(<tr id={a+"_at"}>
             <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' /> {at.assetTypeName}</span></td>
+            <td>{(at.associationRoleType.indexOf("Container") > 0)?this.state.esriValueList.lookupValue(at.associationRoleType) :""}</td>
+            <td>{(at.associationRoleType.indexOf("Container") > 0)?"1:"+at.containmentViewScale :""}</td>
+            <td>{(at.associationDeleteType.indexOf("None") > 0)?"":this.state.esriValueList.lookupValue(at.associationDeleteType)}</td>
+            <td>{this._terminalLookup(terminalConfig)}</td>
             <td>{catList}</td>
-            <td>{terminalConfig}</td>
           </tr>);
         });
 
@@ -487,8 +615,11 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
             <table>
               <tr>
                 <th>Name</th>
-                <th>Category</th>
+                <th>Association Role</th>
+                <th>Container View Scale</th>
+                <th>Association Deletion Semantics</th>
                 <th>Terminal Configuration</th>
+                <th>Category</th>                
               </tr>
               {ATList}
             </table>
@@ -608,5 +739,51 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     return layerName;
   }
 
+  _sourceIdLookup =(asg:number, ast:number, sourceId:number) => {
+    let layerData = {};
+    let filteredSource = this.state.nodeData.junctionSources.filter((js:any) => {
+      return(js.sourceId === sourceId);
+    });
+    if(filteredSource.length == 0) {
+      filteredSource = this.state.nodeData.edgeSources.filter((es:any) => {
+        return(parseInt(es.sourceId) === sourceId);
+      });        
+    }   
+    if(filteredSource.length > 0) {
+      layerData["layer"] = this._layerLookup(filteredSource[0].layerId);
+      let filteredAG = filteredSource[0].assetGroups.filter((ag:any) => {
+        return (parseInt(ag.assetGroupCode) === asg);
+      });
+      if(filteredAG.length > 0) {
+        layerData["assetgroup"] = filteredAG[0].assetGroupName;        
+      }
+
+      if(filteredAG.length > 0) {
+        let filteredAT = filteredAG[0].assetTypes.filter((at:any) => {
+          return (parseInt(at.assetTypeCode) === ast);
+        });
+        if(filteredAT.length > 0) {
+          layerData["assettype"] = filteredAT[0].assetTypeName;
+        }
+      }
+    }  
+    return layerData;  
+  }
+
+  _terminalLookup = (ter: any) => {
+    let terminalLabel = ter;
+    let filteredDE = this.props.dataElements.filter((de:any) => {
+      return(de.dataElement.hasOwnProperty("terminalConfigurations"));
+    });
+    if(filteredDE.length > 0) {
+      let filteredTC = filteredDE[0].dataElement.terminalConfigurations.filter((tc:any) => {
+        return(tc.terminalConfigurationId === ter);
+      });
+      if(filteredTC.length > 0) {
+        terminalLabel = filteredTC[0].terminalConfigurationName;
+      }
+    } 
+    return terminalLabel; 
+  }
 
 }

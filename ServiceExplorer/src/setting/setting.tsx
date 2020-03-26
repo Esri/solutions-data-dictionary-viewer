@@ -244,26 +244,30 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
   requestServiceInfo = async(itemId:any) => {
     let url = this.state.serviceURL;
     //grab feature Service json to store
-    this.setState({cacheStatus: "Step 1 of 9: Saving Feature Service"});
+    this.setState({cacheStatus: "Step 1 of 10: Saving Feature Service"});
     await this.fetchRequest(url+"/?f=pjson",{type:"featureServer"},itemId,"").then(async(response:any) => {
 
       //Grab all Domains
-      this.setState({cacheStatus: "Step 2 of 9: Saving Domains"});
+      this.setState({cacheStatus: "Step 2 of 10: Saving Domains"});
       let qDomainURL = url + "/queryDomains/?f=pjson";
       await this.fetchRequest(qDomainURL,{type:"queryDomains"},itemId,"");
 
       //Grab all CAVs
-      this.setState({cacheStatus: "Step 3 of 9: Saving Contingent Attribute Values"});
+      this.setState({cacheStatus: "Step 3 of 10: Saving Contingent Attribute Values"});
       let qCAVURL = url + "/queryContingentValues/?f=pjson";
       await this.fetchRequest(qCAVURL,{type:"contingentValues"},itemId,"");
 
+      this.setState({cacheStatus: "Step 4 of 10: Saving Diagram Templates"});
+      let qDiagrams = url + "/NetworkDiagramServer/diagramDataset?f=pjson";
+      await this.fetchRequest(qDiagrams,{type:"diagramTemplateInfos"},itemId,"");
+
       //Grab all Relationships
       let qRelUrl = url + "/relationships/?f=pjson";
-      this.setState({cacheStatus: "Step 4 of 9: Saving Relationships"});
+      this.setState({cacheStatus: "Step 5 of 10: Saving Relationships"});
       await this.fetchRequest(qRelUrl,{type:"relationships"},itemId,"");
 
       //Grab all Data Elements
-      this.setState({cacheStatus: "Step 5 of 9: Saving Data Elements"});
+      this.setState({cacheStatus: "Step 6 of 10: Saving Data Elements"});
       let qDEUrl = url + "/queryDataElements/?f=pjson";
       await this.fetchRequest(qDEUrl,{type:"queryDataElements"},itemId,"").then(async(response:any) => {
         //do connectivity rules by layer and subtype
@@ -271,13 +275,13 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           return de.dataElement.aliasName === "Rules";
         });
         if(rulesTable.length > 0) {
-          this.setState({cacheStatus: "Step 6 of 9: Saving Connectivity Rules"});
+          this.setState({cacheStatus: "Step 7 of 10: Saving Connectivity Rules"});
           await this.prepConnectivityRulesCache(response, url, rulesTable[0].dataElement.layerId ,itemId);
         }
       });
 
       //grab layers json to store
-      this.setState({cacheStatus: "Step 7 of 9: Saving Layers and Metadata"});
+      this.setState({cacheStatus: "Step 8 of 10: Saving Layers and Metadata"});
       response.layers.map(async(lyr:any, i:number) => {
         let newURL = url + "/" + lyr.id+"/?f=pjson";
         await this.fetchRequest(newURL,{type:"layers"},itemId,"");
@@ -287,7 +291,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       });
 
       //grab tables json to store
-      this.setState({cacheStatus: "Step 8 of 9: Saving Tables and Metadata"});
+      this.setState({cacheStatus: "Step 9 of 10: Saving Tables and Metadata"});
       console.log(response);
       response.tables.map(async(tbl:any, i:number) => {
         let newURL = url + "/" + tbl.id+"/?f=pjson";
@@ -297,7 +301,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
 
         if(i === response.tables.length - 1) {
-          this.setState({cacheStatus: "Step 9 of 9: Finished"});
+          this.setState({cacheStatus: "Step 10 of 10: Finished"});
         }
       });
 

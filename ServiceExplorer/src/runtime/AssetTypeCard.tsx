@@ -314,6 +314,17 @@ export default class TableCard extends React.Component <IProps, IState> {
           </td>
           { (type.indexOf("Junction") > -1)?<td style={{fontSize:"small"}}>{fv.attributes.toterminalconfig}</td>:""}
           { (type.indexOf("Junction") > -1)?<td style={{fontSize:"small"}}>{fv.attributes.toterminalidname}</td>:""}
+          
+          {(type === "Edge Junction Edge")?<td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}><div onClick={()=>{this.props.callbackLinkage(fv.attributes.viaassetgroupname,"Subtype", this.props.panel, fv.attributes.tolayername)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.viaassetgroupname}</div></td>:""}
+          {(type === "Edge Junction Edge")?
+                (this.state.nodeData.assetTypeName === fv.attributes.viaassettypename)?
+                  <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>{fv.attributes.viaassettypename}</td>
+                :
+                  <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}><div onClick={()=>{this.props.callbackLinkage(fv.attributes.viaassettypename,"Assettype", this.props.panel, fv.attributes.vialayername, fv.attributes.viaassetgroupname)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fv.attributes.viaassettypename}</div></td>
+              :""}
+          {(type === "Edge Junction Edge")?<td style={{fontSize:"small"}}>{fv.attributes.viaterminalconfig}</td>:""}
+          {(type === "Edge Junction Edge")?<td style={{fontSize:"small"}}>{fv.attributes.viaterminalidname}</td>:""}
+
         </tr>);
       });
       return rowList;
@@ -333,6 +344,11 @@ export default class TableCard extends React.Component <IProps, IState> {
               <th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Group</th><th style={{fontSize:"small", fontWeight:"bold"}}>To Asset Type</th>
               { (key.indexOf("Junction") > -1)?<th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal Config</th>:""}
               { (key.indexOf("Junction") > -1)?<th style={{fontSize:"small", fontWeight:"bold"}}>To Terminal</th>:""}
+
+              {(key === "Edge Junction Edge")?<th style={{fontSize:"small", fontWeight:"bold"}}>Via Asset Group</th>:""}
+              {(key === "Edge Junction Edge")?<th style={{fontSize:"small", fontWeight:"bold"}}>Via Asset Type</th>:""}
+              {(key === "Edge Junction Edge")?<th style={{fontSize:"small", fontWeight:"bold"}}>Via Terminal Config</th>:""}
+              {(key === "Edge Junction Edge")?<th style={{fontSize:"small", fontWeight:"bold"}}>Via Terminal</th>:""}              
             </tr>
             </thead>
             <tbody>
@@ -491,7 +507,10 @@ export default class TableCard extends React.Component <IProps, IState> {
       var fromSource = sources.filter((s:any) =>{
         return s.sourceId === feat.attributes.fromnetworksourceid;
       });
-      var descriptions = this._matchCodes(feat.attributes, toSource, fromSource, unde);
+      var viaSource = sources.filter((s:any) =>{
+        return s.sourceId === feat.attributes.vianetworksourceid;
+      });      
+      var descriptions = this._matchCodes(feat.attributes, toSource, fromSource, viaSource, unde);
       feat.attributes["ruletypename"] = this._matchRuleType(feat.attributes.ruletype);
       feat.attributes["toassettypename"] = descriptions.toassettypename;
       feat.attributes["toassetgroupname"] = descriptions.toassetgroupname;
@@ -507,10 +526,19 @@ export default class TableCard extends React.Component <IProps, IState> {
       } else {
         feat.attributes["fromlayername"] = null;
       }
+      feat.attributes["viaassettypename"] = descriptions.viaassettypename;
+      feat.attributes["viaassetgroupname"] = descriptions.viaassetgroupname;
+      if(viaSource.length > 0) {
+        feat.attributes["vialayername"] = (descriptions.viaassettypename === this.state.nodeData.assetTypeName && feat.attributes.viaassettype === this.state.nodeData.assetTypeCode)?this.props.data.parent:this._lookupLayerName(viaSource[0]);
+      } else {
+        feat.attributes["vialayername"] = null;
+      }      
       feat.attributes["toterminalconfig"] = descriptions.toTerminalConfig;
       feat.attributes["fromterminalconfig"] = descriptions.fromTerminalConfig;
+      feat.attributes["viaterminalconfig"] = descriptions.viaTerminalConfig;
       feat.attributes["toterminalidname"] = descriptions.toTerminalId;
       feat.attributes["fromterminalidname"] = descriptions.fromTerminalId;
+      feat.attributes["viaterminalidname"] = descriptions.viaTerminalId;
       rulesList[ruleDesc].push(feat);
     });
     this.setState({rulesElements: data, sourceId: sourceId[0].sourceId, rulesList:rulesList, expandRuleType:distinctRuleType});
@@ -528,8 +556,8 @@ export default class TableCard extends React.Component <IProps, IState> {
     }
   }
 
-  _matchCodes =(data: any, toSource: any, fromSource: any, de: any) => {
-    var returnData = {fromassettypename: null, fromassetgroupname: null, toassettypename: null, toassetgroupname: null};
+  _matchCodes =(data: any, toSource: any, fromSource: any, viaSource:any, de: any) => {
+    var returnData = {fromassettypename: null, fromassetgroupname: null, toassettypename: null, toassetgroupname: null, viaassetgroupname:null, viaassettypename: null};
     if(toSource.length > 0) {
       toSource[0].assetGroups.map((ag:any) => {
         if(ag.assetGroupCode === data.toassetgroup) {
@@ -558,6 +586,20 @@ export default class TableCard extends React.Component <IProps, IState> {
         }
       });
     }
+    if(viaSource.length > 0) {
+      viaSource[0].assetGroups.map((ag:any) => {
+        if(ag.assetGroupCode === data.viaassetgroup) {
+          returnData["viaassetgroupname"] = ag.assetGroupName;
+          ag.assetTypes.map((at:any)=>{
+            if(at.assetTypeCode === data.viaassettype) {
+              returnData["viaassettypename"] = at.assetTypeName;
+              var termConf = this._matchTerminalConfig(at, de, data, "via");
+              returnData = {...returnData, ...termConf};
+            }
+          });
+        }
+      });
+    }    
     return returnData;
   }
 
@@ -574,12 +616,18 @@ export default class TableCard extends React.Component <IProps, IState> {
             terminalConfig["toTerminalConfig"] = terminal[0].terminalConfigurationName;
             terminalConfig["toTerminalId"] = t.terminalName;
           }
-        } else {
+        } else if(direction === "from") {
           if(t.terminalId === data.fromterminalid) {
             terminalConfig = {fromTerminalConfig:null, fromTerminalId:null};
             terminalConfig["fromTerminalConfig"] = terminal[0].terminalConfigurationName;
             terminalConfig["fromTerminalId"] = t.terminalName;
           }
+        } else {
+          if(t.terminalId === data.viaterminalid) {
+            terminalConfig = {viaTerminalConfig:null, viaTerminalId:null};
+            terminalConfig["viaTerminalConfig"] = terminal[0].terminalConfigurationName;
+            terminalConfig["viaTerminalId"] = t.terminalName;
+          }          
         }
       });
     }

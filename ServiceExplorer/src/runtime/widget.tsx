@@ -1275,7 +1275,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Relationship": {
-          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth} serviceElements={this.state.serviceElements}
+          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth} 
+            serviceElements={this.state.serviceElements}
+            dataElements={this.state.dataElements}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}

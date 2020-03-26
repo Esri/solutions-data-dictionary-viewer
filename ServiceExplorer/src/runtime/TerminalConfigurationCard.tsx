@@ -52,7 +52,9 @@ export default class TerminalConfigurationCard extends React.Component <IProps, 
 
   }
 
-  componentWillMount() {}
+  componentWillMount() {
+    console.log(this.state.nodeData);
+  }
 
   componentDidMount() {}
 

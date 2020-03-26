@@ -2,17 +2,20 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-import { Icon, Table} from 'jimu-ui';
+import { Icon, Collapse, Table} from 'jimu-ui';
 import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
+let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
+let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
 interface IProps {
   data: any,
   key: any,
   width: any,
   serviceElements: any,
+  dataElements: any,
   panel:number,
   callbackClose: any,
   callbackSave: any,
@@ -27,7 +30,8 @@ interface IProps {
 interface IState {
   activeTab: string,
   nodeData: any,
-  minimizedDetails: boolean
+  minimizedDetails: boolean,
+  expandRules: boolean
 }
 
 export default class RelationshipCard extends React.Component <IProps, IState> {
@@ -38,11 +42,16 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
       activeTab: 'Properties',
       nodeData: this.props.data.data,
       minimizedDetails: false,
+      expandRules: false
     };
 
   }
 
-  componentWillMount() {}
+  componentWillMount() {
+    //console.log(this.state.nodeData);
+    //console.log(this.props.serviceElements);
+    //console.log(this.props.dataElements);
+  }
 
   componentDidMount() {}
 
@@ -80,7 +89,7 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
                     <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId),"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
                     <td className="relationshipTableStyleHeader">Destination Name: </td>
                     <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId),"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
-                  </tr>
+                  </tr>                 
                   <tr>
                     <td className="relationshipTableStyleHeader">Origin Primary Key: </td>
                     <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
@@ -89,6 +98,14 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
                   </tr>
                 </tbody>
               </table>
+              <div style={{paddingLeft:10, paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleRules()}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Rules</span></div>
+              <Collapse isOpen={this.state.expandRules}>
+              <table style={{width:"100%"}} cellPadding={0} cellSpacing={0}>
+                <tbody>
+                  {this._relationshipRules()}
+                </tbody>
+              </table> 
+              </Collapse>             
               <div style={{paddingBottom: 15}}></div>
             </div>
           </TabPane>
@@ -167,8 +184,53 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     }
     return currState;
   }
+
+  toggleRules =() => {
+    if(this.state.expandRules) {
+      this.setState({expandRules: false});
+    } else {
+      this.setState({expandRules: true});
+    }
+  }
+
   //****** helper functions and request functions
   //********************************************
+  _relationshipRules = () => {
+    let rows = [];
+    if(this.state.nodeData.rules.length > 0) {
+      rows.push(
+        <tr>
+          <td className="relationshipTableStyleHeader">Origin Subtype</td>
+          <td className="relationshipTableStyleHeader">Min</td>
+          <td className="relationshipTableStyleHeader">Max</td>
+          <td className="relationshipTableStyleHeader">Destination Subtype</td>
+          <td className="relationshipTableStyleHeader">Min</td>
+          <td className="relationshipTableStyleHeader">Max</td>          
+        </tr>
+      );    
+      this.state.nodeData.rules.map((r:any, i:number) => {
+        rows.push(
+          <tr key={i}>
+            <td className="relationshipTableStyle">{this._getSubtypeInfo(this.state.nodeData.originLayerId, r.originSubtypeCode)}</td>
+            <td className="relationshipTableStyle">{r.originMinimumCardinality}</td>
+            <td className="relationshipTableStyle">{r.originMaximumCardinality}</td>
+            <td className="relationshipTableStyle">{this._getSubtypeInfo(this.state.nodeData.destinationLayerId, r.destinationSubtypeCode)}</td>
+            <td className="relationshipTableStyle">{r.destinationMinimumCardinality}</td>
+            <td className="relationshipTableStyle">{r.destinationMaximumCardinality}</td>          
+          </tr>
+        );
+      });
+    } else {
+      rows.push(
+        <tr>
+          <td className="relationshipTableStyleHeader">No rules defined.</td>        
+        </tr>
+      ); 
+    }
+    return rows;
+  }
+
+
   _cardinalityLookup =(code: string) => {
     let possible = {
       "esriRelCardinalityOneToMany": "One to many",
@@ -183,6 +245,26 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
   }
 
   _layerForLinkageLookup =(layerId:number) => {
+    if(this.props.dataElements.length > 0) {
+      return this._DElayerNameLookup(layerId);
+    } else {
+      //for non un services
+      return this._SElayerNameLookup(layerId);
+    }
+  }
+
+  _DElayerNameLookup = (layerId:number) => {
+    let foundLayer = "";
+    let filterDE = this.props.dataElements.filter((de:any) => {
+      return(de.layerId === layerId);
+    });
+    if(filterDE.length > 0) {
+      foundLayer = filterDE[0].dataElement.aliasName;
+    }
+    return foundLayer;
+  }
+
+  _SElayerNameLookup =(layerId:number) => {
     let foundLayer = "";
     let filterSETables = this.props.serviceElements.tables.filter((se:any) => {
       return(se.id === layerId);
@@ -200,5 +282,22 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     }
     return foundLayer;
   }
+
+  _getSubtypeInfo = (layerId:number, subtypecode:number) => {
+    let foundST = "";
+    let filterDE = this.props.dataElements.filter((de:any) => {
+      return(de.layerId === layerId);
+    });
+    if(filterDE.length > 0) {
+      let stMatch = filterDE[0].dataElement.subtypes.filter((st:any) => {
+        return (st.subtypeCode === subtypecode);
+      });
+      if(stMatch.length > 0) {
+        foundST = stMatch[0].subtypeName;
+      }
+    }
+    return foundST;
+  }
+
 
 }

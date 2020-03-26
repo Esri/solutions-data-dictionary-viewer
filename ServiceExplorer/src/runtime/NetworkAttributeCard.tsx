@@ -49,7 +49,7 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
 
   }
 
-  componentWillMount() {}
+  componentWillMount() {console.log(this.state.nodeData)}
 
   componentDidMount() {
     //this._processData();
@@ -78,8 +78,12 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
           <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
             <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.name}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>field Type:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.fieldType)}</div>            
             <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Domain Name:</span> {(this.state.nodeData.domainName !== "") ? <span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this.state.nodeData.domainName, "Domain", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {this.state.nodeData.domainName}</span>:<span> </span>}</div>
-            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Data Type:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.dataType)}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Network Attribute to Substitute:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.networkAttributeToSubstitute)}</div>
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Usage Type:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.usageType)}</div>            
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This field can be empty:</span> {(this.state.nodeData.isNullable)?"True":"False"}</div>  
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>BitSize:</span> {this.state.nodeData.bitSize}</div>                          
             <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleAssignment()}}>{(this.state.expandAssignment)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}  <span style={{fontWeight:"bold"}}>Assignment</span></div>
             <Collapse isOpen={this.state.expandAssignment}>
               <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
