@@ -1,5 +1,5 @@
 
-Data Dictionary Viewer
+## Data Dictionary Viewer
 
 An application that allows viewing and searching of details of a feature Service in an user friendly way.
 
@@ -27,13 +27,12 @@ An application that allows viewing and searching of details of a feature Service
 
 At this point you have 2 paths to choose.
 
-9. If you want to run the Data Dictionary hitting your live service, then you are finished with the configuration.
-
-9. if you want to run the Data Dictionary hitting a cache of your service (so it is not dependent on it being live and running), follow these additional steps:
-9.1.  Check the ```Use cache instead of service``` checkbox
-9.2.  Give your cache a name
-9.3.  Press the ```Build Cache```
-This will create an item in your organization (currently org which you signed into Experience Builder). Once the cache is built, access the item in your org and share it publicly.
+9. If you want to run the Data Dictionary hitting your live service, then you are finished with the configuration. Proceed to step 10.
+If you want to run the Data Dictionary hitting a cache of your service (so it is not dependent on it being live and running), follow these additional steps:
+   - Check the ```Use cache instead of service``` checkbox
+   - Give your cache a name
+   - Press the ```Build Cache```
+   - This will create an item in your organization (currently org which you signed into Experience Builder). Once the cache is built, access the item in your org and share it publicly.
 
 Optionally, if you want to be able to load other services via a url parameter check the box labeled "allowurlLookup".
 
