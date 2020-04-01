@@ -28,4 +28,124 @@
   border:2;
   border-Color:"#aaa";
   border-Style:"dashed";
-  display:"inline-block"}
+  display:"inline-block"
+}
+
+.btn-link {
+    font-weight: 400;
+    color: #315dfc;
+    background-color: transparent;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  -webkit-appearance: none;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.3125rem 1rem;
+  line-height: 1.5;
+  border-radius: 0.125rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 0.75rem 1rem;
+  margin-bottom: -1px;
+  background-color: #fff;
+  border: 1px solid #cfdbe7;
+}
+
+.list-group-item:hover, .list-group-item:focus {
+  text-decoration: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table {
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  background-color: transparent;
+}
+
+.table tr:hover {
+  background-color: #c1c1c1;
+}
+
+.table th, .table td {
+  padding: 0.75rem 1.25rem;
+  vertical-align: top;
+  border-top: 1px solid #cfdbe7;
+}
+
+.table thead th {
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: inherit;
+  background-color: #edf0f4;
+  border-bottom-width: 1px;
+  line-height: 1.25;
+}
+
+.table th, .table td {
+  padding: 0.75rem 1.25rem;
+  vertical-align: top;
+  border-top: 1px solid #cfdbe7;
+}
+
+.searchOptionDivNode {
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.popOverBG {
+  background-color: #fff;
+  border: 2px solid #cfdbe7;
+}
+
+.leftRightPadder5 {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.leftRightPadder10 {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.relationshipTableStyleHeader {
+  font-weight:bold;
+  padding:10px;
+  border-spacing:0px;
+  border-bottom:thin solid #c1c1c1;
+}
+
+.relationshipTableStyle {
+  padding:10px;
+  border-spacing:0px;
+  border-bottom: thin solid #c1c1c1;
+}
+
+.paddingTopBottom5 {
+  padding-Top: 5px;
+  padding-Bottom: 5px
+}
+
+.linkPointer {
+  cursor:"pointer";
+}

@@ -2,16 +2,20 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon} from 'jimu-ui';
+import { Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-let ArrowLeft = require('./assets/arrowx200L.png');
-let ArrowRight = require('./assets/arrowx200R.png');
+import './css/custom.css';
+let linkIcon = require('./assets/launch.svg');
+let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
+let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
 interface IProps {
   data: any,
   key: any,
   width: any,
+  serviceElements: any,
+  dataElements: any,
   panel:number,
   callbackClose: any,
   callbackSave: any,
@@ -26,6 +30,8 @@ interface IProps {
 interface IState {
   activeTab: string,
   nodeData: any,
+  minimizedDetails: boolean,
+  expandRules: boolean
 }
 
 export default class RelationshipCard extends React.Component <IProps, IState> {
@@ -35,17 +41,19 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     this.state = {
       activeTab: 'Properties',
       nodeData: this.props.data.data,
+      minimizedDetails: false,
+      expandRules: false
     };
 
   }
 
   componentWillMount() {
-    //test
+    //console.log(this.state.nodeData);
+    //console.log(this.props.serviceElements);
+    //console.log(this.props.dataElements);
   }
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
     return (
@@ -57,35 +65,65 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
-        <TabPane tabId="Properties">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
-              <div style={{width: "33%", display:"inline-block"}}>
-                <div style={{width: "100%", height: 50, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingTop:30}}>{this.state.nodeData.backwardPathLabel}</div>
-                <div style={{width: "100%", height: 20, textAlign:"center"}}><img src={ArrowLeft} style={{width: ((this.props.width/3)-50), height: 20}}/></div>
-                <div style={{width: "100%", height: 50, textAlign:"center"}}>{this.state.nodeData.originPrimaryKey}</div>
-              </div>
-              <div style={{width: "34%", height:120, borderWidth:2, borderStyle:"solid", borderColor:"#ccc",  textAlign:"center", display:"inline-block"}}>
-                <div style={{width: "100%", height: 60, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingLeft:2, paddingRight:2, paddingTop: 20, display:"inline-block"}}>{this.state.nodeData.name.replace(/_/g, " ")}</div>
-                <div style={{width: "100%", height: 60, textAlign:"center", paddingLeft:2, paddingRight:2, verticalAlign:"bottom"}}>{this._cardinalityLookup(this.state.nodeData.cardinality)}</div>
-              </div>
-              <div style={{width: "33%", display:"inline-block", float:"right"}}>
-                <div style={{width: "100%", height: 50, textAlign:"center", wordWrap: "break-word", whiteSpace: "normal", paddingTop:30}}>{this.state.nodeData.forwardPathLabel}</div>
-                <div style={{width: "100%", height: 20, textAlign:"center"}}><img src={ArrowRight} style={{width: ((this.props.width/3)-50), height: 20}}/></div>
-                <div style={{width: "100%", height: 50, textAlign:"center"}}>{this.state.nodeData.originForeignKey}</div>
-              </div>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
+          <TabPane tabId="Properties">
+            <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
+              <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
               <div style={{paddingBottom: 15}}></div>
-          </div>
-        </TabPane>
-      </TabContent>
+              <table style={{width:"100%"}} cellPadding={0} cellSpacing={0}>
+                <tbody>
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Cardinality: </td><td className="relationshipTableStyle">{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
+                    <td className="relationshipTableStyleHeader">Type: </td><td className="relationshipTableStyle">{(this.state.nodeData.composite)?"Composite":"Simple"}</td>
+                  </tr>
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Origin Name: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId),"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
+                    <td className="relationshipTableStyleHeader">Destination Name: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId),"Table", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
+                  </tr>                 
+                  <tr>
+                    <td className="relationshipTableStyleHeader">Origin Primary Key: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originPrimaryKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
+                    <td className="relationshipTableStyleHeader">Origin Foreign Key: </td>
+                    <td className="relationshipTableStyle"><div onClick={()=>{this.props.callbackLinkage(this.state.nodeData.originForeignKey,"Field", this.props.panel, this._layerForLinkageLookup(this.state.nodeData.destinationLayerId))}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{paddingLeft:10, paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleRules()}}>{(this.state.expandRules)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Rules</span></div>
+              <Collapse isOpen={this.state.expandRules}>
+              <table style={{width:"100%"}} cellPadding={0} cellSpacing={0}>
+                <tbody>
+                  {this._relationshipRules()}
+                </tbody>
+              </table> 
+              </Collapse>             
+              <div style={{paddingBottom: 15}}></div>
+            </div>
+          </TabPane>
+        </TabContent>
+      }
     </div>);
   }
-
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
+  }
   //****** Header Support functions
   //********************************************
   headerToggleTabs =(tab:string) => {
@@ -135,14 +173,69 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     });
     return currPos;
   }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
+
+  toggleRules =() => {
+    if(this.state.expandRules) {
+      this.setState({expandRules: false});
+    } else {
+      this.setState({expandRules: true});
+    }
+  }
 
   //****** helper functions and request functions
   //********************************************
+  _relationshipRules = () => {
+    let rows = [];
+    if(this.state.nodeData.rules.length > 0) {
+      rows.push(
+        <tr>
+          <td className="relationshipTableStyleHeader">Origin Subtype</td>
+          <td className="relationshipTableStyleHeader">Min</td>
+          <td className="relationshipTableStyleHeader">Max</td>
+          <td className="relationshipTableStyleHeader">Destination Subtype</td>
+          <td className="relationshipTableStyleHeader">Min</td>
+          <td className="relationshipTableStyleHeader">Max</td>          
+        </tr>
+      );    
+      this.state.nodeData.rules.map((r:any, i:number) => {
+        rows.push(
+          <tr key={i}>
+            <td className="relationshipTableStyle">{this._getSubtypeInfo(this.state.nodeData.originLayerId, r.originSubtypeCode)}</td>
+            <td className="relationshipTableStyle">{r.originMinimumCardinality}</td>
+            <td className="relationshipTableStyle">{r.originMaximumCardinality}</td>
+            <td className="relationshipTableStyle">{this._getSubtypeInfo(this.state.nodeData.destinationLayerId, r.destinationSubtypeCode)}</td>
+            <td className="relationshipTableStyle">{r.destinationMinimumCardinality}</td>
+            <td className="relationshipTableStyle">{r.destinationMaximumCardinality}</td>          
+          </tr>
+        );
+      });
+    } else {
+      rows.push(
+        <tr>
+          <td className="relationshipTableStyleHeader">No rules defined.</td>        
+        </tr>
+      ); 
+    }
+    return rows;
+  }
+
+
   _cardinalityLookup =(code: string) => {
     let possible = {
-      "esriRelCardinalityOneToMany": "1:M",
-      "esriRelCardinalityOneToOne": "1:1",
-      "esriRelCardinalityManyToMany": "M:N",
+      "esriRelCardinalityOneToMany": "One to many",
+      "esriRelCardinalityOneToOne": "One to one",
+      "esriRelCardinalityManyToMany": "Many to many",
     };
     if(possible.hasOwnProperty(code)) {
       return possible[code];
@@ -150,5 +243,61 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
       return code;
     }
   }
+
+  _layerForLinkageLookup =(layerId:number) => {
+    if(this.props.dataElements.length > 0) {
+      return this._DElayerNameLookup(layerId);
+    } else {
+      //for non un services
+      return this._SElayerNameLookup(layerId);
+    }
+  }
+
+  _DElayerNameLookup = (layerId:number) => {
+    let foundLayer = "";
+    let filterDE = this.props.dataElements.filter((de:any) => {
+      return(de.layerId === layerId);
+    });
+    if(filterDE.length > 0) {
+      foundLayer = filterDE[0].dataElement.aliasName;
+    }
+    return foundLayer;
+  }
+
+  _SElayerNameLookup =(layerId:number) => {
+    let foundLayer = "";
+    let filterSETables = this.props.serviceElements.tables.filter((se:any) => {
+      return(se.id === layerId);
+    });
+    if(filterSETables.length > 0) {
+      foundLayer = filterSETables[0].name;
+    } else {
+      //if it's not a table, see if it's a lyer
+      let filterSELayers = this.props.serviceElements.layers.filter((se:any) => {
+        return(se.id === layerId);
+      });
+      if(filterSELayers.length > 0) {
+        foundLayer = filterSELayers[0].name;
+      }
+    }
+    return foundLayer;
+  }
+
+  _getSubtypeInfo = (layerId:number, subtypecode:number) => {
+    let foundST = "";
+    let filterDE = this.props.dataElements.filter((de:any) => {
+      return(de.layerId === layerId);
+    });
+    if(filterDE.length > 0) {
+      let stMatch = filterDE[0].dataElement.subtypes.filter((st:any) => {
+        return (st.subtypeCode === subtypecode);
+      });
+      if(stMatch.length > 0) {
+        foundST = stMatch[0].subtypeName;
+      }
+    }
+    return foundST;
+  }
+
 
 }

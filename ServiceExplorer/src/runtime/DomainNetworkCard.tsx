@@ -2,10 +2,12 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon, Collapse, Table} from 'jimu-ui';
+import {Icon, Collapse, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import './css/custom.css';
+import esriLookup from './_constants';
+let linkIcon = require('./assets/launch.svg');
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 
@@ -34,14 +36,17 @@ interface IState {
   expandTiersValidLine: any,
   expandTiersValidSubnetworkControllers: any,
   expandTiersAggregatedLines: any,
-  expandJunctionSources: boolean,
-  expandJunctionLayers: any,
-  expandJunctionAG: any,
-  expandJunctionAT: any,
+  expandTiersTraceConfig: any,
+  expandClassSources: boolean,
+  expandClassLayers: any,
+  expandClassAG: any,
+  expandClassAT: any,
   expandEdgeSources: boolean,
   expandEdgeLayers: any,
   expandEdgeAG: any,
   expandEdgeAT: any,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class DomainNetworkCard extends React.Component <IProps, IState> {
@@ -57,29 +62,31 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       expandTiersValidLine: {},
       expandTiersValidSubnetworkControllers: {},
       expandTiersAggregatedLines: {},
-      expandJunctionSources: false,
-      expandJunctionLayers: {},
-      expandJunctionAG: {},
-      expandJunctionAT: {},
+      expandTiersTraceConfig: {},
+      expandClassSources: false,
+      expandClassLayers: {},
+      expandClassAG: {},
+      expandClassAT: {},
       expandEdgeSources: false,
       expandEdgeLayers: {},
       expandEdgeAG: {},
-      expandEdgeAT: {}
+      expandEdgeAT: {},
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
   componentWillMount() {
-    console.log(this.state.nodeData);
-    console.log(this.props.dataElements);
     let tiersCopy = {...this.state.expandTiers};
     let tiersVDCopy = {...this.state.expandTiersValidDevice};
     let tiersVLCopy = {...this.state.expandTiersValidLine};
     let tiersVSCCopy = {...this.state.expandTiersValidSubnetworkControllers};
     let tiersAGLCopy = {...this.state.expandTiersAggregatedLines};
-    let junctionLayerCopy = {...this.state.expandJunctionLayers};
-    let junctionAGCopy = {...this.state.expandJunctionAG};
-    let junctionATCopy = {...this.state.expandJunctionAT};
+    let tiersTraceConfigCopy = {...this.state.expandTiersTraceConfig};
+    let classLayerCopy = {...this.state.expandClassLayers};
+    let classAGCopy = {...this.state.expandClassAG};
+    let classATCopy = {...this.state.expandClassAT};
     let edgeLayerCopy = {...this.state.expandEdgeLayers};
     let edgeAGCopy = {...this.state.expandEdgeAG};
     let edgeATCopy = {...this.state.expandEdgeAT};
@@ -89,29 +96,33 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       tiersVLCopy[t.name] = false;
       tiersVSCCopy[t.name] = false;
       tiersAGLCopy[t.name] = false;
+      tiersTraceConfigCopy[t.name] = false;
     });
     this.state.nodeData.junctionSources.map((j:any) => {
-      junctionLayerCopy[j.layerId] = "none";
-      junctionAGCopy[j.layerId] = false;
+      classLayerCopy[j.layerId] = "none";
+      classAGCopy[j.layerId] = false;
       j.assetGroups.map((ag:any) => {
-        junctionATCopy[ag.assetGroupName] = false;
+        classATCopy[ag.assetGroupName] = false;
       });
     });
     this.state.nodeData.edgeSources.map((j:any) => {
-      edgeLayerCopy[j.layerId] = "none";
-      edgeAGCopy[j.layerId] = false;
+      classLayerCopy[j.layerId] = "none";
+      classAGCopy[j.layerId] = false;
       j.assetGroups.map((ag:any) => {
-        edgeATCopy[ag.assetGroupName] = false;
+        classATCopy[ag.assetGroupName] = false;
       });
     });
     this.setState({expandTiers:tiersCopy, expandTiersValidDevice: tiersVDCopy, expandTiersValidLine: tiersVLCopy, expandTiersValidSubnetworkControllers: tiersVSCCopy,
-      expandTiersAggregatedLines: tiersAGLCopy, expandJunctionLayers: junctionLayerCopy, expandJunctionAG:junctionAGCopy, expandJunctionAT:junctionATCopy,
+      expandTiersAggregatedLines: tiersAGLCopy, expandTiersTraceConfig: tiersTraceConfigCopy,  expandClassLayers: classLayerCopy, expandClassAG:classAGCopy, expandClassAT:classATCopy,
       expandEdgeLayers: edgeLayerCopy, expandEdgeAG: edgeAGCopy, expandEdgeAT: edgeATCopy
     });
   }
 
   componentDidMount() {
     //this._processData();
+   // console.log(this.props.dataElements);
+   // console.log(this.state.nodeData.junctionSources);
+   // console.log(this.state.nodeData.tiers);
   }
 
   render(){
@@ -125,40 +136,52 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-        <div><h5>{this.props.data.type} Properties</h5></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.domainNetworkAliasName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Field Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.subnetworkLabelFieldName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Tier Definition: <span style={{fontWeight:"bold"}}>{this.state.nodeData.tierDefinition}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Tiers:</div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.domainNetworkAliasName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Name:</span> {this.state.nodeData.subnetworkLabelFieldName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Tier Definition:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.tierDefinition)}</div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTierGroup()}}>{(this.state.expandTierGroup)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tiers</span></div>
           <Collapse isOpen={this.state.expandTierGroup}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {(this.state.nodeData.tiers.length > 0)?this._createTiersTable():"No tiers exist"}
             </div>
           </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleJunctionSources()}}>{(this.state.expandJunctionSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Junction Sources:</div>
-          <Collapse isOpen={this.state.expandJunctionSources}>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleClassSources()}}>{(this.state.expandClassSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Classes</span></div>
+          <Collapse isOpen={this.state.expandClassSources}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {(this.state.nodeData.junctionSources.length > 0)?this._createJunctionSourceTable():"No junctions exist"}
-            </div>
-          </Collapse>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleEdgeSources()}}>{(this.state.expandEdgeSources)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Edge Sources:</div>
-          <Collapse isOpen={this.state.expandEdgeSources}>
-            <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              {(this.state.nodeData.edgeSources.length > 0)?this._createEdgeSourceTable():"No edges exist"}
+              {(this.state.nodeData.junctionSources.length > 0 || this.state.nodeData.edgeSources.length > 0)?this._createSourceTable():"No class exist"}
             </div>
           </Collapse>
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -209,6 +232,17 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
   //****** UI components and UI Interaction
   //********************************************
@@ -273,21 +307,31 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       this.setState({expandTiersAggregatedLines: tierGroupCopy});
     }
   }
-  toggleJunctionSources =() => {
-    if(this.state.expandJunctionSources) {
-      this.setState({expandJunctionSources: false});
+  toggleTiersTraceConfig =(name:string) => {
+    let tierGroupCopy = {...this.state.expandTiersTraceConfig};
+    if(tierGroupCopy[name] === false) {
+      tierGroupCopy[name] = true;
+      this.setState({expandTiersTraceConfig: tierGroupCopy});
     } else {
-      this.setState({expandJunctionSources: true});
+      tierGroupCopy[name] = false;
+      this.setState({expandTiersTraceConfig: tierGroupCopy});
+    }
+  }  
+  toggleClassSources =() => {
+    if(this.state.expandClassSources) {
+      this.setState({expandClassSources: false});
+    } else {
+      this.setState({expandClassSources: true});
     }
   }
-  toggleValidJunctions =(name:string) => {
-    let junctionLayerCopy = {...this.state.expandJunctionLayers};
-    if(junctionLayerCopy[name] === "none") {
-      junctionLayerCopy[name] = "table-row";
-      this.setState({expandJunctionLayers: junctionLayerCopy});
+  toggleValidClass =(name:string) => {
+    let classLayerCopy = {...this.state.expandClassLayers};
+    if(classLayerCopy[name] === "none") {
+      classLayerCopy[name] = "table-row";
+      this.setState({expandClassLayers: classLayerCopy});
     } else {
-      junctionLayerCopy[name] = "none";
-      this.setState({expandJunctionLayers: junctionLayerCopy});
+      classLayerCopy[name] = "none";
+      this.setState({expandClassLayers: classLayerCopy});
     }
   }
   toggleValidEdges =(name:string) => {
@@ -310,17 +354,17 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       this.setState({expandEdgeAT: edgeLayerCopy});
     }
   }
-  toggleValidJunctionsAT =(name:string) => {
-    let junctionLayerCopy = {...this.state.expandJunctionAT};
-    if(junctionLayerCopy[name] === false) {
-      junctionLayerCopy[name] = true;
-      this.setState({expandJunctionAT: junctionLayerCopy});
+  toggleValidClassAT =(name:string) => {
+    let classLayerCopy = {...this.state.expandClassAT};
+    if(classLayerCopy[name] === false) {
+      classLayerCopy[name] = true;
+      this.setState({expandClassAT: classLayerCopy});
     } else {
-      junctionLayerCopy[name] = false;
-      this.setState({expandJunctionAT: junctionLayerCopy});
+      classLayerCopy[name] = false;
+      this.setState({expandClassAT: classLayerCopy});
     }
   }
-  toggleEdgeSources =(name:string) => {
+  toggleEdgeSources =() => {
     if(this.state.expandEdgeSources) {
       this.setState({expandEdgeSources: false});
     } else {
@@ -334,33 +378,37 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiers(ft.name)}}>{(this.state.expandTiers[ft.name]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {ft.name}</div>
           </td>
           <td style={{fontSize:"small"}}>{ft.tierGroupName}</td>
           <td style={{fontSize:"small"}}>{ft.rank}</td>
           <td style={{fontSize:"small"}}>{ft.subnetworkFieldName}</td>
-          <td style={{fontSize:"small"}}>{ft.tierTopology}</td>
+          <td style={{fontSize:"small"}}>{this.state.esriValueList.lookupValue(ft.tierTopology)}</td>
         </tr>
       );
       arrList.push(
         <tr key={i+"_hidden"} style={{display:this.state.expandTiers[ft.name]}}>
-          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
-            <div onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
+          <td colSpan={5} style={{fontSize:"small", paddingLeft:25}} >
+            <div style={{cursor:"pointer"}} onClick={()=>{this.toggleTiersValidDevice(ft.name)}}>{(this.state.expandTiersValidDevice[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Devices</div>
             <Collapse isOpen={this.state.expandTiersValidDevice[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validDevices, "Device", "junction")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersValidLine(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersValidLine(ft.name)}}>{(this.state.expandTiersValidLine[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Lines</div>
             <Collapse isOpen={this.state.expandTiersValidLine[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validLines, "Line", "edge")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersValidSubnetworkControllers(ft.name)}}>{(this.state.expandTiersValidSubnetworkControllers[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Valid Subnetwork Controllers</div>
             <Collapse isOpen={this.state.expandTiersValidSubnetworkControllers[ft.name]}>
             <div>{this._createValidAssetsTable(ft.validSubnetworkControllers, "Device", "junction")}</div>
             </Collapse>
-            <div onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}} style={{paddingTop:10}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersAggregatedLines(ft.name)}}>{(this.state.expandTiersAggregatedLines[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Aggregated Lines for Subnetwork</div>
             <Collapse isOpen={this.state.expandTiersAggregatedLines[ft.name]}>
             <div>{this._createValidAssetsTable(ft.aggregatedLinesForSubnetLine, "Line", "edge")}</div>
             </Collapse>
+            <div style={{cursor:"pointer", paddingTop:10}} onClick={()=>{this.toggleTiersTraceConfig(ft.name)}}>{(this.state.expandTiersTraceConfig[ft.name])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Trace Configuration</div>
+            <Collapse isOpen={this.state.expandTiersTraceConfig[ft.name]}>
+            <div>{this._createTraceConfigTable(ft.updateSubnetworkTraceConfiguration)}</div>
+            </Collapse>            
           </td>
         </tr>
       );
@@ -391,11 +439,13 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
   }
   _createValidAssetsTable =(asset:any, type:string, source:string) => {
     let arrList = [];
-    let atList =(d:any, domainName:string) => {
+    let atList =(d:any, domainName:string, subtype:string) => {
       let list = [];
       d.assetTypes.map((at: any, z: number) => {
         let validAT = this._ATCodeLookup(at.assetTypeCode, domainName);
-        list.push(<div key={at.assetTypeCode+"_"+z}>{validAT}</div>);
+        list.push(<div key={at.assetTypeCode+"_"+z}>
+        <div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(validAT,"Assettype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type, subtype)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' />{validAT}</div>
+        </div>);
       });
       return list;
     };
@@ -404,9 +454,9 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       arrList.push(
         <tr key={i}>
           <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(validAsset.ag,"Subtype", this.props.panel, this.state.nodeData.domainNetworkAliasName+" "+type)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {validAsset.ag}</div>
           </td>
-          <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain)}</td>
+          <td style={{fontSize:"small"}}>{atList(d, validAsset.ATDomain, validAsset.ag)}</td>
         </tr>
       );
     });
@@ -425,81 +475,114 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     return tableObj;
   }
 
-  _createJunctionSourceTable =() => {
-    let arrList = [];
-    let validAG =(j:any) => {
-      let collection = [];
-      j.assetGroups.map((ag:any, z: number) => {
-        let ATList = [];
-        ag.assetTypes.map((at:any, a: number) => {
-          let catList = [];
-          at.categories.map((c:any, b: number) => {
-            catList.push(
-              <div id={b+"_c"}><span  onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
-            );
-          });
-          ATList.push(<tr id={a+"_at"}>
-            <td>{at.assetTypeName}</td>
-            <td>{catList}</td>
-          </tr>);
-        });
-
-        collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
-          <td>
-          <div onClick={()=>{this.toggleValidJunctionsAT(ag.assetGroupName)}}>{(this.state.expandJunctionAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
-          <Collapse isOpen={this.state.expandJunctionAT[ag.assetGroupName]}>
-            <table>
-              <tr>
-                <th>Name</th>
-                <th>Category</th>
-              </tr>
-              {ATList}
-            </table>
-          </Collapse>
-          </td>
-        </tr>);
-      });
-      return collection;
-    }
-    this.state.nodeData.junctionSources.map((j: any, i: number) => {
-      arrList.push(
-        <tr key={i}>
-          <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleValidJunctions(j.layerId)}}>{(this.state.expandJunctionLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</div>
-          </td>
-        </tr>
-      );
-      arrList.push(
-        <tr key={i+"_hidden"} style={{display:this.state.expandJunctionLayers[j.layerId]}}>
-          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
-            <table>
-              <tr>
-                <th>Asset Group</th>
-                <th>Asset Type</th>
-              </tr>
-              {validAG(j)}
-            </table>
-          </td>
-        </tr>
-      );
-    });
+  _createTraceConfigTable =(tc: any) => {
     let tableObj = <Table hover>
-    <thead>
-    <tr>
-      <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
-    </tr>
-    </thead>
-    <tbody>
-      {arrList}
-    </tbody>
+      <tr><td>Traversability Scope: </td><td>{tc.traversabilityScope}</td></tr>
+      <tr><td>Condition Barriers: </td><td>{this._handleConditions(tc.conditionBarriers)}</td></tr>
+      <tr><td>Function Barriers: </td><td>{this._handleBarriers(tc.functionBarriers)}</td></tr>
+      <tr><td>Filter Function Barriers: </td><td>{this._handleBarriers(tc.filterFunctionBarriers)}</td></tr>
+      <tr><td>Functions: </td><td>{this._handleFunctions(tc.functions)}</td></tr>
+      <tr><td>Output Filters: </td><td>{this._handleOutputFilters(tc.outputFilters)}</td></tr>
+      <tr><td>Output Conditions: </td><td>{this._handleConditions(tc.outputConditions)}</td></tr>            
     </Table>
     return tableObj;
+    //      <tr><td>Propagators: </td><td>{tc.traversabilityScope}</td></tr> 
+    // <tr><td>Arcade Expression Barrier: </td><td>{tc.arcadeExpressionBarrier}</td></tr>
   }
 
-  _createEdgeSourceTable =() => {
+  _handleConditions = (cond: any) => {
+    let list = [];
+    cond.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.name + " " + c.operator + " " + c.value;
+      if(cond.length > 1) {
+        if(i < cond.length - 1) {
+          if(c.combineUsingOr) {
+            valueStr = valueStr + " or ";
+          } else {
+            valueStr = valueStr + " and ";
+          }
+        }
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleBarriers = (barr: any) => {
+    let list = [];
+    barr.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.functionType + " where " + c.networkAttributeName + " " + c.operator + " " + c.value;
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleFunctions = (func: any) => {
+    let list = [];
+    func.map((f:any, i:number) => {
+      //c.type
+      list.push(
+        <div key={i} style={{paddingBottom:10}}>
+          <div>{f.functionType} {f.networkAttributeName} into {f.summaryAttributeName} where</div>
+          <div>{this._handleConditions(f.conditions)}</div>
+        </div>
+      );
+    });
+    return list;
+  }
+
+  _handleFilters = (cond: any) => {
+    let list = [];
+    cond.map((c:any, i:number) => {
+      //c.type
+      let valueStr = c.name + " " + c.operator + " " + c.value;
+      if(cond.length > 1) {
+        if(i < cond.length - 1) {
+          if(c.combineUsingOr) {
+            valueStr = valueStr + " or ";
+          } else {
+            valueStr = valueStr + " and ";
+          }
+        }
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;
+  }
+
+  _handleOutputFilters =(of:any) => {
+    let list = [];
+    if(of.length > 0) {
+      list.push(
+        <div>Output will only consist of: </div>
+      );      
+    }
+    of.map((c:any, i:number) => {
+      let data = this._sourceIdLookup(c.assetGroupCode, c.assetTypeCode, c.networkSourceId);
+      let valueStr = c.assetGroupCode + " - " + c.assetTypeCode;
+      if(data.hasOwnProperty("assetgroup")) {
+        valueStr = "Layer: " + data.layer + ", Subtype: " + data.assetgroup + ", Asset type: " + data.assettype;
+      } else {
+        valueStr = "Layer: " + c.networkSourceId + ", Subtype: " + c.assetGroupCode + ", Asset type: " + c.assetTypeCode;
+      }
+      list.push(
+        <div key={i}>{valueStr}</div>
+      );
+    });
+    return list;    
+  }
+
+  _createSourceTable =() => {
     let arrList = [];
-    let validAG =(j:any) => {
+    let validAG =(j:any, layerName:string) => {
       let collection = [];
       j.assetGroups.map((ag:any, z: number) => {
         let ATList = [];
@@ -507,24 +590,36 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
           let catList = [];
           at.categories.map((c:any, b: number) => {
             catList.push(
-              <div id={b+"_c"}><span  onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
+              <div id={b+"_c"}><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(c, "Category", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {c}</span></div>
             );
           });
+          let terminalConfig = "";
+          if(at.isTerminalConfigurationSupported) {
+            terminalConfig = at.terminalConfigurationId;
+          }
           ATList.push(<tr id={a+"_at"}>
-            <td>{at.assetTypeName}</td>
+            <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(at.assetTypeName, "Assettype", this.props.panel, layerName, ag.assetGroupName)}}><Icon icon={linkIcon} size='12' color='#333' /> {at.assetTypeName}</span></td>
+            <td>{(at.associationRoleType.indexOf("Container") > 0)?this.state.esriValueList.lookupValue(at.associationRoleType) :""}</td>
+            <td>{(at.associationRoleType.indexOf("Container") > 0)?"1:"+at.containmentViewScale :""}</td>
+            <td>{(at.associationDeleteType.indexOf("None") > 0)?"":this.state.esriValueList.lookupValue(at.associationDeleteType)}</td>
+            <td>{this._terminalLookup(terminalConfig)}</td>
             <td>{catList}</td>
           </tr>);
         });
 
         collection.push(<tr id={z+"_junction"}>
-          <td><span  onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
+          <td><span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ag.assetGroupName, "Subtype", this.props.panel, layerName)}}><Icon icon={linkIcon} size='12' color='#333' /> {ag.assetGroupName}</span></td>
           <td>
-          <div onClick={()=>{this.toggleValidEdgesAT(ag.assetGroupName)}}>{(this.state.expandEdgeAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
-          <Collapse isOpen={this.state.expandEdgeAT[ag.assetGroupName]}>
+          <div style={{cursor:"pointer"}} onClick={()=>{this.toggleValidClassAT(ag.assetGroupName)}}>{(this.state.expandClassAT[ag.assetGroupName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Asset Types</div>
+          <Collapse isOpen={this.state.expandClassAT[ag.assetGroupName]}>
             <table>
               <tr>
                 <th>Name</th>
-                <th>Category</th>
+                <th>Association Role</th>
+                <th>Container View Scale</th>
+                <th>Association Deletion Semantics</th>
+                <th>Terminal Configuration</th>
+                <th>Category</th>                
               </tr>
               {ATList}
             </table>
@@ -534,27 +629,31 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
       });
       return collection;
     }
-    this.state.nodeData.edgeSources.map((j: any, i: number) => {
-      arrList.push(
-        <tr key={i}>
-          <td style={{fontSize:"small"}}>
-          <div onClick={()=>{this.toggleValidEdges(j.layerId)}}>{(this.state.expandEdgeLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</div>
-          </td>
-        </tr>
-      );
-      arrList.push(
-        <tr key={i+"_hidden"} style={{display:this.state.expandEdgeLayers[j.layerId]}}>
-          <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
-            <table>
-              <tr>
-                <th>Asset Group</th>
-                <th>Asset Type</th>
-              </tr>
-              {validAG(j)}
-            </table>
-          </td>
-        </tr>
-      );
+    let classList = ["junctionSources", "edgeSources"];
+    classList.map((cl:any) => {
+      this.state.nodeData[cl].map((j: any, i: number) => {
+        arrList.push(
+          <tr key={i}>
+            <td style={{fontSize:"small"}}>
+            <span style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(this._layerLookup(j.layerId), "Layer", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> </span>
+            <span style={{cursor:"pointer"}} onClick={()=>{this.toggleValidClass(j.layerId)}}>{(this.state.expandClassLayers[j.layerId]==="table-row")?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {this._layerLookup(j.layerId)}</span>
+            </td>
+          </tr>
+        );
+        arrList.push(
+          <tr key={i+"_hidden"} style={{display:this.state.expandClassLayers[j.layerId]}}>
+            <td colSpan={5} style={{fontSize:"small", paddingLeft:50}} >
+              <table>
+                <tr>
+                  <th>Asset Group</th>
+                  <th>Asset Type</th>
+                </tr>
+                {validAG(j, this._layerLookup(j.layerId))}
+              </table>
+            </td>
+          </tr>
+        );
+      });
     });
     let tableObj = <Table hover>
     <thead>
@@ -640,5 +739,51 @@ export default class DomainNetworkCard extends React.Component <IProps, IState> 
     return layerName;
   }
 
+  _sourceIdLookup =(asg:number, ast:number, sourceId:number) => {
+    let layerData = {};
+    let filteredSource = this.state.nodeData.junctionSources.filter((js:any) => {
+      return(js.sourceId === sourceId);
+    });
+    if(filteredSource.length == 0) {
+      filteredSource = this.state.nodeData.edgeSources.filter((es:any) => {
+        return(parseInt(es.sourceId) === sourceId);
+      });        
+    }   
+    if(filteredSource.length > 0) {
+      layerData["layer"] = this._layerLookup(filteredSource[0].layerId);
+      let filteredAG = filteredSource[0].assetGroups.filter((ag:any) => {
+        return (parseInt(ag.assetGroupCode) === asg);
+      });
+      if(filteredAG.length > 0) {
+        layerData["assetgroup"] = filteredAG[0].assetGroupName;        
+      }
+
+      if(filteredAG.length > 0) {
+        let filteredAT = filteredAG[0].assetTypes.filter((at:any) => {
+          return (parseInt(at.assetTypeCode) === ast);
+        });
+        if(filteredAT.length > 0) {
+          layerData["assettype"] = filteredAT[0].assetTypeName;
+        }
+      }
+    }  
+    return layerData;  
+  }
+
+  _terminalLookup = (ter: any) => {
+    let terminalLabel = ter;
+    let filteredDE = this.props.dataElements.filter((de:any) => {
+      return(de.dataElement.hasOwnProperty("terminalConfigurations"));
+    });
+    if(filteredDE.length > 0) {
+      let filteredTC = filteredDE[0].dataElement.terminalConfigurations.filter((tc:any) => {
+        return(tc.terminalConfigurationId === ter);
+      });
+      if(filteredTC.length > 0) {
+        terminalLabel = filteredTC[0].terminalConfigurationName;
+      }
+    } 
+    return terminalLabel; 
+  }
 
 }

@@ -3,10 +3,12 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import esriLookup from './_constants';
+import './css/custom.css';
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -26,6 +28,8 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class IndexesCard extends React.Component <IProps, IState> {
@@ -35,17 +39,15 @@ export default class IndexesCard extends React.Component <IProps, IState> {
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
-  componentWillMount() {
-    console.log(this.props.data);
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
 
@@ -58,14 +60,18 @@ export default class IndexesCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
           <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
           <Table hover>
                 <thead>
@@ -85,7 +91,20 @@ export default class IndexesCard extends React.Component <IProps, IState> {
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -137,22 +156,39 @@ export default class IndexesCard extends React.Component <IProps, IState> {
     });
     return currPos;
   }
-
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
   //****** UI components and UI Interaction
   //********************************************
   _createFList = () => {
     let arrList = [];
       this.props.data.data.map((f: any, i: number) => {
         let fieldList = [];
-        f.fields.fieldArray.map((a: any, z: number) => {
+        let arrFields;
+        if(f.fields.hasOwnProperty("fieldArray")) {
+          arrFields = f.fields.fieldArray;
+        } else {
+          arrFields = f.fields.split(",");
+        }
+        arrFields.map((a: any, z: number) => {
+          let value = (a.hasOwnProperty("name"))?a.name:a;
           fieldList.push(
-            <div key={z} onClick={()=>{this.props.callbackLinkage(a.name,"Field", this.props.panel)}} style={{verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {a.name} </div>
+            <div key={z} onClick={()=>{this.props.callbackLinkage(value,"Field", this.props.panel, this.props.data.parent)}} style={{verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {value} </div>
           );
         });
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(f.name,"Index", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(f.name,"Index", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.name} </div>
             </td>
             <td style={{fontSize:"small"}}>{(f.isAscending)?"True":"False"}</td>
             <td style={{fontSize:"small"}}>{(f.isUnique)?"True":"False"}</td>

@@ -1,0 +1,2735 @@
+{
+"currentVersion": 10.71,
+"cimVersion": "2.4.0",
+"id": 505,
+"name": "Water Assembly",
+"type": "Feature Layer",
+"parentLayer": null,
+"defaultVisibility": true,
+"minScale": 0,
+"maxScale": 0,
+"geometryType": "esriGeometryPoint",
+"description": "Water Assembly",
+"copyrightText": "",
+"editFieldsInfo": {
+"creationDateField": "CREATIONDATE",
+"creatorField": "CREATOR",
+"editDateField": "LASTUPDATE",
+"editorField": "UPDATEDBY"
+},
+"ownershipBasedAccessControlForFeatures": null,
+"syncCanReturnChanges": true,
+"relationships": [],
+"isDataVersioned": true,
+"isDataArchived": true,
+"isDataBranchVersioned": true,
+"isCoGoEnabled": false,
+"supportsRollbackOnFailureParameter": false,
+"archivingInfo": {
+"supportsQueryWithHistoricMoment": true,
+"startArchivingMoment": 1561677265000
+},
+"supportsStatistics": true,
+"supportsAdvancedQueries": true,
+"supportsValidateSQL": true,
+"supportsCoordinatesQuantization": true,
+"supportsCalculate": true,
+"advancedQueryCapabilities": {
+"supportsPagination": true,
+"supportsTrueCurve": true,
+"supportsQueryWithDistance": true,
+"supportsReturningQueryExtent": true,
+"supportsStatistics": true,
+"supportsHavingClause": true,
+"supportsOrderBy": true,
+"supportsDistinct": true,
+"supportsCountDistinct": true,
+"supportsQueryWithResultType": true,
+"supportsReturningGeometryCentroid": false,
+"supportsSqlExpression": true
+},
+"hasMetadata": true,
+"extent": {
+"xmin": 1005976.0636548449,
+"ymin": 1836736.3811813234,
+"xmax": 1057347.1302038457,
+"ymax": 1888874.1801207424,
+"spatialReference": {
+"wkt": "PROJCS[\"NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",984250.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-88.33333333333333],PARAMETER[\"Scale_Factor\",0.999975],PARAMETER[\"Latitude_Of_Origin\",36.66666666666666],UNIT[\"Foot_US\",0.3048006096012192]],VERTCS[\"NAVD88_height_(ftUS)\",VDATUM[\"North_American_Vertical_Datum_1988\"],PARAMETER[\"Vertical_Shift\",0.0],PARAMETER[\"Direction\",1.0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"xyTolerance": 0.003280833333333333,
+"zTolerance": 0.003280833333333333,
+"mTolerance": 0.001,
+"falseX": -17463800,
+"falseY": -46132600,
+"xyUnits": 3048.0060960121928,
+"falseZ": -100000,
+"zUnits": 3048.0060960121923,
+"falseM": -100000,
+"mUnits": 10000
+}
+},
+"heightModelInfo": {
+"heightModel": "gravity_related_height",
+"vertCRS": "NAVD88_height_(ftUS)",
+"heightUnit": "us-foot"
+},
+"sourceSpatialReference": {
+"wkt": "PROJCS[\"NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201\",GEOGCS[\"GCS_North_American_1983_HARN\",DATUM[\"D_North_American_1983_HARN\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",984250.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-88.33333333333333],PARAMETER[\"Scale_Factor\",0.999975],PARAMETER[\"Latitude_Of_Origin\",36.66666666666666],UNIT[\"Foot_US\",0.3048006096012192]],VERTCS[\"NAVD88_height_(ftUS)\",VDATUM[\"North_American_Vertical_Datum_1988\"],PARAMETER[\"Vertical_Shift\",0.0],PARAMETER[\"Direction\",1.0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"xyTolerance": 0.00328083333333333,
+"zTolerance": 0.001,
+"mTolerance": 0.001,
+"falseX": -17463800,
+"falseY": -46132600,
+"xyUnits": 3048.00609601219,
+"falseZ": -100000,
+"zUnits": 10000,
+"falseM": -100000,
+"mUnits": 10000
+},
+"sourceHeightModelInfo": {
+"heightModel": "gravity_related_height",
+"vertCRS": "NAVD88_height_(ftUS)",
+"heightUnit": "us-foot"
+},
+"drawingInfo": {
+"renderer": {
+"type": "uniqueValue",
+"field1": "ASSETGROUP",
+"uniqueValueInfos": [
+{
+"symbol": {
+"type": "esriPMS",
+"url": "0e56fd68254d258989955246de60c791",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB/klEQVQ4jb3VsWviUBwH8C9JnASzSEBHBx2MUOgqIjhIkQ5ZtJNFA6Li6JjVwZ5DBweD4OR4iItOwnOpYgclQ/4Fh4eYQRKyiF1qqafm0rvr/bb3+P4+vAfJ73H4puL+Fxzlef6RZdk7lmUDrgCO0w3DeLFt+xkAvQRHfT5fX1XVG1EUEY1GXZ2MUpoghCSq1er9drt9AKCfwDzPP6qqepPL5VyBxxIEAe89oizLT6ZpZk5glmXvRFG82DwejzGZTGCaJkRRRLFYhNfrPcnkcjmUy+Xb4/ozHLh0/Uqlgm63i2w2C0EQ0Gw20Wq1MJ/PEQwGT7Iej+fDc/wqFosFOp0OVFVFqVQCACiKglgsBkVR0Ov1rvY6wuv1GvF4HPl8/mPP7/cjmUxC0zSnVmdYkiRIknSyt9vtMJvNkEql/hz+tQzDQCaTweFwQKPR+Dfwfr9HOp3GZrPBdDpFIOD8/7iGB4MBlssldF1HKBT6bd41rGkawuEwIpGIq7xruFaroVAouI27h0ejEVarFdrt9tdgjuN0SmlCEISLQUIIhsPhVZhSCoZhzqebYRgvhJDEtSHU7/cdT0gIgWVZr2ewbdvP1Wr1HoD4lQlHKQUhBPV6/edut/txBgOg2+32QZblp3K5fPt5oDgVwzDUsqzXd1S/BAOAfpynf1vf9ua9AXyHvKcezdbPAAAAAElFTkSuQmCC",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "0",
+"label": "Unknown"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "d8b188a47de132a498ff49577af9cd80",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB5ElEQVQ4jb2VoY+jQBjFX4HaokoC/0IRm4yvb66tZd0KEiDoeordM2sHffJUp37Umk1H9k9oSUaAaEqQJ3bhYAttN5e95+Dj+82bN5MPDd8k7X+BJ7quP6mqOlNV1bwLoGn7PM9fy7J8ASC7wJPRaPSLUvpg2zYmk8ldzqSUU875NAzDRZZljwD2LbCu60+U0gfHce4CVjIMAx89tuu6z+fz+UcLrKrqzLbtVpMQAmmadgIJITDNv2k5joMgCEj13ASbn7e/3W4hhIAQAsfjsQZalgXTNEEpbX0/HA5r3tVbEUURAMD3fSRJUoM/A7vUC+6LIE3TVq0Zx13gxWIBIUTrnWVZYIyBMQbg3f1ut/sauEue54EQAt/368z71AIPBoOb8Pl8jsPhUOfe7BmPx7cdM8ZACOkrg1Jau7/puKmuhiiK4HkeACBJEsRx3LtwC9w8iOVyeZFjmqYQQiCO43pHm82mrs9ms25wc+umaV6AGWNYr9fo6+l0rGnaXko5NQwDwHuGfXe5uXglKSUURbmcbnmev3LOp9UQunZwXeKcoyiKtwtwWZYvYRguANhfmXBSSnDOsVqtfp9Op58XYAAyy7JH13WfgyAgzYFyTYqiyKIo3j6g+y4wAOyrefqv+rZ/3h/RiMbExCleJAAAAABJRU5ErkJggg==",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "3",
+"label": "Backflow"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "91616cece612e3dc60afd2fcc7693af9",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB1klEQVQ4jb3UsWvqQBwH8C9JhLgYbgnUf8EMhazilKU+MqdLrBCQkEEy5I+QvqVr9ueUh1NG4RaLUHCSOEnGDDckgxhCprfUYjGxSuv7bsfd78Md9+Mn4EYR/hfckSTpief5B57n7y4CBCHKsuy1KIoXAKwK7rRarT++798rioJOp3PRzRhjPUppz3EcPU3TRwDRJ1iSpCff9+8Nw7gIPESWZbzXKJZlPe/3+1+fYJ7nHxRFuQo9jmEYsG1bPayP4btLn1+XRqPx4VV2RRzHiOP4Y93tdiGK4pd7x6mEgyDAZrMBIQSLxQKTyQSapgEAptMptttt5d6XMABomgbTNOG6LoIgQBiGIIQgiiIMh0P0+324rltXXg8vl0uUZYkkSTAYDDCfz6GqKsqyRBAEWK/XSJLkOng0GmE2mwEAdF2HqqpYrVYQRRGe5yEMQwBAu92u7fdKmBACy7IqCwghME2z9qZn4apU/fyPwNfm9rAgCBFjrCfLcuXBZrN5FmKMgeO40+mWZdkrpbRXN4TG4/FZmFKKPM/fTuCiKF4cx9EBKNdMOMYYKKXwPO/vbrf7fQIDYGmaPlqW9Wzbtno8UM6F4ziW5/nbOxpVwQAQHebpd3OzrvgHa3SyTg6Xl4oAAAAASUVORK5CYII=",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "5",
+"label": "Blow Off"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "93895d8225bf98eb8df4116f228613f3",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABmklEQVQ4jb3UoW6DQBwG8C8ctUWVZLwCiCVXXb/s0MwtKclB0H2A052Z5fTk3uHUzNKTvEBFm5wA0ZQgZ0bTpsBolu1zx8f9wgH52/ij2P8F+47jPBNCHgghd6MA2y6qqvpomuYVgOmC/el0+pbn+X0QBPB9f9STGWMWSqlFlmVhWZZPAIoL2HGc5zzP76MoGgW2cV0X33uCOI7Xx+Px8QImhDwEQXATep4oipCmKW3X5/Dd2OP3ZTKZnLx/+ysAAFJKSCmhtQalFJxzcM5H952wlBJJkpzWWmskSQLP88AYG+x/hLsShiEopdjv9529EGIY1lp3bmyz2+06r2utMZvN+mFKaSdOKcVms8F8Pu/tt9ttP8w5v3iHbdqjDvXL5XIY9jwPQojTVxdCgDE2qu+FAYAxdnXjLf0FbNt2YYxZuK47uKEvxhhYlnU93aqq+lBKLW4dQm2UUqjr+vMKbprmNcuyEEBwC26MgVIKq9Xq/XA4vFzBAExZlk9xHK/TNKXnA2UolmWZuq4/v9GiCwaAop2nv82fTbcvGT66IhriSHUAAAAASUVORK5CYII=",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "6",
+"label": "Meter Station"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "3a5af517d077d129c3d6c0829e1edc15",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAACd0lEQVQ4jb3Vv0vrUBjG8a9JutqtENHZoQGFuCndpT8msd0KBmLp5NBNwWbQwWvR9biIcBEEpyjBRTJIQIRu9k+whQitWlrroN7hWrE2lcrF+25Jzvmck8ObJwo/VMr/gqPhcDgry/K8LMvqUICiVBqNhtfpdHYBPwiOjo6O/hZCTGuaRjQaHWpnvu/HXNeN5fP5ZL1ezwCVHjgcDmeFENPpdHoosFuRSIS3OZphGFutViveA8uyPK9p2kCgVqtRLpcHPk+n0+RyOb17/RFWv3p9VVUpFouBuGmaJBIJQqHQuzewK56fn7Ftm+vra1RVZWFhASEEMzMzPeN0XUcI0Tc/EL6/vyeZTDI1NYVt2ywtLTE7O8vh4SGmabK3t/c+tlgsBm4sEC4UCmSzWQzD4OLigtXVVRYXF8lkMjiO8w53j2Bo2HEc4vE4p6enPDw84DgOkiQRCoW4vb1FCIFlWZimGYgOhF9eXri8vASg1WrheR4jIyM0m00eHx8BqFarjI2NfQ/WdZ1EIsHc3BxnZ2dsbGxwd3fH8fExr6+vWJYFwPLyMrZtDw+XSiVSqRQrKys8PT3heR5ra2tsbm5ycHBAtVoF4OTkhHK5jK7rfUYgPDk5yfn5OTs7O0xMTLC/v8/29jaKovD5y0ylUtzc3AwHA4yPj1MqlXrufe5h+HvWlmWxvr4eDCuKUvF9PxaJRAIXqtVqA3sWwPd9JEnqT7dGo+G5rhsbFEKqqg7sWYCjoyPa7fZVH9zpdHbz+XwS0L6TcL7v47ouhULhuNls/uqDAb9er2cMw9jK5XL6x0D5qiRJ8tvt9tUbWgmCASrdPP3X+rF/3h+W6v7yfO3QRgAAAABJRU5ErkJggg==",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "7",
+"label": "Horizontal Valve"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "bf3f88eca09bc71b989d66fa7b2c6d4c",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAABuUlEQVQ4jdXUMW+jMBgG4FeYrGGLxG+AoZIzZ48ununWASkg5uxhbpeu9nxLpJtwdqYuVTwi5RcEyQMMURBbbilRKCgld+pJ9y4WyH78YZnPxDfF/FewY1nWEyFkTgixBwGmmZVl+VbX9SsA3Qc74/H4J+f8wXVdOI4zqDKt9SxN01kURawoikcAWQu2LOuJc/7ged4gsMlkMsHHGtf3/efT6fSjBRNC5q7r9i7ebrcQQkBKCcYYOOew7fZJeZ6HMAxp83wN232fr5RCEAQ4HA4AACklpJTY7XaglLbmjkaji9d7K5oKG6wZrzOdTsEYw3q97mzQCwshEARB336dNNVzzrFcLr+Gm8Rx3BqvwxgDpRRxHEMIcRvO8xxKqcvzYrEApRRKKUgpL+8ppUiSBHmeI45jKKWQ5/ntivuSJAmUUlBKgVLae6afM/iXHgreDd+b/xg2TTPTWs/+FNJawzCMbncry/Jtv9/PzufzYMy2bTTzN5sNqqp678B1Xb9GUcQAuPd0OK010jTFarX6dTweXzowAF0UxaPv+89hGNLrhnIrhmHoqqreP9CsDwaArOmnf5tvuxW/AVLhvmMlvod9AAAAAElFTkSuQmCC",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "8",
+"label": "Pressure Reducing Station"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "8e1050878772387f987680ce18e9e829",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB6ElEQVQ4jb3Uv2+yQBgH8K/8iHGRjQT+BRmaHLN78worXUwHEiXM7u59l64wv3F6ExNhZ+rS4Oi/cCY3wCAimx3eehGhfTVN+52OO55PuHD3SPimSD8FDxRFeRRF8V4URe0qQJI2eZ6/VFX1DIC1wYN+v/8nCII7wzAwGAyu+jLG2DBJkqHv+1aWZQ8ANjVYUZTHIAjuHMe5CjxFVVW81xiu6z7t9/tfNVgUxXvDMGpFcRx/CGqaBkIIf3YcB57n8YlzWLvcfhiGoJRiu92CUgoA0HUdmqZB13WsVqva+7Isc+/TU3EqtG2bw4SQBtiWHztuPJ1Op/YcBAEAYDqd1taOx+Nt8FfD4aIoYJrmzcB5zeFwaMIAsF6vG4WWZWE0GsGyLD4XxzGiKGrU9Hq9drgtURRhPp9D0/7dcEIIptPpf3fC4W63i/F4zBfCMORj27aRpikopbBtuwZMJhM+XiwWTViWZf7nL2FKKUzTBCGEn+dTzmuWyyWKoqjDkiRtGGNDVVX5li9DKW2dBwDGGARBaHa3PM9fkiQZnppQmqatwEdJkgRlWb424Kqqnn3ftwAYt3Q4xhiSJMFsNvu72+1+N2AALMuyB9d1nzzPI+cN5bMIgsDKsnx9RzdtMABsTv30q/m2K/0GySq7nF9XgEQAAAAASUVORK5CYII=",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "9",
+"label": "Air Vacuum & Air Release"
+},
+{
+"symbol": {
+"type": "esriPMS",
+"url": "2ab1dc6d6873da571c2f48afadff0170",
+"imageData": "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAACXBIWXMAAA7EAAAOxAGVKw4bAAADCklEQVQ4jb3Vv0sjWxTA8e/kTiaSaBIsIotFyoAzxcLW/oCAsGpimUWIQVIkpgqipdjq2mwjGMRC1FQPLKzUwGixgtsISv4AQRCnSCC/TCY/eM3uYDZiFh77Tjdzz/lwz2XuGZm/FPL/BasejycmhPgshPjwR4As54vF4vd6vf4NMN6CVbfbfZTJZD5qmoaqqn+0M8MwJnRdn0ilUqFCofAFyHfBHo8nlslkPkYiEauoXq+zvb3NyckJDw8PSJJEIBAgHA6TTqdxOBz4fD5+1mjxePxrtVqd7YKFEJ81TevazcDAAC8vL9ze3lrvrq+vmZ+fx+FwdOVGIhGSyeSnnqMQQnx4q31VVbHb7TSbTQCcTider5dOp4PNZuvKtdvtltfzVZimiaIomKbJ0tIS2WyWWCzG9PQ05XKZTCZDIpHg6uqK4+NjOp0OlUoFt9vd5fTAe3t7GIZBqVQim80CMDIywsLCAqZpsru7C0A2myUUCpHL5RgbG2NlZeV9+PT0lLOzM4QQjI+Po2kam5ubACiKgq7rBINBhBBEo1FarRaTk5P94Xw+D0C73ebo6IjR0VEkSbLWvV4vNzc37O/vk0wmAbi/v/+def/mDQ0NIYToLZJlPB6P9dxut/vDqqry+PiI2+1ma2sLv9/P8vKytd7pdFhbW+P5+ZnBwUEqlQqBQKA/HA6HmZmZYXh4mGg0iqIoKIpCPB6n0WgwNzdHLpcDYGdnh0qlgmma/eFEImG1f35+zuHhIU9PT5RKJVqtFkIIJEliY2ODVCoFQKPR6A+/PtODgwNmZ2dZXFxkfX0dAJfLxcXFBcFg0Mr7/RZ2wbIs5w3DmPD5fNaiJElcXl52tVqtVntgAMMwsNlsvdOtWCx+13V94vUQqlarBAIBpqamuLu7o9ls4vf7kWWZWq2G0+m0cnVdp1ar/eiB6/X6t1QqFQK0X7jL5SKdTpNOp3tafb1TXddZXV39p1wub/fAgFEoFL7E4/GvyWTy0+uB8l7YbDajVqv9+Inm34IB8r/m6X+Nv/bP+xfZECq9uBDAqAAAAABJRU5ErkJggg==",
+"contentType": "image/png",
+"width": 16,
+"height": 16,
+"angle": 0,
+"xoffset": 0,
+"yoffset": 0
+},
+"value": "10",
+"label": "Hydrant"
+}
+],
+"fieldDelimiter": ",",
+"authoringInfo": {
+"colorRamp": {
+"type": "multipart",
+"colorRamps": [
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+194,
+247,
+252,
+255
+],
+"toColor": [
+194,
+247,
+252,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+252,
+187,
+245,
+255
+],
+"toColor": [
+252,
+187,
+245,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+246,
+252,
+179,
+255
+],
+"toColor": [
+246,
+252,
+179,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+252,
+208,
+194,
+255
+],
+"toColor": [
+252,
+208,
+194,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+179,
+184,
+252,
+255
+],
+"toColor": [
+179,
+184,
+252,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+182,
+252,
+199,
+255
+],
+"toColor": [
+182,
+252,
+199,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+194,
+217,
+252,
+255
+],
+"toColor": [
+194,
+217,
+252,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+252,
+215,
+240,
+255
+],
+"toColor": [
+252,
+215,
+240,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+230,
+252,
+215,
+255
+],
+"toColor": [
+230,
+252,
+215,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+252,
+179,
+189,
+255
+],
+"toColor": [
+252,
+179,
+189,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+252,
+231,
+192,
+255
+],
+"toColor": [
+252,
+231,
+192,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+222,
+179,
+252,
+255
+],
+"toColor": [
+222,
+179,
+252,
+255
+]
+},
+{
+"type": "algorithmic",
+"algorithm": "esriCIELabAlgorithm",
+"fromColor": [
+202,
+252,
+232,
+255
+],
+"toColor": [
+202,
+252,
+232,
+255
+]
+}
+]
+}
+}
+},
+"scaleSymbols": true,
+"transparency": 0,
+"labelingInfo": null
+},
+"hasM": true,
+"hasZ": true,
+"enableZDefaults": true,
+"zDefault": 0,
+"supportsVCSProjection": true,
+"allowUpdateWithoutMValues": true,
+"allowGeometryUpdates": true,
+"allowTrueCurvesUpdates": true,
+"onlyAllowTrueCurveUpdatesByTrueCurveClients": true,
+"hasAttachments": false,
+"supportsApplyEditsWithGlobalIds": true,
+"supportsOidReservation": true,
+"htmlPopupType": "esriServerHTMLPopupTypeAsHTMLText",
+"objectIdField": "objectid",
+"globalIdField": "globalid",
+"displayField": "ASSETGROUP",
+"typeIdField": "assetgroup",
+"subtypeField": "ASSETGROUP",
+"defaultSubtypeCode": 0,
+"fields": [
+{
+"name": "objectid",
+"type": "esriFieldTypeOID",
+"alias": "Object ID",
+"domain": null,
+"editable": false,
+"nullable": false,
+"defaultValue": null,
+"modelName": "objectid"
+},
+{
+"name": "assetgroup",
+"type": "esriFieldTypeInteger",
+"alias": "Asset group",
+"domain": null,
+"editable": true,
+"nullable": false,
+"defaultValue": 0,
+"modelName": "assetgroup"
+},
+{
+"name": "assettype",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Asset type",
+"domain": null,
+"editable": true,
+"nullable": false,
+"defaultValue": 0,
+"modelName": "assettype"
+},
+{
+"name": "associationstatus",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Association status",
+"domain": {
+"type": "codedValue",
+"name": "Water_8_AssociationStatus",
+"description": "Indicates how the feature participates in associations.",
+"codedValues": [
+{
+"name": "None",
+"code": 0
+},
+{
+"name": "Container",
+"code": 1
+},
+{
+"name": "Structure",
+"code": 2
+},
+{
+"name": "Content",
+"code": 4
+},
+{
+"name": "Content and Container",
+"code": 5
+},
+{
+"name": "Content and Structure",
+"code": 6
+},
+{
+"name": "Attachment",
+"code": 8
+},
+{
+"name": "Attachment and Container",
+"code": 9
+},
+{
+"name": "Attachment and Content",
+"code": 12
+},
+{
+"name": "Attachment and Content and Container",
+"code": 13
+},
+{
+"name": "Visible Content",
+"code": 16
+},
+{
+"name": "Visible Content and Container",
+"code": 17
+},
+{
+"name": "Visible Content and Structure",
+"code": 18
+},
+{
+"name": "Visible Content and Attachment",
+"code": 24
+},
+{
+"name": "Visible Content and Attachment and Container",
+"code": 25
+},
+{
+"name": "Connectivity",
+"code": 32
+},
+{
+"name": "Connectivity and Content",
+"code": 36
+},
+{
+"name": "Connectivity and Attachment",
+"code": 40
+},
+{
+"name": "Connectivity and Attachment and Content",
+"code": 44
+},
+{
+"name": "Connectivity and Visible Content",
+"code": 48
+},
+{
+"name": "Connectivity and Visible Content and Attachment",
+"code": 56
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"editable": false,
+"nullable": false,
+"defaultValue": 0,
+"modelName": "associationstatus"
+},
+{
+"name": "creationdate",
+"type": "esriFieldTypeDate",
+"alias": "Creation date",
+"domain": null,
+"editable": false,
+"nullable": true,
+"length": 8,
+"defaultValue": null,
+"modelName": "creationdate"
+},
+{
+"name": "creator",
+"type": "esriFieldTypeString",
+"alias": "Creator",
+"domain": null,
+"editable": false,
+"nullable": true,
+"length": 255,
+"defaultValue": null,
+"modelName": "creator"
+},
+{
+"name": "lastupdate",
+"type": "esriFieldTypeDate",
+"alias": "Last update",
+"domain": null,
+"editable": false,
+"nullable": true,
+"length": 8,
+"defaultValue": null,
+"modelName": "lastupdate"
+},
+{
+"name": "updatedby",
+"type": "esriFieldTypeString",
+"alias": "Updated by",
+"domain": null,
+"editable": false,
+"nullable": true,
+"length": 255,
+"defaultValue": null,
+"modelName": "updatedby"
+},
+{
+"name": "globalid",
+"type": "esriFieldTypeGlobalID",
+"alias": "Global ID",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 38,
+"defaultValue": null,
+"modelName": "globalid"
+},
+{
+"name": "installdate",
+"type": "esriFieldTypeDate",
+"alias": "Install Date",
+"domain": null,
+"editable": true,
+"nullable": true,
+"length": 8,
+"defaultValue": null,
+"modelName": "installdate"
+},
+{
+"name": "assetid",
+"type": "esriFieldTypeString",
+"alias": "Asset ID",
+"domain": null,
+"editable": true,
+"nullable": true,
+"length": 64,
+"defaultValue": null,
+"modelName": "assetid"
+},
+{
+"name": "notes",
+"type": "esriFieldTypeString",
+"alias": "Notes",
+"domain": null,
+"editable": true,
+"nullable": true,
+"length": 2000,
+"defaultValue": null,
+"modelName": "notes"
+},
+{
+"name": "locked",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Locked",
+"domain": null,
+"editable": true,
+"nullable": true,
+"defaultValue": null,
+"modelName": "locked"
+},
+{
+"name": "symbolrotation",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Symbol Rotation",
+"domain": {
+"type": "range",
+"name": "8_Symbol_Rotation",
+"description": "Valid rotation values",
+"range": [
+0,
+359
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"editable": true,
+"nullable": true,
+"defaultValue": 0,
+"modelName": "symbolrotation"
+},
+{
+"name": "lifecyclestatus",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Lifecycle Status",
+"domain": {
+"type": "codedValue",
+"name": "8_Lifecycle_Combined",
+"description": "Bitwise combination of lifecycle states for subnetwork management",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Proposed and Approved",
+"code": 3
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "Approved and Under Construction",
+"code": 6
+},
+{
+"name": "Proposed, Approved and Under Construction",
+"code": 7
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "In Service and Under Construction",
+"code": 12
+},
+{
+"name": "In Service, Under Construction, and Approved",
+"code": 14
+},
+{
+"name": "In Service, Under Construction, Approved and Proposed",
+"code": 15
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "In Service and To Be Retired",
+"code": 24
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"editable": true,
+"nullable": false,
+"defaultValue": 0,
+"modelName": "lifecyclestatus"
+},
+{
+"name": "inservicedate",
+"type": "esriFieldTypeDate",
+"alias": "In-Service Date",
+"domain": null,
+"editable": true,
+"nullable": true,
+"length": 8,
+"defaultValue": null,
+"modelName": "inservicedate"
+},
+{
+"name": "retireddate",
+"type": "esriFieldTypeDate",
+"alias": "Retired Date",
+"domain": null,
+"editable": true,
+"nullable": true,
+"length": 8,
+"defaultValue": null,
+"modelName": "retireddate"
+},
+{
+"name": "spatialsource",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Spatial Source",
+"domain": {
+"type": "codedValue",
+"name": "8_Spatial_Source",
+"description": "Source of the data",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "As-Built",
+"code": 1
+},
+{
+"name": "CAD",
+"code": 2
+},
+{
+"name": "Digitized",
+"code": 3
+},
+{
+"name": "GPS/GNSS",
+"code": 4
+},
+{
+"name": "Field Sketch",
+"code": 5
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"editable": true,
+"nullable": true,
+"defaultValue": null,
+"modelName": "spatialsource"
+},
+{
+"name": "spatialconfidence",
+"type": "esriFieldTypeSmallInteger",
+"alias": "Spatial Confidence",
+"domain": {
+"type": "codedValue",
+"name": "8_Spatial_Confidence",
+"description": "Confidence values for the data",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "High",
+"code": 1
+},
+{
+"name": "Medium",
+"code": 2
+},
+{
+"name": "Low",
+"code": 3
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"editable": true,
+"nullable": true,
+"defaultValue": null,
+"modelName": "spatialconfidence"
+},
+{
+"name": "cpsubnetworkname",
+"type": "esriFieldTypeString",
+"alias": "cpsubnetworkname",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 2000,
+"defaultValue": "Unknown",
+"modelName": "cpsubnetworkname"
+},
+{
+"name": "systemsubnetworkname",
+"type": "esriFieldTypeString",
+"alias": "systemsubnetworkname",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 2000,
+"defaultValue": "Unknown",
+"modelName": "SystemSubnetworkName"
+},
+{
+"name": "pressuresubnetworkname",
+"type": "esriFieldTypeString",
+"alias": "pressuresubnetworkname",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 2000,
+"defaultValue": "Unknown",
+"modelName": "PressureSubnetworkName"
+},
+{
+"name": "isolationsubnetworkname",
+"type": "esriFieldTypeString",
+"alias": "isolationsubnetworkname",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 2000,
+"defaultValue": "Unknown",
+"modelName": "IsolationSubnetworkName"
+},
+{
+"name": "dmasubnetworkname",
+"type": "esriFieldTypeString",
+"alias": "dmasubnetworkname",
+"domain": null,
+"editable": false,
+"nullable": false,
+"length": 2000,
+"defaultValue": "Unknown",
+"modelName": "DMASubnetworkName"
+}
+],
+"geometryField": {
+"name": "shape",
+"type": "esriFieldTypeGeometry",
+"alias": "Shape",
+"domain": null,
+"editable": true,
+"nullable": false,
+"defaultValue": null,
+"modelName": "shape"
+},
+"indexes": [
+{
+"name": "gdb_49_assetgrou",
+"fields": "assetgroup",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_assettype",
+"fields": "assettype",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_cpsubnetw",
+"fields": "cpsubnetworkname",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_dmasubnet",
+"fields": "dmasubnetworkname",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_isolation",
+"fields": "isolationsubnetworkname",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_pressures",
+"fields": "pressuresubnetworkname",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "gdb_49_systemsub",
+"fields": "systemsubnetworkname",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "r49_sde_rowid_uk",
+"fields": "objectid",
+"isAscending": true,
+"isUnique": false,
+"description": ""
+},
+{
+"name": "uuid_49",
+"fields": "globalid",
+"isAscending": true,
+"isUnique": true,
+"description": ""
+},
+{
+"name": "a21_ix1",
+"fields": "shape",
+"isAscending": true,
+"isUnique": true,
+"description": ""
+}
+],
+"dateFieldsTimeReference": {
+"timeZone": "UTC",
+"respectsDaylightSaving": false
+},
+"types": [
+{
+"id": 0,
+"name": "Unknown",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "Water_8_UnknownAssetType",
+"description": "The AssetType domain for the Unknown AssetGroup.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDefaultValue"
+},
+"associationstatus": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Unknown",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": null,
+"assetgroup": 0,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": null,
+"spatialsource": null,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 3,
+"name": "Backflow",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Backflow",
+"description": "The Asset Types for the Water Assembly's Asset Group Backflow",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Double Check Detector",
+"code": 1
+},
+{
+"name": "Double Check Valve",
+"code": 2
+},
+{
+"name": "Reduced Pressure Detector",
+"code": 3
+},
+{
+"name": "Reduced Pressure Zone",
+"code": 4
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"locked": {
+"type": "codedValue",
+"name": "8_Yes_No",
+"description": "Valid Yes, No values",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Yes",
+"code": 1
+},
+{
+"name": "No",
+"code": 2
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Backflow",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": 0,
+"symbolrotation": 0,
+"assetgroup": 3,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 5,
+"name": "Blow Off",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Blow_Off",
+"description": "The Asset Types for the Water Assembly's Asset Group Blow Off",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Automatic",
+"code": 41
+},
+{
+"name": "Manual",
+"code": 42
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Blow Off",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": 0,
+"assetgroup": 5,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 6,
+"name": "Meter Station",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Meter_Station",
+"description": "The Asset Types for the Water Assembly's Asset Group Meter Station",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Meter Station",
+"code": 81
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Meter Station",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": 0,
+"assetgroup": 6,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 7,
+"name": "Horizontal Valve",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Horizontal_Valve",
+"description": "The Asset Types for the Water Assembly's Asset Group Horizontal Valve",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Operator Nut",
+"code": 121
+},
+{
+"name": "Operator Nut and Bypass Valve",
+"code": 122
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Horizontal Valve",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": 0,
+"assetgroup": 7,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 8,
+"name": "Pressure Reducing Station",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Pressure_Reducing_Station",
+"description": "The Asset Types for the Water Assembly's Asset Group Pressure Reducing Station",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Pressure Reducing Station",
+"code": 161
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Pressure Reducing Station",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": 0,
+"assetgroup": 8,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 9,
+"name": "Air Vacuum & Air Release",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Air_Vacuum_&_Air_Release",
+"description": "The Asset Types for the Water Assembly's Asset Group Air Vacuum & Air Release",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Air Vacuum & Air Release",
+"code": 201
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Air Vacuum & Air Release",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": 0,
+"assetgroup": 9,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+},
+{
+"id": 10,
+"name": "Hydrant",
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Hydrant",
+"description": "The Asset Types for the Water Assembly's Asset Group Hydrant",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Fire Hydrant",
+"code": 241
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+},
+"templates": [
+{
+"name": "Hydrant",
+"description": "",
+"prototype": {
+"attributes": {
+"locked": null,
+"symbolrotation": null,
+"assetgroup": 10,
+"assettype": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"spatialconfidence": 0,
+"spatialsource": 0,
+"retireddate": null,
+"notes": null,
+"installdate": null,
+"assetid": null
+}
+},
+"drawingTool": "esriFeatureEditToolPoint"
+}
+]
+}
+],
+"templates": [],
+"subtypes": [
+{
+"code": 0,
+"name": "Unknown",
+"defaultValues": {
+"assetgroup": 0,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": null,
+"lifecyclestatus": null,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": null,
+"spatialconfidence": null,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "Water_8_UnknownAssetType",
+"description": "The AssetType domain for the Unknown AssetGroup.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDefaultValue"
+},
+"associationstatus": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 3,
+"name": "Backflow",
+"defaultValues": {
+"assetgroup": 3,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": 0,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Backflow",
+"description": "The Asset Types for the Water Assembly's Asset Group Backflow",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Double Check Detector",
+"code": 1
+},
+{
+"name": "Double Check Valve",
+"code": 2
+},
+{
+"name": "Reduced Pressure Detector",
+"code": 3
+},
+{
+"name": "Reduced Pressure Zone",
+"code": 4
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"locked": {
+"type": "codedValue",
+"name": "8_Yes_No",
+"description": "Valid Yes, No values",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Yes",
+"code": 1
+},
+{
+"name": "No",
+"code": 2
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 5,
+"name": "Blow Off",
+"defaultValues": {
+"assetgroup": 5,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Blow_Off",
+"description": "The Asset Types for the Water Assembly's Asset Group Blow Off",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Automatic",
+"code": 41
+},
+{
+"name": "Manual",
+"code": 42
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 6,
+"name": "Meter Station",
+"defaultValues": {
+"assetgroup": 6,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Meter_Station",
+"description": "The Asset Types for the Water Assembly's Asset Group Meter Station",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Meter Station",
+"code": 81
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 7,
+"name": "Horizontal Valve",
+"defaultValues": {
+"assetgroup": 7,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Horizontal_Valve",
+"description": "The Asset Types for the Water Assembly's Asset Group Horizontal Valve",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Operator Nut",
+"code": 121
+},
+{
+"name": "Operator Nut and Bypass Valve",
+"code": 122
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 8,
+"name": "Pressure Reducing Station",
+"defaultValues": {
+"assetgroup": 8,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Pressure_Reducing_Station",
+"description": "The Asset Types for the Water Assembly's Asset Group Pressure Reducing Station",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Pressure Reducing Station",
+"code": 161
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 9,
+"name": "Air Vacuum & Air Release",
+"defaultValues": {
+"assetgroup": 9,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": 0,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Air_Vacuum_&_Air_Release",
+"description": "The Asset Types for the Water Assembly's Asset Group Air Vacuum & Air Release",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Air Vacuum & Air Release",
+"code": 201
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+},
+{
+"code": 10,
+"name": "Hydrant",
+"defaultValues": {
+"assetgroup": 10,
+"assettype": 0,
+"associationstatus": 0,
+"creationdate": null,
+"creator": null,
+"lastupdate": null,
+"updatedby": null,
+"globalid": null,
+"installdate": null,
+"assetid": null,
+"notes": null,
+"locked": null,
+"symbolrotation": null,
+"lifecyclestatus": 0,
+"inservicedate": null,
+"retireddate": null,
+"spatialsource": 0,
+"spatialconfidence": 0,
+"cpsubnetworkname": "Unknown",
+"systemsubnetworkname": "Unknown",
+"pressuresubnetworkname": "Unknown",
+"isolationsubnetworkname": "Unknown",
+"dmasubnetworkname": "Unknown"
+},
+"domains": {
+"assettype": {
+"type": "codedValue",
+"name": "8_Asset_Type_Water_Assembly_Hydrant",
+"description": "The Asset Types for the Water Assembly's Asset Group Hydrant",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Fire Hydrant",
+"code": 241
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"associationstatus": {
+"type": "inherited"
+},
+"symbolrotation": {
+"type": "inherited"
+},
+"lifecyclestatus": {
+"type": "codedValue",
+"name": "8_Lifecycle_Status",
+"description": "Valid lifecycle states for the assets.",
+"codedValues": [
+{
+"name": "Unknown",
+"code": 0
+},
+{
+"name": "Proposed",
+"code": 1
+},
+{
+"name": "Approved",
+"code": 2
+},
+{
+"name": "Under Construction",
+"code": 4
+},
+{
+"name": "In Service",
+"code": 8
+},
+{
+"name": "To Be Retired",
+"code": 16
+},
+{
+"name": "Abandoned",
+"code": 32
+},
+{
+"name": "Retired",
+"code": 64
+},
+{
+"name": "Removed",
+"code": 128
+},
+{
+"name": "Out of Service",
+"code": 256
+}
+],
+"mergePolicy": "esriMPTDefaultValue",
+"splitPolicy": "esriSPTDuplicate"
+},
+"spatialsource": {
+"type": "inherited"
+},
+"spatialconfidence": {
+"type": "inherited"
+}
+}
+}
+],
+"maxRecordCount": 2000,
+"supportedQueryFormats": "JSON, geoJSON, PBF",
+"capabilities": "Query,Create,Update,Delete,Uploads,Editing,ChangeTracking",
+"useStandardizedQueries": true,
+"standardMaxRecordCount": 32000,
+"tileMaxRecordCount": 8000,
+"maxRecordCountFactor": 1
+}

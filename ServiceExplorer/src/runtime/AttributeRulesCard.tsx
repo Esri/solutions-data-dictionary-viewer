@@ -3,9 +3,11 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Icon, Table} from 'jimu-ui';
+import {Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import './css/custom.css';
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -25,6 +27,7 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
+  minimizedDetails: boolean
 }
 
 export default class AttributeRulesCard extends React.Component <IProps, IState> {
@@ -34,12 +37,12 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
+      minimizedDetails: false
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
   }
 
   componentDidMount() {
@@ -57,14 +60,18 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
+      {
+        (this.state.minimizedDetails)?""
+        :
       <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type}</h4></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
           <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
           <Table hover>
                 <thead>
@@ -84,7 +91,20 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -136,6 +156,17 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
     });
     return currPos;
   }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
 
   //****** UI components and UI Interaction
   //********************************************
@@ -145,11 +176,11 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
         arrList.push(
           <tr key={i}>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(ar.name,"AttributeRule", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
+            <div onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
             </td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>
+            <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>
             </td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>

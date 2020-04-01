@@ -3,11 +3,14 @@ import { React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane, Collapse, Icon, Table} from 'jimu-ui';
+import {Collapse, Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
+import './css/custom.css';
+import esriLookup from './_constants';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -35,7 +38,9 @@ interface IState {
   fieldHolder: any,
   expandFields: boolean,
   expandSubtype: boolean,
-  expandAR: boolean
+  expandAR: boolean,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class DomainCard extends React.Component <IProps, IState> {
@@ -52,14 +57,14 @@ export default class DomainCard extends React.Component <IProps, IState> {
       fieldHolder: [],
       expandFields: true,
       expandSubtype: false,
-      expandAR: false
+      expandAR: false,
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
-  componentWillMount() {
-    console.log(this.props.data);
-  }
+  componentWillMount() {}
 
   componentDidMount() {
     //this._processData();
@@ -78,18 +83,22 @@ export default class DomainCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+      :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.props.data.data.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{this.props.data.data.description}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Field Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.fieldType}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Type: <span style={{fontWeight:"bold"}}>{this.props.data.data.type}</span></div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.props.data.data.description}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Type:</span> {this.state.esriValueList.lookupValue(this.props.data.data.fieldType)}</div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>{this._typeLookup(this.props.data.data.type)}</span></div>
           {(this.props.data.data.type === "range")?
             <Collapse isOpen={this.state.expandFields}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
@@ -124,12 +133,13 @@ export default class DomainCard extends React.Component <IProps, IState> {
             </div>
             </Collapse>
           }
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}This domain is used in: </div>
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandSubtype();}}>{(this.state.expandSubtype)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />}<span style={{fontWeight:"bold"}}> This domain is used in </span></div>
           <Collapse isOpen={this.state.expandSubtype}>
             <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
                 <Table hover>
                   <thead>
                   <tr>
+                    <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Subtype</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Field</th>
                   </tr>
@@ -145,7 +155,20 @@ export default class DomainCard extends React.Component <IProps, IState> {
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -196,6 +219,17 @@ export default class DomainCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
 
   //****** UI components and UI Interaction
@@ -255,9 +289,10 @@ export default class DomainCard extends React.Component <IProps, IState> {
           st.fieldInfos.map((fi: any, a: number)=>{
             if(fi.domainName === this.props.data.text) {
               arrList.push(
-                <tr key={i}>
-                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
-                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
+                <tr key={st.subtypeName + fi.fieldName}>
+                <td><div onClick={()=>{this.props.callbackLinkage(de.dataElement.aliasName,"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {de.dataElement.aliasName}</div></td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(st.subtypeName,"Subtype", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {st.subtypeName}</div></td>
+                  <td><div onClick={()=>{this.props.callbackLinkage(fi.fieldName,"Field", this.props.panel, de.dataElement.aliasName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.fieldName}</div></td>
                 </tr>
               );
             }
@@ -281,6 +316,24 @@ export default class DomainCard extends React.Component <IProps, IState> {
       }
       return comparison;
     }
+  }
+
+  _typeLookup =(type:string) => {
+    let returnType = type;
+    switch(type) {
+      case "codedValue": {
+        returnType = "Coded Value";
+        break;
+      }
+      case "range": {
+        returnType = "Range";
+        break;
+      }
+      default: {
+        returnType = type
+      }
+    }
+    return returnType;
   }
 
 

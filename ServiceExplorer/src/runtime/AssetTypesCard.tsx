@@ -2,17 +2,16 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {jsx} from 'jimu-core';
 import {IMConfig} from '../config';
+
 import {Icon, Table} from 'jimu-ui';
 import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-import esriLookup from './_constants';
 import './css/custom.css';
 let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
   requestURL: string,
-  key: any,
   panel:number,
   callbackClose: any,
   callbackSave: any,
@@ -27,19 +26,17 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
-  minimizedDetails: boolean,
-  esriValueList: any
+  minimizedDetails: boolean
 }
 
-export default class LayersCard extends React.Component <IProps, IState> {
+export default class SubTypesCard extends React.Component <IProps, IState> {
   constructor(props: IProps){
     super(props);
 
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
-      minimizedDetails: false,
-      esriValueList: new esriLookup()
+      minimizedDetails: false
     };
 
   }
@@ -48,14 +45,7 @@ export default class LayersCard extends React.Component <IProps, IState> {
   }
 
   componentDidMount() {
-    //this._processData();
   }
-
-  componentWillReceiveProps(){
-    this.setState({ state: this.state });
-  }
-
-  componentDidUpdate() {}
 
   render(){
 
@@ -77,32 +67,29 @@ export default class LayersCard extends React.Component <IProps, IState> {
         (this.state.minimizedDetails)?""
         :
         <TabContent activeTab={this.state.activeTab}>
-          <TabPane tabId="Properties">
-          <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
-            <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-            <Table hover>
-                  <thead>
-                  <tr>
-                    <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
-                    <th style={{fontSize:"small", fontWeight:"bold"}}>ID</th>
-                    <th style={{fontSize:"small", fontWeight:"bold"}}>Type</th>
-                    <th style={{fontSize:"small", fontWeight:"bold"}}>Geometry</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                    {this._createSTList()}
-                  </tbody>
-            </Table>
-            </div>
-            <div style={{paddingBottom: 15}}></div>
+        <TabPane tabId="Properties">
+        <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>{this.props.data.type}</span></div>
+          <div style={{paddingRight:2, minHeight: 100, maxHeight:500, overflow:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+          <Table hover>
+                <thead>
+                <tr>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Code</th>
+                </tr>
+                </thead>
+                <tbody>
+                  {this._createSTList()}
+                </tbody>
+          </Table>
           </div>
-          </TabPane>
-        </TabContent>
+          <div style={{paddingBottom: 15}}></div>
+        </div>
+        </TabPane>
+      </TabContent>
       }
     </div>);
   }
-
   //**** breadCrumb */
   buildCrumb =() => {
     let list = [];
@@ -175,29 +162,20 @@ export default class LayersCard extends React.Component <IProps, IState> {
     }
     return currState;
   }
+
   //****** UI components and UI Interaction
   //********************************************
   _createSTList = () => {
     let arrList = [];
-      this.props.data.data.map((ar: any, i: number) => {
-        if(ar.name.indexOf("Errors") === -1) {
-          if(ar.name !== "Dirty Areas") {
-            let type = "Layer";
-            if(ar.type === "Utility Network Layer") {
-              type = "Utility Network";
-            }
-            arrList.push(
-              <tr key={i}>
-                <td style={{fontSize:"small"}}>
-                <div onClick={()=>{this.props.callbackLinkage(ar.name,type,this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
-                </td>
-                <td style={{fontSize:"small"}}>{ar.id}</td>
-                <td style={{fontSize:"small"}}>{ar.type}</td>
-                <td style={{fontSize:"small"}}>{(ar.hasOwnProperty("geometryType"))?this.state.esriValueList.lookupValue(ar.geometryType):""}</td>
-              </tr>
-            );
-          }
-        }
+    this.state.nodeData.map((ar: any, i: number) => {
+        arrList.push(
+          <tr key={i}>
+            <td style={{fontSize:"small"}}>
+            <div onClick={()=>{this.props.callbackLinkage(ar.data.assetTypeName,"Assettype", this.props.panel, this.props.data.parent, this.props.data.subtypes.subtypeName)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.assetTypeName} </div>
+            </td>
+            <td style={{fontSize:"small"}}>{ar.data.assetTypeCode}</td>
+          </tr>
+        );
       });
     return arrList;
   }

@@ -2,10 +2,11 @@
 import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
-
-import { TabContent, TabPane, Icon} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+import esriLookup from './_constants';
+import './css/custom.css';
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
@@ -25,6 +26,8 @@ interface IProps {
 interface IState {
   nodeData: any,
   activeTab: string,
+  minimizedDetails: boolean,
+  esriValueList: any
 }
 
 export default class AttributeRuleCard extends React.Component <IProps, IState> {
@@ -33,18 +36,16 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
 
     this.state = {
       nodeData: this.props.data.data,
-      activeTab: 'Properties'
+      activeTab: 'Properties',
+      minimizedDetails: false,
+      esriValueList: new esriLookup()
     };
 
   }
 
-  componentWillMount() {
-    console.log(this.props.data);
-  }
+  componentWillMount() {}
 
-  componentDidMount() {
-    //this._processData();
-  }
+  componentDidMount() {}
 
   render(){
 
@@ -57,29 +58,52 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.name}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Description: <span style={{fontWeight:"bold"}}>{this.state.nodeData.description}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>This rule works on: <span style={{fontWeight:"bold"}}>{this._matchCodeToDesc(this.state.nodeData.subtypeCode)}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>This rule is set on: <span style={{fontWeight:"bold"}}>{this.state.nodeData.fieldName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>This rule is triggered on: <span style={{fontWeight:"bold"}}>{this.state.nodeData.triggeringEvents.join()}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>This rule type is: <span style={{fontWeight:"bold"}}>{this.state.nodeData.type}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Can this rule be batched: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.batch)? "True" : "False"}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Priority: <span style={{fontWeight:"bold"}}>{this.state.nodeData.evaluationOrder}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Script:</div>
+          <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.state.nodeData.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.state.nodeData.description}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule works on:</span> {this._matchCodeToDesc(this.state.nodeData.subtypeCode)}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule is set on:</span> {this.state.nodeData.fieldName}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule is triggered on:</span> {this._splitTiggerRules(this.state.nodeData.triggeringEvents)}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule type is:</span> {this.state.esriValueList.lookupValue(this.state.nodeData.type)}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>This rule is batched:</span> {(this.state.nodeData.batch)? "True" : "False"}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Priority:</span> {this.state.nodeData.evaluationOrder}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>References External Services:</span> {(this.state.nodeData.referencesExternalService)? "True" : "False"}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Script</span></div>
           <div style={{overflowY:"auto", paddingBottom:5, paddingLeft:5, paddingRight:5, paddingTop:5, backgroundColor: "#e1e1e1", borderWidth:2, borderStyle:"solid", borderColor:"#000"}} dangerouslySetInnerHTML={this._processCodeBlock(this.state.nodeData.scriptExpression)}></div>
+          {
+            (this.state.nodeData.errorMessage !== "\"\"")?
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Error Message:</span> {"Code "+ this.state.nodeData.errorNumber}</div>
+            :
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Error Message:</span> {"Code "+ this.state.nodeData.errorNumber + ": " + this.state.nodeData.errorMessage}</div>
+          }
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -131,6 +155,17 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
     });
     return currPos;
   }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
+  }
 
   //****** UI components and UI Interaction
   //********************************************
@@ -164,6 +199,14 @@ export default class AttributeRuleCard extends React.Component <IProps, IState> 
       message = "Sorry, no matching type";
     }
     return message;
+  }
+
+  _splitTiggerRules =(rules:any) => {
+    let list = [];
+    rules.map((r:any) => {
+      list.push(this.state.esriValueList.lookupValue(r));
+    });
+    return list.join();
   }
 
 

@@ -8,12 +8,16 @@ import { any } from 'prop-types';
 import './css/custom.css';
 
 let undoIcon = require('jimu-ui/lib/icons/undo.svg');
+let refreshIcon = require('jimu-ui/lib/icons/sync.svg');
 
 interface IProps {
   data: any,
   domains: any,
   requestURL: string,
-  fieldGroups: any
+  fieldGroups: any,
+  config:any,
+  cacheData:any,
+  assetType:any
 }
 
 interface IState {
@@ -55,43 +59,92 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
   }
 
   render(){
-
     return (
     <div style={{width:"100%", backgroundColor: "#fff", float:"left", display:"inline-block"}}>
+      {(this.state.allCAV.length > 0)?
         <div style={{ paddingLeft:10, paddingRight:10, paddingTop: 10}}>
           <div>{this._createCAVTables()}</div>
         </div>
+        :
+        <div style={{ paddingLeft:10, paddingRight:10, paddingTop: 10}}>
+          <div>No Contigent Attribute Values</div>
+        </div>
+      }
     </div>);
   }
 
   _requestObject = async() => {
-    let url = this.props.requestURL + "/queryContingentValues?layers="+this.props.data.parentId+"&f=pjson";
-    fetch(url, {
-      method: 'GET'
-    })
-    .then((response) => {return response.json()})
-    .then((data) => {
+    if(this.props.config.useCache) {
+      let data  = this.props.cacheData.contingentValues;
       if(data.hasOwnProperty("contingentValueSets")) {
         let filterbyLayer = data.contingentValueSets.filter((cvs: any) => {
           return (cvs.layerId === this.props.data.parentId);
         });
-        this.setState({allCAV: filterbyLayer},() => {
-          this._filterCurrentCAV();
-        });
+        if(filterbyLayer.length > 0) {
+          let isValid = false;
+          if(this.props.assetType !== "") {
+            let fieldgrps = filterbyLayer[0].fieldGroups;
+            fieldgrps.map((fg:any) => {
+              let validCont = fg.contingencies.filter((c:any) => {
+                return c.subtypeCode === this.props.data.data.subtypeCode;
+              });
+              if(validCont.length > 0) {
+                isValid = validCont.some((vc:any) => {
+                  return (vc.values.indexOf(this.props.assetType) > -1);
+                });
+              }
+            });
+            if(!isValid) {
+              filterbyLayer = [];
+            }
+          }
+          this.setState({allCAV: filterbyLayer},() => {
+            this._filterCurrentCAV();
+          });
+        } else {
+          this.setState({allCAV: []},() => {
+            this._filterCurrentCAV();
+          });
+        }
       }
-    });
+    } else {
+      let url = this.props.requestURL + "/queryContingentValues?layers="+this.props.data.parentId+"&f=pjson";
+      fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.json()})
+      .then((data) => {
+        if(data.hasOwnProperty("contingentValueSets")) {
+          let filterbyLayer = data.contingentValueSets.filter((cvs: any) => {
+            return (cvs.layerId === this.props.data.parentId);
+          });
+          this.setState({allCAV: filterbyLayer},() => {
+            this._filterCurrentCAV();
+          });
+        }
+      });
+    }
   }
 
   _filterCurrentCAV =() => {
     let activeCAVs = {};
     let unique = [];
     let cavList = [...this.state.allCAV];
+    let existingSelection = -1;
     if(cavList.length > 0) {
       cavList.map((ac:any) => {
         ac.fieldGroups.map((fg: any, z:number) => {
           let filterContigent = fg.contingencies.filter((c: any) => {
             return (c.subtypeCode === this.props.data.data.subtypeCode);
           });
+          if(this.props.assetType !== "") {
+            if(filterContigent.length > 0) {
+              filterContigent = filterContigent.filter((f:any)=> {
+                existingSelection = f.values.indexOf(this.props.assetType);
+                return (f.values.indexOf(this.props.assetType) > -1);
+              });
+            }
+          }
           if(filterContigent.length > 0) {
             let justValues = [];
             filterContigent.map((fc:any, i: number) => {
@@ -108,18 +161,27 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
               });
             });
             activeCAVs[fg.name] = justValues;
+            fg.contingencies = filterContigent;
             fg["allPossible"] = justValues;
             fg["uniqueValues"] = unique;
             fg["filteredPossible"] = justValues;
             fg["filteredUniqueValues"] = unique;
-            fg["filteredSelection"] = unique.map((u:any)=>{return -1});
+            fg["filteredSelection"] = unique.map((u:any, i:number)=>{
+              if(this.props.assetType !== "") {
+                if(existingSelection === i) {
+                  return this.props.assetType;
+                } else {
+                  return -1;
+                }
+              } else {
+                return -1;
+              }
+            });
           }
         });
       });
     }
-    this.setState({allCAV:cavList}, () => {
-
-    });
+    this.setState({allCAV:cavList});
   }
 
   _createCAVTables =() => {
@@ -127,25 +189,35 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
     let checkActiveFilter = false;
     if(this.state.allCAV.length > 0) {
       this.state.allCAV.map((ac:any) => {
-        ac.fieldGroups.map((fg: any, z:number) => {
-          if(fg.hasOwnProperty("uniqueValues")) {
-            let filterOptions = this._createFilterOptions(fg);
-            let resultSet = this._createMatchList(fg);
-            checkActiveFilter = this._checkIfFiltered(fg);
-            let table = (
-            <Table key={z} style={{paddingBottom:25, width:"95%"}}>
-              <thead><tr>
-                <td colSpan={fg.uniqueValues.length -1} style={{fontWeight:"bold"}}>{fg.name}</td>
-                <td style={{textAlign:"right"}}><Icon icon={undoIcon} size='14' color='#333' onClick={()=>{this.resetInputs(fg)}} /></td>
-                </tr></thead>
+        if(ac.fieldGroups.length > 0) {
+          ac.fieldGroups.map((fg: any, z:number) => {
+            if(fg.hasOwnProperty("uniqueValues")) {
+              let filterOptions = this._createFilterOptions(fg);
+              let resultSet = this._createMatchList(fg);
+              checkActiveFilter = this._checkIfFiltered(fg);
+              let table = (
+              <Table key={z} style={{paddingBottom:25, width:"95%"}}>
+                <thead><tr>
+                  <td colSpan={fg.uniqueValues.length -1} style={{fontWeight:"bold"}}>{fg.name}</td>
+                  <td style={{textAlign:"right"}} onClick={()=>{this.resetInputs(fg)}}><Icon icon={undoIcon} size='14' color='#333' /></td>
+                  </tr></thead>
+                <tbody>
+                  <tr>{filterOptions}</tr>
+                  <tr>{(checkActiveFilter) && resultSet}</tr>
+                </tbody>
+              </Table>);
+              tableList.push(table);
+            }
+          });
+        } else {
+          let table = (
+            <table style={{paddingBottom:25, width:"95%"}}>
               <tbody>
-                <tr>{filterOptions}</tr>
-                <tr>{(checkActiveFilter) && resultSet}</tr>
+                <tr><td>No Contingent Attribute Values</td></tr>
               </tbody>
-            </Table>);
-            tableList.push(table);
-          }
-        });
+            </table>);
+          tableList.push(table);
+        }
       });
     }
     return tableList;
@@ -330,7 +402,7 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
               <div style={{width:"100%"}}>
               <div style={{fontWeight:"bold"}}>
                 <div style={{display:"inline", float:"left"}}>{keyNode}</div>
-                <div style={{display:"inline", float:"right"}} onClick={()=>{this.resetInputs(keyNode, CAVNumber)}}><Icon icon={refreshIcon} size='14' color='#333' /></div>
+                <div style={{display:"inline", float:"right"}} onClick={()=>{this.resetInputs(keyNode)}}><Icon icon={refreshIcon} size='14' color='#333' /></div>
               </div>
               <Table size={"500px"}>
               <thead>
@@ -415,7 +487,13 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
       c.fieldGroups.map((fg:any) => {
         if(fg.name === fldGrp.name) {
           for(let i=0; i < fg.filteredSelection.length; i++) {
-            fg.filteredSelection[i] = -1;
+            if(this.props.assetType !== "") {
+              if(fg.filteredSelection[i] !== this.props.assetType) {
+                fg.filteredSelection[i] = -1;
+              }
+            } else {
+              fg.filteredSelection[i] = -1;
+            }
             doms.push(ReactDOM.findDOMNode(this.refs[fldGrp.name+i]));
           };
           fg.filteredUniqueValues = fg.uniqueValues;

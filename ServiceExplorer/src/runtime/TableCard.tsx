@@ -3,16 +3,20 @@ import {React, defaultMessages as jimuCoreDefaultMessage} from 'jimu-core';
 import {AllWidgetProps, css, jsx, styled} from 'jimu-core';
 import {IMConfig} from '../config';
 
-import { TabContent, TabPane,  Collapse, Icon, Table} from 'jimu-ui';
+import {Collapse, Icon, Table} from 'jimu-ui';
+import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
+import './css/custom.css';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
-let linkIcon = require('jimu-ui/lib/icons/tool-layer.svg');
+let linkIcon = require('./assets/launch.svg');
 
 interface IProps {
   data: any,
   domains: any,
   requestURL: string,
+  cacheData: any,
+  config: any,
   key: any,
   panel:number,
   callbackClose: any,
@@ -22,7 +26,7 @@ interface IProps {
   callbackReorderCards:any,
   callbackActiveCards:any,
   callbackGetFavorites: any,
-  callbackMove:any
+  callbackMove:any,
 }
 
 interface IState {
@@ -30,12 +34,20 @@ interface IState {
   siteStats: any,
   statsOutput: any,
   activeTab: string,
-  domainHolder: any,
+  domainHolder: any
+  fields: any,
   fieldNameHolder: any,
   fieldHolder: any,
+  validFields: any,
+  validFieldsChecker: any,
+  indexes: any,
   expandFields: boolean,
   expandSubtypes: boolean,
-  expandIndexes: boolean
+  expandIndexes: boolean,
+  description: string,
+  metadataElements: any,
+  assetTypeDesc: any,
+  minimizedDetails: boolean
 }
 
 export default class TableCard extends React.Component <IProps, IState> {
@@ -48,27 +60,52 @@ export default class TableCard extends React.Component <IProps, IState> {
       statsOutput: [],
       activeTab: 'Properties',
       domainHolder: {},
+      fields: [],
       fieldNameHolder: {},
       fieldHolder: [],
+      validFields: [],
+      validFieldsChecker: [],
+      indexes: [],
       expandFields: false,
       expandSubtypes: false,
       expandIndexes: false,
+      description: "",
+      metadataElements: null,
+      assetTypeDesc: [],
+      minimizedDetails: false
     };
 
   }
 
   componentWillMount() {
-    console.log(this.props.data);
     //test
+    let fieldList = {};
+    let fields = [];
+    let indexes = [];
+    this._requestMetadata().then(()=> {
+      this._processMetaData();
 
-    if(this.props.data.data.dataElement.hasOwnProperty("fields")) {
-      let fieldList = {};
-      this.props.data.data.dataElement.fields.fieldArray.map((fd: any) => {
-        fieldList[fd.name] = false;
-      });
-      this.setState({fieldHolder:fieldList});
-    }
+      if(this.props.data.data.hasOwnProperty("dataElement")) {
+        if(this.props.data.data.dataElement.hasOwnProperty("fields")) {
+          this.props.data.data.dataElement.fields.fieldArray.map((fd: any) => {
+            fieldList[fd.name] = false;
+          });
+          fields = this.props.data.data.dataElement.fields.fieldArray;
+        }
+        if(this.props.data.data.dataElement.hasOwnProperty("indexes")) {
+          indexes = this.props.data.data.dataElement.indexes.indexArray;
+        }
+      } else {
+        this.props.data.data.fields.map((f: any) => {
+          fieldList[f.name] = false;
+        });
+        fields = this.props.data.data.fields;
+        indexes = this.props.data.data.indexes;
+      }
 
+      this.setState({fieldHolder:fieldList, fields:fields, indexes: indexes});
+
+    });
   }
 
   componentDidMount() {
@@ -89,46 +126,61 @@ export default class TableCard extends React.Component <IProps, IState> {
         onTabSwitch={this.headerToggleTabs}
         onMove={this.headerCallMove}
         onReorderCards={this.headerCallReorder}
+        onMinimize={this.headerCallMinimize}
         showProperties={true}
         showStatistics={false}
         showResources={false}
       />
-      <TabContent activeTab={this.state.activeTab}>
+      {
+        (this.state.minimizedDetails)?""
+        :
+        <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div><h4>{this.props.data.type} Properties</h4></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Name: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.aliasName}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Layer Id: <span style={{fontWeight:"bold"}}>{this.state.nodeData.layerId}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Global Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None"}</span></div>
-          <div style={{paddingTop:5, paddingBottom:5}}>Object Id: <span style={{fontWeight:"bold"}}>{(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None"}</span></div>
+        <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.aliasName:this.state.nodeData.name}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.state.description}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Layer Id:</span> {this.props.data.id}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Global Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Object Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</div>
           {
-            (this.state.nodeData.dataElement.hasOwnProperty("subtypeFieldName")) &&
-            <div style={{paddingTop:5, paddingBottom:5}}>Subtype Field: <span style={{fontWeight:"bold"}}>{this.state.nodeData.dataElement.subtypeFieldName}</span></div>
+            (this.state.nodeData.hasOwnProperty("capabilities")) &&
+            <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Capabilities</span> {this.state.nodeData.capabilities}</div>
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Subtypes:</div>
+          {
+            (this.state.nodeData.hasOwnProperty("dataElement"))?
+              (this.state.nodeData.dataElement.hasOwnProperty("subtypeFieldName")) &&
+              <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subtype Field</span> {this.state.nodeData.dataElement.subtypeFieldName}</div>
+            :""
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
-          <Collapse isOpen={this.state.expandSubtypes}>
-          <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
-              <Table hover>
-                <thead>
-                <tr>
-                  <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
-                  <th style={{fontSize:"small", fontWeight:"bold"}}>Code</th>
-                </tr>
-                </thead>
-                <tbody>
-                  {this._createSubtypesList()}
-                </tbody>
-              </Table>
-          </div>
-          </Collapse>
+          { (this.state.nodeData.hasOwnProperty("dataElement"))?
+              (this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
+              <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandSubtypesBlock();}}>{(this.state.expandSubtypes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Subtypes</span></div>
+            :""
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("fields")) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Fields:</div>
+          { (this.state.nodeData.hasOwnProperty("dataElement"))?
+              (this.state.nodeData.dataElement.hasOwnProperty("subtypes")) &&
+              <Collapse isOpen={this.state.expandSubtypes}>
+              <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
+                  <Table hover>
+                    <thead>
+                    <tr>
+                      <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
+                      <th style={{fontSize:"small", fontWeight:"bold"}}>Code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      {this._createSubtypesList()}
+                    </tbody>
+                  </Table>
+              </div>
+              </Collapse>
+            :""
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("fields")) &&
+          {(this.state.fields.length > 0) &&
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Fields</span></div>
+          }
+          {(this.state.fields.length > 0) &&
           <Collapse isOpen={this.state.expandFields}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover>
@@ -145,10 +197,10 @@ export default class TableCard extends React.Component <IProps, IState> {
           </div>
           </Collapse>
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("indexes")) &&
-          <div style={{paddingTop:5, paddingBottom:5}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} Indexes:</div>
+          {(this.state.indexes.length > 0) &&
+          <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandIndexBlock();}}>{(this.state.expandIndexes)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Indexes</span></div>
           }
-          {(this.state.nodeData.dataElement.hasOwnProperty("indexes")) &&
+          {(this.state.indexes.length > 0) &&
           <Collapse isOpen={this.state.expandIndexes}>
           <div style={{minHeight: 100, maxHeight:500, overflowY:"auto", borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               <Table hover>
@@ -168,15 +220,21 @@ export default class TableCard extends React.Component <IProps, IState> {
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
-        <TabPane tabId="Statistics">
-          <div style={{width: this.state.width, paddingLeft:10, paddingRight:10}}>
-            <div><h4>Site Statistics</h4></div>
-            {this.state.statsOutput}
-          </div>
-          <div style={{paddingBottom: 15}}></div>
-        </TabPane>
       </TabContent>
+      }
     </div>);
+  }
+
+  //**** breadCrumb */
+  buildCrumb =() => {
+    let list = [];
+    this.props.data.crumb.map((c:any, i:number) => {
+      list.push(<span key={i} onClick={()=>{
+        this.props.callbackLinkage(c.value, c.type, this.props.panel, this.props.data.parent);
+        this.headerCallClose();
+      }} style={{cursor:"pointer"}}>{c.value + " > "}</span>);
+    });
+    return(list);
   }
 
   //****** Header Support functions
@@ -227,6 +285,17 @@ export default class TableCard extends React.Component <IProps, IState> {
       }
     });
     return currPos;
+  }
+  headerCallMinimize =() => {
+    let currState = this.state.minimizedDetails;
+    if(currState) {
+      currState = false;
+      this.setState({minimizedDetails: currState});
+    } else {
+      currState = true;
+      this.setState({minimizedDetails: currState});
+    }
+    return currState;
   }
 
   //****** UI components and UI Interaction
@@ -301,7 +370,7 @@ export default class TableCard extends React.Component <IProps, IState> {
     this.state.nodeData.dataElement.subtypes.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.subtypeName}</div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.subtypeName,"Subtype", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.subtypeName}</div>
         </td>
         <td style={{fontSize:"small"}}>{fi.subtypeCode}</td>
       </tr>);
@@ -312,12 +381,12 @@ export default class TableCard extends React.Component <IProps, IState> {
 
   _createFieldList = () => {
     let arrList = [];
-    this.state.nodeData.dataElement.fields.fieldArray.map((fi: any, i: number)=>{
+    this.state.fields.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
         </td>
-        <td style={{fontSize:"small"}}>{fi.aliasName}</td>
+        <td style={{fontSize:"small"}}>{(fi.hasOwnProperty("aliasName"))?fi.aliasName:fi.alias}</td>
       </tr>);
     });
     //this.setState({fieldHolder: arrList});
@@ -327,16 +396,22 @@ export default class TableCard extends React.Component <IProps, IState> {
   _createIndexList = () => {
     let arrList = [];
     let fieldList = [];
-    this.state.nodeData.dataElement.indexes.indexArray.map((idx: any, i: number)=>{
+    this.state.indexes.map((idx: any, i: number)=>{
       fieldList = [];
-      idx.fields.fieldArray.map((fi: any, i: number)=>{
+      let control = [];
+      if(idx.fields.hasOwnProperty("fieldArray")) {
+        control = idx.fields.fieldArray;
+      } else {
+        control = idx.fields.split(",");
+      }
+      control.map((fi: any, i: number)=>{
         fieldList.push(
-          <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage((fi.hasOwnProperty("name"))?fi.name:fi,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {(fi.hasOwnProperty("name"))?fi.name:fi}</div>
         );
       });
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
-          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
+          <div onClick={()=>{this.props.callbackLinkage(idx.name,"Index", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {idx.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{fieldList}</td>
       </tr>);
@@ -461,7 +536,7 @@ export default class TableCard extends React.Component <IProps, IState> {
       filterAR.map((ar: any, i: number) => {
         arrList.push(
           <tr key={i}>
-            <td style={{fontSize:"small"}}><div onClick={()=>{this.launchLinkedCard(ar.name,"AttributeRule")}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
+            <td style={{fontSize:"small"}}><div style={{cursor:"pointer"}} onClick={()=>{this.props.callbackLinkage(ar.name,"Attribute Rule", this.props.panel)}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name}</div></td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>
@@ -474,6 +549,87 @@ export default class TableCard extends React.Component <IProps, IState> {
 
   //****** helper functions and request functions
   //********************************************
+  _requestMetadata = async() => {
+    if(this.props.config.useCache) {
+      //let url = this.props.requestURL + "/" + this.props.data.id + "/metadata";
+      let data  = this.props.cacheData.metadata[this.props.data.id];
+      let parser = new DOMParser();
+      let xmlDoc = parser.parseFromString(data,"text/xml");
+      this.setState({metadataElements: xmlDoc});
+    } else {
+      let url = this.props.requestURL + "/" + this.props.data.id + "/metadata";
+      await fetch(url, {
+        method: 'GET'
+      })
+      .then((response) => {return response.text()})
+      .then((data) => {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(data,"text/xml");
+        this.setState({metadataElements: xmlDoc});
+      });
+    }
+  }
+
+  _processMetaData =() => {
+    let description= "";
+    let fieldFilter = [];
+    let ATDesc = [];
+    let metadata = this.state.metadataElements;
+    let metaLevel = metadata.getElementsByTagName("metadata");
+    if(metaLevel.length > 0) {
+      let eaInfoLevel = metaLevel[0].getElementsByTagName("eainfo");
+      if(eaInfoLevel.length > 0) {
+        let detailedLevel = eaInfoLevel[0].getElementsByTagName("detailed");
+        if(detailedLevel.length > 0) {
+          for (let i=0; i < detailedLevel.length; i++) {
+            let subTypeCodeLevel = detailedLevel[i].getElementsByTagName("enttypdv");
+            if(subTypeCodeLevel.length > 0) {
+              //loop thorugh details and get code node and see if it's the current code card is on.
+              if(parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.subtypeCode)) {
+                //this tag stores the descriptions
+                let subTypeDescLevel = detailedLevel[i].getElementsByTagName("enttypd");
+                if(subTypeDescLevel.length > 0) {
+                  description = subTypeDescLevel[0].innerHTML;
+                }
+                //now add only fields that pertain to this subtype
+                let attrLevel = detailedLevel[i].getElementsByTagName("attr");
+                if(attrLevel.length > 0) {
+                  for (let z=0; z < attrLevel.length; z++) {
+                    let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
+                    let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
+                    if(fieldName.length > 0) {
+                      fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
+                      if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
+                        //get AT descriptions
+                        let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
+                        if(attrdomvLevel.length > 0) {
+                          let edomLevel = attrdomvLevel[0].getElementsByTagName("edom");
+                          if(edomLevel.length > 0) {
+                            for (let e=0; e < edomLevel.length; e++) {
+                              let edomvLevel = edomLevel[e].getElementsByTagName("edomv");
+                              let edomvddLevel = edomLevel[e].getElementsByTagName("edomvdd");
+                              //where AT desc is stored
+                              if(edomvddLevel.length > 0) {
+                                ATDesc.push({code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML})
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+              }
+            }
+          }
+        }
+
+      }
+    }
+    this.setState({description:description, validFieldsChecker:fieldFilter, assetTypeDesc: ATDesc});
+  }
+
   _requestObject = async(clause: string, category: string) => {
     let url = this.props.requestURL + "/" + this.props.data.parentId + "/query?where="+ clause +"&returnCountOnly=true&f=pjson";
     fetch(url, {
