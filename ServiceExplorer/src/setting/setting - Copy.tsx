@@ -28,7 +28,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       cacheStructure: {
         featureServer: {},
         layers: {},
-        tables: {},
         queryDataElements: {},
         queryDomains: {},
         contingentValues : {},
@@ -286,58 +285,40 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       });
 
       //grab layers json to store
-      this.setState({cacheStatus: "Step 8 of 10: Saving Layers and Metadata"});
-      let promises = response.layers.map(async(lyr:any, i:number) => {
+      this.setState({cacheStatus: "Step 8.1 of 10: Saving Layers and Metadata"});
+      const promises = response.layers.map(async(lyr:any, i:number) => {
         let newURL = url + "/" + lyr.id+"/?f=pjson";
-        let lyrData = await this.fetchRequestNoProcess(newURL,{type:"layers"},itemId,"");
-        let currStruct = {...this.state.cacheStructure};
-        if(currStruct["layers"].hasOwnProperty(lyr.id)) {
-          currStruct["layers"][lyr.id] = lyrData;
-        } else {
-          currStruct["layers"][lyr.id] = {};
-          currStruct["layers"][lyr.id] = lyrData;
-        }
-        let metadataUrl = url + "/" + lyr.id +"/metadata";
-        let lyrMeta = await this.fetchRequestNoProcess(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
-        if((lyr.id).toString() !== "") {
-          currStruct["metadata"][(lyr.id).toString()] = lyrMeta;
-        } else {
-          currStruct["metadata"] = lyrMeta;
-        }         
-        this.setState({cacheStructure: currStruct});         
+        await this.fetchRequest(newURL,{type:"layers"},itemId,"");
+        console.log("layer "+ lyr.id);    
       });
-      await Promise.all(promises).then(async(result) => {
-        console.log(this.state.cacheStructure);
-        await this.updateCache(itemId);
-        console.log("finished layer data");
+      await Promise.all(promises).then(() => {
+        console.log("finished step 8.1");
+      });
+
+      this.setState({cacheStatus: "Step 8.2 of 10: Saving Layers and Metadata"});
+      const promises2 = response.layers.map(async(lyr:any, i:number) => {
+        let metadataUrl = url + "/" + lyr.id +"/metadata";
+        await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
+        console.log("Metadata "+ lyr.id);       
+      });
+      await Promise.all(promises2).then(() => {
+        console.log("finished step 8.2");
       });
 
       //grab tables json to store
       this.setState({cacheStatus: "Step 9 of 10: Saving Tables and Metadata"});
+      console.log(response);
       if(response.tables.length > 0) {
-        let tableDatapromise = response.tables.map(async(tbl:any, i:number) => {
+        response.tables.map(async(tbl:any, i:number) => {
           let newURL = url + "/" + tbl.id+"/?f=pjson";
-          let tblData = await this.fetchRequestNoProcess(newURL,{type:"tables"},itemId,"");
-          let currStruct = {...this.state.cacheStructure};
-          if(currStruct["tables"].hasOwnProperty(tbl.id)) {
-            currStruct["tables"][tbl.id] = tblData;
-          } else {
-            currStruct["tables"][tbl.id] = {};
-            currStruct["tables"][tbl.id] = tblData;
-          }
+          await this.fetchRequest(newURL,{type:"tables"},itemId,"");
+  
           let metadataUrl = url + "/" + tbl.id +"/metadata";
-          let tblMeta = await this.fetchRequestNoProcess(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
-          if(currStruct["metadata"].hasOwnProperty(tbl.id)) {
-            currStruct["metadata"][tbl.id] = tblMeta;
-          } else {
-            currStruct["metadata"][tbl.id] = {};
-            currStruct["metadata"][tbl.id] = tblMeta;          
+          await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
+  
+          if(i === response.tables.length - 1) {
+            this.setState({cacheStatus: "Step 10 of 10: Finished"});
           }
-          this.setState({cacheStructure: currStruct}); 
-        });
-        await Promise.all(tableDatapromise).then(async() => {
-          await this.updateCache(itemId);
-          this.setState({cacheStatus: "Step 10 of 10: Finished"});
         });
       } else {
         this.setState({cacheStatus: "Step 10 of 10: Finished"});
@@ -375,45 +356,9 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     });
   }
 
-  fetchRequestNoProcess = (url:string, params:any, itemId:any, subCat:string) => {
-    return new Promise((resolve, reject) => {
-      let response = {};
-      let requestURL = url;
-      fetch(requestURL, {method: 'GET'})
-      .then((response) => {
-        if(params.type == "metadata") {
-          return response.text();
-        } else {
-          return response.json();
-        }
-      })
-      .then(async (data) => {
-        resolve(data);
-      });
-    });
-  }  
-
-  updateCache = async (itemId:any) => {
-    return new Promise((resolve, reject) => {
-      let url = this.props.portalUrl + "/sharing/rest/content/users/"+this.props.user.username+"/items/"+itemId + "/update";
-      this.httpRequest({method: 'POST', url:url,
-        params: {
-          f : "json",
-          token: this.props.token,
-          tags: this.state.cacheFileName + " Data Dictionary Support Files",
-          overwrite: true,
-          text: JSON.stringify(this.state.cacheStructure),
-          access: "public"
-        }
-      })
-      .then((result:any) => {
-        resolve(result);
-      });
-    });
-  }
-
   processCache = async (data: any, type: any, itemId:any, subCat:string) => {
     return new Promise((resolve, reject) => {
+      loadArcGISJSAPIModules(['esri/portal/Portal','esri/portal/PortalItem', 'esri/portal/PortalUser']).then(async ([Portal, PortalItem, PortalUser]) => {
         let currStruct = {...this.state.cacheStructure};
 
         switch(type) {
@@ -471,40 +416,26 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         });
 
       });
+    });
   }
 
   prepConnectivityRulesCache = (de:any, url:string, rulesLayer:number, itemId:any) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let layers = de.layerDataElements;
       let whereClause = "";
-      let crPromise = layers.map((lyr:any) => {
+      layers.map((lyr:any) => {
         let de = lyr.dataElement;
         let sourceId = this.getSourceId(layers, de);
         if(sourceId !== -1) {
           if(de.hasOwnProperty("subtypes")) {
-            let currStruct = {...this.state.cacheStructure};
             de.subtypes.map(async(st:any) => {
               whereClause = "(fromassetgroup=" + st.subtypeCode + " and fromnetworksourceid=" + sourceId + ") OR (toassetgroup=" + st.subtypeCode + " and tonetworksourceid=" + sourceId + ")";
               let qCRurl = url + "/" + rulesLayer + "/query?where="+whereClause+"&f=pjson";
-              let data = await this.fetchRequestNoProcess(qCRurl,{type:"connectivityRules"},itemId,sourceId.toString());
-              if(sourceId.toString() !== "") {
-                if(currStruct["connectivityRules"].hasOwnProperty(sourceId.toString())) {
-                  currStruct["connectivityRules"][sourceId.toString()].push(data);
-                } else {
-                  currStruct["connectivityRules"][sourceId.toString()] = [];
-                  currStruct["connectivityRules"][sourceId.toString()].push(data);
-                }
-              } else {
-                currStruct["connectivityRules"].push(data);
-              }
+              await this.fetchRequest(qCRurl,{type:"connectivityRules"},itemId,sourceId.toString());
+              resolve(true);
             });
-            this.setState({cacheStructure: currStruct}); 
           }
         }
-      });
-      await Promise.all(crPromise).then(async() => {
-        await this.updateCache(itemId);
-        resolve(true);
       });
     });
   };

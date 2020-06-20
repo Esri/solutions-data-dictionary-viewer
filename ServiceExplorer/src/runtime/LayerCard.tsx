@@ -112,6 +112,8 @@ export default class LayerCard extends React.Component <IProps, IState> {
 
   render(){
 
+    let description = (this.state.metadataDescription !== "")?this.state.metadataDescription:(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.description:this.state.nodeData.description;
+
     return (
     <div style={{width: "100%", backgroundColor: "#fff", borderWidth:2, borderStyle:"solid", borderColor:"#000", float:"left", display:"inline-block"}}>
       <CardHeader title={this.props.data.text} isFavorite={this.headerSearchFavorites} id={"tt_"+(this.props.data.id).toString()}
@@ -134,7 +136,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal"}}>
         <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?this.state.nodeData.dataElement.aliasName:this.state.nodeData.name}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> <span dangerouslySetInnerHTML={{ __html: (this.state.metadataDescription !== "")?this.state.metadataDescription:this.state.nodeData.dataElement.description}}></span></div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> <span dangerouslySetInnerHTML={{ __html: description}}></span></div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Layer Id:</span> {(this.state.nodeData.hasOwnProperty("layerId"))?this.state.nodeData.layerId:this.state.nodeData.id}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Global Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasGlobalID)? this.state.nodeData.dataElement.globalIdFieldName: "None":this.state.nodeData.globalIdField}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Object Id:</span> {(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.hasOID)? this.state.nodeData.dataElement.oidFieldName: "None":this.state.nodeData.objectIdField}</div>
@@ -416,6 +418,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
   _createFieldList = () => {
     let arrList = [];
     this.state.fields.map((fi: any, i: number)=>{
+      console.log(fi.name + " : " + this.props.panel + " : " + this.props.data.text);
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
           <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>

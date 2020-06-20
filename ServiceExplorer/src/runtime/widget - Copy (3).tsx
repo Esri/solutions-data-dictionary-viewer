@@ -139,7 +139,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(this.state.useCache) {
       let data = this.pullDataFromCache().then((d:any) => {
         this.setState({cacheData: d},() => {
-          console.log(d);
           this.requestServiceDetails().then(() => {
             this._requestObject("queryDataElements", -1).then(() => {
               this._requestObject("relationships", -1).then(() => {
@@ -395,63 +394,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     return data;
   }
 
-  _requestCacheObject = (type: any, layer: number) => {
-    let data = null;
-    if(layer !== -1) {
-      if(type === "metadata") {
-        data = this.state.cacheData.metadata[layer];
-      } else {
-        data = this.state.cacheData.layers[layer];
-      }
-    } else {
-      data = this.state.cacheData[type];
-    }
-    switch(type) {
-      case "queryDataElements": {
-        if(!data.hasOwnProperty("error")){
-          if(data.hasOwnProperty("layerDataElements")) {
-            var controllerDS = data.layerDataElements.filter((lde:any) => {
-              return lde.dataElement.hasOwnProperty("domainNetworks");
-            });
-            if(controllerDS.length > 0) {
-              this.setState({hasDataElements: true, dataElements: data.layerDataElements, controllerDS: controllerDS[0]});
-            } else {
-              this.setState({hasDataElements: true, dataElements: data.layerDataElements});
-            }
-          } else {
-            this.setState({hasDataElements: false});
-          }
-        }
-        break;
-      }
-      case "relationships": {
-        if(!data.hasOwnProperty("error")){
-          if(!this.isEmpty(data.relationships)) {
-            this.setState({relationshipElements: data.relationships});
-          }
-        }
-        break;
-      }
-      case "queryDomains": {
-        if(!data.hasOwnProperty("error")){
-          if(!this.isEmpty(data.domains)) {
-            this.setState({domainElements: data.domains});
-          }
-        }
-        break;
-      }
-      case "metadata": {
-        let parser = new DOMParser();
-        let xmlDoc = parser.parseFromString(data,"text/xml");
-        this.setState({metadataElements: xmlDoc});
-        break;
-      }
-      default:
-        break;
-    }
-    return data;
-  }
-
   //process json from service and format into node structure tree is expecting.
   _processData = async() => {
     return new Promise((resolve:any, reject:any) => {
@@ -500,7 +442,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         search: false,
         nodes:[]
       };
-      layersNode.nodes = data.layers.map((layer: any, i:number) => {
+      layersNode.nodes = data.layers.map(async (layer: any, i:number) => {
         let checkNodes = this._queryDataElement(layer.id);
         let simpleData = layer;
         let type="Layer";
@@ -533,16 +475,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         if(this.state.hasDataElements) {
           subNode.nodes = this._processDataElements(layer.id, crumb, layer.name);
         } else {           
-          let reqData = this._requestCacheObject(null,layer.id);
-          subNode.data = reqData;
-          subNode.nodes = this._processDataSimple(reqData, layer.id, crumb, layer.name);          
+          let data = await this._requestObject(null,layer.id);
+          subNode.data = data;
+          subNode.nodes = this._processDataSimple(data, layer.id, crumb, layer.name);          
+          
         }
         return(subNode);
       });
-
-      //if(this.state.hasDataElements) {
-        nodeStructure.nodes.push(layersNode);
-      //}
+      nodeStructure.nodes.push(layersNode);
   
       //Handling TABLE nodes
       let tablesNode = {
@@ -935,7 +875,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             icon: "",
             data: data.fields,
             requestAdditional: false,
-            nodes: this._processFields(data.fields, this.replaceColon(id + "_fields"), null, id, currCrumb, parent),
+            nodes: this._processFields(data.fields, this.replaceColon(id + "_fields"), null, id, currCrumb, "Fields"),
             clickable: true,
             crumb:crumb,
             parent: parent
@@ -956,7 +896,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             icon: "",
             data: data.indexes,
             requestAdditional: false,
-            nodes: this._processIndexes(data.indexes, this.replaceColon(id + "_indexes"), currCrumb, parent),
+            nodes: this._processIndexes(data.indexes, this.replaceColon(id + "_indexes"), currCrumb, "Indexes"),
             clickable: true,
             crumb:crumb,
             parent: parent
@@ -964,6 +904,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           nodeData.push(iNode);
         }
       }
+    //});
     return nodeData;
   }
 
