@@ -192,7 +192,7 @@ export default class LayersCard extends React.Component <IProps, IState> {
                 <div onClick={()=>{this.props.callbackLinkage(ar.name,type,this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {ar.name} </div>
                 </td>
                 <td style={{fontSize:"small"}}>{ar.id}</td>
-                <td style={{fontSize:"small"}}>{ar.type}</td>
+                <td style={{fontSize:"small"}}>{(ar.hasOwnProperty("type"))?ar.type:type}</td>
                 <td style={{fontSize:"small"}}>{(ar.hasOwnProperty("geometryType"))?this.state.esriValueList.lookupValue(ar.geometryType):""}</td>
               </tr>
             );

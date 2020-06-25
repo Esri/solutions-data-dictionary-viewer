@@ -139,7 +139,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(this.state.useCache) {
       let data = this.pullDataFromCache().then((d:any) => {
         this.setState({cacheData: d},() => {
-          console.log(d);
+          //console.log(d);
           this.requestServiceDetails().then(() => {
             this._requestObject("queryDataElements", -1).then(() => {
               this._requestObject("relationships", -1).then(() => {
@@ -545,56 +545,58 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       //}
   
       //Handling TABLE nodes
-      let tablesNode = {
-        id: "Tables",
-        type: "Tables",
-        text: "Tables",
-        subNodeCount: this.state.serviceElements.tables.length,
-        data: this.state.serviceElements.tables,
-        clickable: true,
-        crumb:[
-          {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
-        ],
-        search: false,
-        nodes: []
-      };
-      data.tables.map(async(table: any, i:number) => {
-        if(table) {
-          let newCrumb = [
-            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
-            {type: "Tables", value:"Tables", node:tablesNode.id},
-          ];
-          let simpleData = table;
-          let nodeStruct = {
-            id: this.replaceColon(table.id),
-            type: "Table",
-            text: table.name,
-            subNodeCount: 0,
-            icon: "",
-            requestAdditional: true,
-            nodes: [],
-            search: false,
-            data: (this.state.hasDataElements)?this._queryDataElement(table.id):simpleData,
-            clickable: true,
-            crumb:newCrumb,
-          };
-          let crumb = [
-            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
-            {type: "Tables", value:"Tables", node:tablesNode.id},
-            {type: "Table", value:table.name, node: nodeStruct.id}
-          ];      
-          if(this.state.hasDataElements) {
-            nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name);
-          } else {
-            await this._requestObject(null,table.id).then((data) => {
-              nodeStruct.data = data;
-              nodeStruct.nodes = this._processDataSimple(data, table.id, crumb, table.name);
-            });
+      if(data.tables.length > 0) {
+        let tablesNode = {
+          id: "Tables",
+          type: "Tables",
+          text: "Tables",
+          subNodeCount: this.state.serviceElements.tables.length,
+          data: this.state.serviceElements.tables,
+          clickable: true,
+          crumb:[
+            {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id}
+          ],
+          search: false,
+          nodes: []
+        };
+        data.tables.map(async(table: any, i:number) => {
+          if(table) {
+            let newCrumb = [
+              {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node:nodeStructure.id},
+              {type: "Tables", value:"Tables", node:tablesNode.id},
+            ];
+            let simpleData = table;
+            let nodeStruct = {
+              id: this.replaceColon(table.id),
+              type: "Table",
+              text: table.name,
+              subNodeCount: 0,
+              icon: "",
+              requestAdditional: true,
+              nodes: [],
+              search: false,
+              data: (this.state.hasDataElements)?this._queryDataElement(table.id):simpleData,
+              clickable: true,
+              crumb:newCrumb,
+            };
+            let crumb = [
+              {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
+              {type: "Tables", value:"Tables", node:tablesNode.id},
+              {type: "Table", value:table.name, node: nodeStruct.id}
+            ];      
+            if(this.state.hasDataElements) {
+              nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name);
+            } else {
+              await this._requestObject(null,table.id).then((data) => {
+                nodeStruct.data = data;
+                nodeStruct.nodes = this._processDataSimple(data, table.id, crumb, table.name);
+              });
+            }
+            tablesNode.nodes.push(nodeStruct);
           }
-          tablesNode.nodes.push(nodeStruct);
-        }
-      });
-      nodeStructure.nodes.push(tablesNode);
+        });
+        nodeStructure.nodes.push(tablesNode);
+      }
   
       //Handling RELATIONSHIP nodes
       if(this.state.serviceElements.hasOwnProperty("relationships")) {
@@ -692,7 +694,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         nodeStructure.nodes.unshift(domainNetworkNode);
       }
   
-      this.setState({serviceNodes: [nodeStructure]}, () => {
+      this.setState({serviceNodes: [nodeStructure], layerElements:layersNode}, () => {
         resolve(true);
       });
       //this._serviceList(rest);
@@ -1494,7 +1496,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Domain": {
-          newActiveList.push(<DomainCard data={dataNode} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
+          newActiveList.push(<DomainCard data={dataNode} dataElements={this.state.dataElements} requestURL={this.state.requestURL} layerElements={this.state.layerElements}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}

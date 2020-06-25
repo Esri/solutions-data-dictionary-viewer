@@ -56,7 +56,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
   setDatasource = (ds: DataSource) => {
     let schema = ds && ds.getSchema();
-    console.log(ds);
     this.setState({datasource: ds, fields: (schema as DataSourceSchema).fields as {[jimuName: string]: FieldSchema; }});
   }
 
@@ -247,7 +246,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     //grab feature Service json to store
     this.setState({cacheStatus: "Step 1 of 10: Saving Feature Service"});
     await this.fetchRequest(url+"/?f=pjson",{type:"featureServer"},itemId,"").then(async(response:any) => {
-
+    
       //Grab all Domains
       this.setState({cacheStatus: "Step 2 of 10: Saving Domains"});
       let qDomainURL = url + "/queryDomains/?f=pjson";
@@ -287,6 +286,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
       //grab layers json to store
       this.setState({cacheStatus: "Step 8 of 10: Saving Layers and Metadata"});
+      let domains = [];
       let promises = response.layers.map(async(lyr:any, i:number) => {
         let newURL = url + "/" + lyr.id+"/?f=pjson";
         let lyrData = await this.fetchRequestNoProcess(newURL,{type:"layers"},itemId,"");
@@ -297,6 +297,19 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           currStruct["layers"][lyr.id] = {};
           currStruct["layers"][lyr.id] = lyrData;
         }
+
+        if(!this.state.cacheStructure.queryDomains.hasOwnProperty("domains")) {
+          lyrData.fields.map((fld:any) => {
+            if(fld.domain !== null) {
+              let foundDomain = domains.some((d:any) => {return d.name === fld.domain.name});
+              if(!foundDomain) {
+                domains.push(fld.domain);
+              }
+            }
+          });
+          currStruct["queryDomains"] = {"domains": domains};
+        }
+
         let metadataUrl = url + "/" + lyr.id +"/metadata";
         let lyrMeta = await this.fetchRequestNoProcess(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
         if((lyr.id).toString() !== "") {
@@ -304,6 +317,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         } else {
           currStruct["metadata"] = lyrMeta;
         }         
+
         this.setState({cacheStructure: currStruct});         
       });
       await Promise.all(promises).then(async(result) => {

@@ -49,7 +49,6 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
   componentWillMount() {}
 
   componentDidMount() {
-    console.log(this.props);
   }
 
   render(){
@@ -88,12 +87,16 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
               {this._createLayersList()}
             </div>
           </Collapse>
+          {(this.state.nodeData.tables.length > 0)?
           <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTables()}}>{(this.state.expandTables)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tables</span></div>
+          :""}
+          {(this.state.nodeData.tables.length > 0)?
           <Collapse isOpen={this.state.expandTables}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createTablesList()}
             </div>
           </Collapse>
+          :""}
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>
