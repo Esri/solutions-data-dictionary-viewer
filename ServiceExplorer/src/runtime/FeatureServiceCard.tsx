@@ -48,13 +48,18 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
 
   componentWillMount() {}
 
-  componentDidMount() {}
+  componentDidMount() {
+  }
 
   render(){
 
+    let title = (this.state.nodeData.documentInfo)?this.state.nodeData.documentInfo.Title:this.props.data.text;
+    let subject = (this.state.nodeData.documentInfo)?this.state.nodeData.documentInfo.Subject:this.state.nodeData.description;
+    let cleanId = this.props.data.id.replace(/./g,"_");
+
     return (
     <div style={{width: "100%", backgroundColor: "#fff", borderWidth:2, borderStyle:"solid", borderColor:"#000", float:"left", display:"inline-block"}}>
-      <CardHeader title={this.props.data.text} isFavorite={this.headerSearchFavorites} id={"tt_"+(this.props.data.id).toString()}
+      <CardHeader title={this.props.data.text} isFavorite={this.headerSearchFavorites} id={"tt_"+(cleanId).toString()}
         panel={this.props.panel} panelCount={this.props.callbackGetPanels} slotInPanel={this.headerActiveCardLocation} totalSlotsInPanel={this.props.callbackActiveCards}
         onClose={this.headerCallClose}
         onSave={this.headerCallFavorite}
@@ -72,8 +77,8 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
         <TabContent activeTab={this.state.activeTab}>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Title:</span> {this.state.nodeData.documentInfo.Title}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subject:</span> {this.state.nodeData.documentInfo.Subject}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Title:</span> {title}</div>
+          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subject:</span> {this._removeTags(this._unescapeHTML(subject))}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this._removeTags(this._unescapeHTML(this.state.nodeData.serviceDescription))}</div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Version:</span> {this.state.nodeData.currentVersion}</div>
           <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleLayers()}}>{(this.state.expandLayers)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Layers</span></div>
@@ -82,12 +87,16 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
               {this._createLayersList()}
             </div>
           </Collapse>
+          {(this.state.nodeData.tables.length > 0)?
           <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleTables()}}>{(this.state.expandTables)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Tables</span></div>
+          :""}
+          {(this.state.nodeData.tables.length > 0)?
           <Collapse isOpen={this.state.expandTables}>
             <div style={{minHeight: 100, maxHeight:500, overflow:"auto", paddingRight:2, borderWidth:2, borderStyle:"solid", borderColor:"#ccc"}}>
               {this._createTablesList()}
             </div>
           </Collapse>
+          :""}
           <div style={{paddingBottom: 15}}></div>
         </div>
         </TabPane>

@@ -180,7 +180,11 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
             </td>
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{ar.description}</td>
             <td style={{fontSize:"small"}}>
-            <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>
+            {(ar.subtypeCode !== -1)?
+              <div onClick={()=>{this.props.callbackLinkage(this._matchCodeToDesc(ar.subtypeCode),"Subtype", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {this._matchCodeToDesc(ar.subtypeCode)} </div>            
+            :
+              <div> {this._matchCodeToDesc(ar.subtypeCode)} </div>
+            }
             </td>
             <td style={{fontSize:"small"}}>{ar.evaluationOrder}</td>
           </tr>
@@ -202,7 +206,7 @@ export default class AttributeRulesCard extends React.Component <IProps, IState>
     if(result.length > 0) {
       message = result[0].subtypeName;
     } else {
-      message = "Sorry, no matching type";
+      message = "All";
     }
     return message;
   }

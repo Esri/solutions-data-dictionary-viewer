@@ -203,7 +203,6 @@ export default class CategoryCard extends React.Component <IProps, IState> {
     let arrList = [];
     let dn = this._findUN();
     if(dn !== null) {
-      console.log(dn);
       dn.map((d: any, i: number) => {
         d.junctionSources.map((js:any) => {
           js.assetGroups.map((ag:any) => {

@@ -1,11 +1,12 @@
-import {React, FormattedMessage, Immutable, DataSource, DataSourceSchema, FieldSchema, DataSourceManager} from 'jimu-core';
+import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceSchema, FieldSchema, DataSourceComponent} from 'jimu-core';
 //import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent, loadArcGISJSAPIModules} from 'jimu-core';
 import {loadArcGISJSAPIModules} from 'jimu-arcgis';
 import {BaseWidgetSetting, AllWidgetSettingProps} from 'jimu-for-builder';
-import {DataSourceSelector, AllDataSourceTypes} from 'jimu-ui/advanced/data-source-selector';
+import {DataSourceSelector, SelectedDataSourceJson, AllDataSourceTypes} from 'jimu-ui/data-source-selector';
 import {ArcGISDataSourceTypes} from 'jimu-arcgis';
 import {IMConfig} from '../config';
 import defaultI18nMessages from './translations/default';
+import { DataActionDropDown } from 'jimu-ui';
 
 interface State{
   query: any;
@@ -16,7 +17,6 @@ interface State{
   fields: { [jimuName: string]: FieldSchema };
   serviceURL: string;
   cacheFileName: string;
-  allowUrlLookup:boolean
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
@@ -28,7 +28,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       cacheStructure: {
         featureServer: {},
         layers: {},
-        tables: {},
         queryDataElements: {},
         queryDomains: {},
         contingentValues : {},
@@ -41,12 +40,12 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       datasource: null,
       fields: {},
       serviceURL: "",
-      cacheFileName: (this.props.config.cacheFileName)?this.props.config.cacheFileName:"",
-      allowUrlLookup: (this.props.config.allowUrlLookup)?this.props.config.allowUrlLookup:false
+      cacheFileName: (this.props.config.cacheFileName)?this.props.config.cacheFileName:""
     };
   }
 
   componentWillMount(){
+    console.log(this);
     if(typeof this.props.config.url !== "undefined") {
       this.setState({serviceURL:this.props.config.url});
     }
@@ -56,6 +55,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
 
   setDatasource = (ds: DataSource) => {
     let schema = ds && ds.getSchema();
+    console.log(ds);
     this.setState({datasource: ds, fields: (schema as DataSourceSchema).fields as {[jimuName: string]: FieldSchema; }});
   }
 
@@ -63,24 +63,17 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     this.setDatasource(ds);
   };
 
-  onDataSourceSelected = (allSelectedDss: any[]) => { 
+  onDataSourceSelected = (allSelectedDss: SelectedDataSourceJson[], currentSelectedDs: SelectedDataSourceJson) => {
+    let sUrl = currentSelectedDs.dataSourceJson.url;
+    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/"));
     this.props.onSettingChange({
       id: this.props.id,
-      useDataSources: allSelectedDss,
-      config: this.props.config.set('url', "")
+      useDataSources: [{
+        dataSourceId: currentSelectedDs.dataSourceJson && currentSelectedDs.dataSourceJson.id,
+        rootDataSourceId: currentSelectedDs.rootDataSourceId
+      }],
+      config: this.props.config.set('url', sUrl)
     });
-    let ds = DataSourceManager.getInstance();    
-    let dsList = ds.getDataSources(); 
-
-    let sUrl = dsList[allSelectedDss[0].dataSourceId].url;
-    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/")); 
-
-    this.props.onSettingChange({
-      id: this.props.id,
-      useDataSources: allSelectedDss,
-      config: this.props.config.set('url', "")
-    });    
-    
     this.setState({serviceURL: sUrl});
   };
 
@@ -104,7 +97,6 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       id: this.props.id,
       config: this.props.config.set('allowUrlLookup', evt.currentTarget.checked)
     });
-    this.setState({allowUrlLookup: evt.currentTarget.checked});
   }
 
   onUseCacheChange = (evt: React.FormEvent<HTMLInputElement>) => {
@@ -181,12 +173,12 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           this.props.useDataSources && Immutable(this.props.useDataSources.map(ds => ds.dataSourceId))
         }
         useDataSourcesEnabled={this.props.useDataSourcesEnabled}
-        onChange={this.onDataSourceSelected}
+        onSelect={this.onDataSourceSelected}
          />
 
 
       <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.state.serviceURL} onChange={this.onURLChange} style={{width:"90%"}} value={this.state.serviceURL}/></div>
-      <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.state.showCacheButton} onChange={this.onUseCacheChange} /></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.props.config.useCache} onChange={this.onUseCacheChange} /></div>
 
       {(this.state.showCacheButton)?
         <div>
@@ -197,7 +189,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         :''
       }
       <div style={{height:"25px"}}></div>
-      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.state.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
 
     </div>
   }
@@ -254,7 +246,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     //grab feature Service json to store
     this.setState({cacheStatus: "Step 1 of 10: Saving Feature Service"});
     await this.fetchRequest(url+"/?f=pjson",{type:"featureServer"},itemId,"").then(async(response:any) => {
-    
+
       //Grab all Domains
       this.setState({cacheStatus: "Step 2 of 10: Saving Domains"});
       let qDomainURL = url + "/queryDomains/?f=pjson";
@@ -293,73 +285,40 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       });
 
       //grab layers json to store
-      this.setState({cacheStatus: "Step 8 of 10: Saving Layers and Metadata"});
-      let domains = [];
-      let promises = response.layers.map(async(lyr:any, i:number) => {
+      this.setState({cacheStatus: "Step 8.1 of 10: Saving Layers and Metadata"});
+      const promises = response.layers.map(async(lyr:any, i:number) => {
         let newURL = url + "/" + lyr.id+"/?f=pjson";
-        let lyrData = await this.fetchRequestNoProcess(newURL,{type:"layers"},itemId,"");
-        let currStruct = {...this.state.cacheStructure};
-        if(currStruct["layers"].hasOwnProperty(lyr.id)) {
-          currStruct["layers"][lyr.id] = lyrData;
-        } else {
-          currStruct["layers"][lyr.id] = {};
-          currStruct["layers"][lyr.id] = lyrData;
-        }
-
-        if(!this.state.cacheStructure.queryDomains.hasOwnProperty("domains")) {
-          lyrData.fields.map((fld:any) => {
-            if(fld.domain !== null) {
-              let foundDomain = domains.some((d:any) => {return d.name === fld.domain.name});
-              if(!foundDomain) {
-                domains.push(fld.domain);
-              }
-            }
-          });
-          currStruct["queryDomains"] = {"domains": domains};
-        }
-
-        let metadataUrl = url + "/" + lyr.id +"/metadata";
-        let lyrMeta = await this.fetchRequestNoProcess(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
-        if((lyr.id).toString() !== "") {
-          currStruct["metadata"][(lyr.id).toString()] = lyrMeta;
-        } else {
-          currStruct["metadata"] = lyrMeta;
-        }         
-
-        this.setState({cacheStructure: currStruct});         
+        await this.fetchRequest(newURL,{type:"layers"},itemId,"");
+        console.log("layer "+ lyr.id);    
       });
-      await Promise.all(promises).then(async(result) => {
-        console.log(this.state.cacheStructure);
-        await this.updateCache(itemId);
-        console.log("finished layer data");
+      await Promise.all(promises).then(() => {
+        console.log("finished step 8.1");
+      });
+
+      this.setState({cacheStatus: "Step 8.2 of 10: Saving Layers and Metadata"});
+      const promises2 = response.layers.map(async(lyr:any, i:number) => {
+        let metadataUrl = url + "/" + lyr.id +"/metadata";
+        await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(lyr.id).toString());
+        console.log("Metadata "+ lyr.id);       
+      });
+      await Promise.all(promises2).then(() => {
+        console.log("finished step 8.2");
       });
 
       //grab tables json to store
       this.setState({cacheStatus: "Step 9 of 10: Saving Tables and Metadata"});
+      console.log(response);
       if(response.tables.length > 0) {
-        let tableDatapromise = response.tables.map(async(tbl:any, i:number) => {
+        response.tables.map(async(tbl:any, i:number) => {
           let newURL = url + "/" + tbl.id+"/?f=pjson";
-          let tblData = await this.fetchRequestNoProcess(newURL,{type:"tables"},itemId,"");
-          let currStruct = {...this.state.cacheStructure};
-          if(currStruct["tables"].hasOwnProperty(tbl.id)) {
-            currStruct["tables"][tbl.id] = tblData;
-          } else {
-            currStruct["tables"][tbl.id] = {};
-            currStruct["tables"][tbl.id] = tblData;
-          }
+          await this.fetchRequest(newURL,{type:"tables"},itemId,"");
+  
           let metadataUrl = url + "/" + tbl.id +"/metadata";
-          let tblMeta = await this.fetchRequestNoProcess(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
-          if(currStruct["metadata"].hasOwnProperty(tbl.id)) {
-            currStruct["metadata"][tbl.id] = tblMeta;
-          } else {
-            currStruct["metadata"][tbl.id] = {};
-            currStruct["metadata"][tbl.id] = tblMeta;          
+          await this.fetchRequest(metadataUrl,{type:"metadata"},itemId,(tbl.id).toString());
+  
+          if(i === response.tables.length - 1) {
+            this.setState({cacheStatus: "Step 10 of 10: Finished"});
           }
-          this.setState({cacheStructure: currStruct}); 
-        });
-        await Promise.all(tableDatapromise).then(async() => {
-          await this.updateCache(itemId);
-          this.setState({cacheStatus: "Step 10 of 10: Finished"});
         });
       } else {
         this.setState({cacheStatus: "Step 10 of 10: Finished"});
@@ -397,45 +356,9 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     });
   }
 
-  fetchRequestNoProcess = (url:string, params:any, itemId:any, subCat:string) => {
-    return new Promise((resolve, reject) => {
-      let response = {};
-      let requestURL = url;
-      fetch(requestURL, {method: 'GET'})
-      .then((response) => {
-        if(params.type == "metadata") {
-          return response.text();
-        } else {
-          return response.json();
-        }
-      })
-      .then(async (data) => {
-        resolve(data);
-      });
-    });
-  }  
-
-  updateCache = async (itemId:any) => {
-    return new Promise((resolve, reject) => {
-      let url = this.props.portalUrl + "/sharing/rest/content/users/"+this.props.user.username+"/items/"+itemId + "/update";
-      this.httpRequest({method: 'POST', url:url,
-        params: {
-          f : "json",
-          token: this.props.token,
-          tags: this.state.cacheFileName + " Data Dictionary Support Files",
-          overwrite: true,
-          text: JSON.stringify(this.state.cacheStructure),
-          access: "public"
-        }
-      })
-      .then((result:any) => {
-        resolve(result);
-      });
-    });
-  }
-
   processCache = async (data: any, type: any, itemId:any, subCat:string) => {
     return new Promise((resolve, reject) => {
+      loadArcGISJSAPIModules(['esri/portal/Portal','esri/portal/PortalItem', 'esri/portal/PortalUser']).then(async ([Portal, PortalItem, PortalUser]) => {
         let currStruct = {...this.state.cacheStructure};
 
         switch(type) {
@@ -493,40 +416,26 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         });
 
       });
+    });
   }
 
   prepConnectivityRulesCache = (de:any, url:string, rulesLayer:number, itemId:any) => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let layers = de.layerDataElements;
       let whereClause = "";
-      let crPromise = layers.map((lyr:any) => {
+      layers.map((lyr:any) => {
         let de = lyr.dataElement;
         let sourceId = this.getSourceId(layers, de);
         if(sourceId !== -1) {
           if(de.hasOwnProperty("subtypes")) {
-            let currStruct = {...this.state.cacheStructure};
             de.subtypes.map(async(st:any) => {
               whereClause = "(fromassetgroup=" + st.subtypeCode + " and fromnetworksourceid=" + sourceId + ") OR (toassetgroup=" + st.subtypeCode + " and tonetworksourceid=" + sourceId + ")";
               let qCRurl = url + "/" + rulesLayer + "/query?where="+whereClause+"&f=pjson";
-              let data = await this.fetchRequestNoProcess(qCRurl,{type:"connectivityRules"},itemId,sourceId.toString());
-              if(sourceId.toString() !== "") {
-                if(currStruct["connectivityRules"].hasOwnProperty(sourceId.toString())) {
-                  currStruct["connectivityRules"][sourceId.toString()].push(data);
-                } else {
-                  currStruct["connectivityRules"][sourceId.toString()] = [];
-                  currStruct["connectivityRules"][sourceId.toString()].push(data);
-                }
-              } else {
-                currStruct["connectivityRules"].push(data);
-              }
+              await this.fetchRequest(qCRurl,{type:"connectivityRules"},itemId,sourceId.toString());
+              resolve(true);
             });
-            this.setState({cacheStructure: currStruct}); 
           }
         }
-      });
-      await Promise.all(crPromise).then(async() => {
-        await this.updateCache(itemId);
-        resolve(true);
       });
     });
   };

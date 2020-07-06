@@ -15,6 +15,7 @@ let linkIcon = require('./assets/launch.svg');
 interface IProps {
   data: any,
   dataElements: any,
+  layerElements: any,
   requestURL: string,
   key: any,
   panel:number,
@@ -67,6 +68,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
   componentWillMount() {}
 
   componentDidMount() {
+    console.log(this.props);
     //this._processData();
     //this._requestObject()
   }
@@ -96,8 +98,8 @@ export default class DomainCard extends React.Component <IProps, IState> {
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5, fontSize:"smaller"}}>{this.buildCrumb()}<span style={{fontWeight:"bold"}}>Properties</span></div>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Name:</span> {this.props.data.data.name}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.props.data.data.description}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Type:</span> {this.state.esriValueList.lookupValue(this.props.data.data.fieldType)}</div>
+          {(this.props.dataElements.length > 0)?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.props.data.data.description}</div>:""}
+          {(this.props.dataElements.length > 0)?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Field Type:</span> {this.state.esriValueList.lookupValue(this.props.data.data.fieldType)}</div>:""}
           <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleExpandFieldBlock();}}>{(this.state.expandFields)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>{this._typeLookup(this.props.data.data.type)}</span></div>
           {(this.props.data.data.type === "range")?
             <Collapse isOpen={this.state.expandFields}>
@@ -140,12 +142,12 @@ export default class DomainCard extends React.Component <IProps, IState> {
                   <thead>
                   <tr>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Layer</th>
-                    <th style={{fontSize:"small", fontWeight:"bold"}}>Subtype</th>
+                    {(this.props.dataElements.length > 0)?<th style={{fontSize:"small", fontWeight:"bold"}}>Subtype</th>:""}
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Field</th>
                   </tr>
                   </thead>
                   <tbody>
-                    {this.createMatchSubtype()}
+                    {(this.props.dataElements.length > 0)?this.createMatchSubtype():this.createMatchLayer()}
                   </tbody>
                 </Table>
             </div>
@@ -301,6 +303,29 @@ export default class DomainCard extends React.Component <IProps, IState> {
       }
     });
     return arrList;
+  }
+
+  createMatchLayer =() => {
+    let arrList = [];
+    this.props.layerElements.nodes.map((n: any, z: number)=>{
+      let fields = n.data.fields;
+      let matchFields = fields.filter((fld:any) => {
+        return (fld.domain !== null) && (fld.domain.name === this.props.data.data.name);
+      });
+
+      if(matchFields.length > 0) {
+        matchFields.map((match:any) => {
+          arrList.push(
+            <tr key={n.text + match.name + this.props.data.data.name}>
+            <td><div onClick={()=>{this.props.callbackLinkage(n.text,"Layer", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {n.text}</div></td>
+            <td><div onClick={()=>{this.props.callbackLinkage(match.name,"Field", this.props.panel, n.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {match.name}</div></td>
+            </tr>
+          );
+        });
+      }
+    });
+    return arrList;
+
   }
 
 

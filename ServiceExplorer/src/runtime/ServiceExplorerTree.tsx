@@ -132,7 +132,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
             </div>
             </div>
           <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px", cursor:"pointer"}} onClick={this._toggleSearchOption} id="iconSearchOptions"><Icon icon={moreIcon} size='16' color='#333' /></div>
-          <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} animated color="Primary" value="100" /></div>
+          <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} color="primary" value={100} /></div>
           <Popover className="popOverBG" innerClassName="popOverBG" hideArrow={true} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
             <PopoverHeader><div className="leftRightPadder5">Search Options</div></PopoverHeader>
             <PopoverBody>
@@ -149,39 +149,41 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
 
   mapper = (nodes: any, parentId: string, lvl: number) => {
     return nodes.map((node: any, index: number) => {
-      if(node.text.indexOf("Errors") === -1) {
-        if(node.text !== "Dirty Areas") {
-          if(!this.state.searchActive) {
-            const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
-            const item = <React.Fragment key={id}>
-              <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
-                {<div style={{ paddingLeft: `${15 * lvl}px` }}>
-                  {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
-                  {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
-                </div>}
-              </ListGroupItem>
-              {node.nodes &&
-                <Collapse isOpen={(node.hasOwnProperty('root'))? true : this.state[id]}>
-                  {this.mapper(node.nodes, id, (lvl || 0) + 1)}
-                </Collapse>}
-            </React.Fragment>
-            return item;
-          } else {
-            if(node.search) {
+      if(node.hasOwnProperty("text")) {
+        if(node.text.indexOf("Errors") === -1) {
+          if(node.text !== "Dirty Areas") {
+            if(!this.state.searchActive) {
               const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
               const item = <React.Fragment key={id}>
                 <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
                   {<div style={{ paddingLeft: `${15 * lvl}px` }}>
-                    {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+                    {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (this.state[id] ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
                     {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
                   </div>}
                 </ListGroupItem>
                 {node.nodes &&
-                  <Collapse isOpen={(node.search)? true : this.state[id]}>
+                  <Collapse isOpen={(node.hasOwnProperty('root'))? true : this.state[id]}>
                     {this.mapper(node.nodes, id, (lvl || 0) + 1)}
                   </Collapse>}
               </React.Fragment>
               return item;
+            } else {
+              if(node.search) {
+                const id = `${node.text}-${parentId ? parentId : 'top'}`.replace(/[^a-zA-Z0-9-_]/g, '');
+                const item = <React.Fragment key={id}>
+                  <ListGroupItem key={id} style={{ zIndex: 0 }} className={`${parentId ? `rounded-0 ${lvl ? '' : ''}` : ''}`}>
+                    {<div style={{ paddingLeft: `${15 * lvl}px` }}>
+                      {node.nodes && <div style={{display: "inline-block", paddingRight:"5px", cursor:"pointer"}} id={id} onClick={(e: any)=>{this.toggle(node, e)}}>{(node.hasOwnProperty('root'))? '' : (node.search ? <Icon icon={downArrowIcon} size='16' color='#333' /> : <Icon icon={rightArrowIcon} size='16' color='#333' />)}</div>}
+                      {<span onClick={(e: any)=>{node.clickable ? this.sendBackToParent(node, e): ""}} style={this.setNodeColor(node.text, node.id)} title={node.text}>{node.text}</span>}
+                    </div>}
+                  </ListGroupItem>
+                  {node.nodes &&
+                    <Collapse isOpen={(node.search)? true : this.state[id]}>
+                      {this.mapper(node.nodes, id, (lvl || 0) + 1)}
+                    </Collapse>}
+                </React.Fragment>
+                return item;
+              }
             }
           }
         }
@@ -333,16 +335,18 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
         if(node.type === "Layers") {
           node.nodes.map((n: any) => {
             if(n.type !== "Utility Network") {
-              if(n.text.indexOf("Errors") < 0 && n.text !== "Dirty Areas") {
-                searchOptions.layers.subs.push({
-                  check:true,
-                  name: n.text
-                });
-                n.nodes.map((ele: any) => {
-                  if(elementTemp.indexOf(ele.type) < 0) {
-                    elementTemp.push(ele.type);
-                  }
-                });
+              if(n.hasOwnProperty("text")) {
+                if(n.text.indexOf("Errors") < 0 && n.text !== "Dirty Areas") {
+                  searchOptions.layers.subs.push({
+                    check:true,
+                    name: n.text
+                  });
+                  n.nodes.map((ele: any) => {
+                    if(elementTemp.indexOf(ele.type) < 0) {
+                      elementTemp.push(ele.type);
+                    }
+                  });
+                }
               }
             } else {
               if(n.type === "Utility Network") {

@@ -177,6 +177,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Field Name</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Domain</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Default Value</th>
                 </tr>
@@ -431,13 +432,18 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         let defaultVal = fi.defaultValue;
         let fieldName = fi.fieldName;
         let alias = "";
+        let fieldDesc = "";
         usedFields.push(fieldName);
         if(fieldObj.length > 0) {
           alias = fieldObj[0].aliasName;
           //check metadata for specific alias
-          let aliasFromMetadata = this._matchFieldAliasInMetadata(fieldName);
+          let aliasFromMetadata = this._matchFieldAliasAndDesc(fieldName, "alias");
+          let DescFromMetadata = this._matchFieldAliasAndDesc(fieldName, "field");
           if(aliasFromMetadata !== "") {
             alias = aliasFromMetadata;
+          }
+          if(DescFromMetadata !== "") {
+            fieldDesc = DescFromMetadata;
           }
           fieldName = <span><div style={{textAlign: "left", cursor:"pointer"}}>{(this.state.fieldHolder[fi.fieldName])?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} {fi.fieldName}</div></span>;
         }
@@ -468,6 +474,7 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
         </Collapse>
         </td>
         <td style={{fontSize:"small"}}>{alias}</td>
+        <td style={{fontSize:"small"}}>{fieldDesc}</td>
         <td style={{fontSize:"small"}}>
           <div style={{fontSize:"small", display:"inline-block", verticalAlign: "top", whiteSpace: "nowrap"}}>
             <div onClick={()=>{this.props.callbackLinkage(fi.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, whiteSpace: "nowrap", cursor:"pointer"}}>{(fi.domainName !== "")?<Icon icon={linkIcon} size='12' color='#333' />:''}</div>
@@ -694,8 +701,9 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
                   for (let z=0; z < attrLevel.length; z++) {
                     let fieldName = attrLevel[z].getElementsByTagName("attrlabl");
                     let fieldAlias = attrLevel[z].getElementsByTagName("attalias");
+                    let fieldDesc = attrLevel[z].getElementsByTagName("attrdef");
                     if(fieldName.length > 0) {
-                      fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML});
+                      fieldFilter.push({fieldName: fieldName[0].innerHTML, fieldAlias: fieldAlias[0].innerHTML, fieldDesc:(fieldDesc.length > 0)?fieldDesc[0].innerHTML:""});
                       if(fieldName[0].innerHTML.toLowerCase() === "assettype") {
                         //get AT descriptions
                         let attrdomvLevel = attrLevel[z].getElementsByTagName("attrdomv");
@@ -768,15 +776,19 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
     return fieldVal;
   }
 
-  _matchFieldAliasInMetadata =(lookup: string) => {
-    let fieldAlias = "";
+  _matchFieldAliasAndDesc =(lookup: string, type: string) => {
+    let returnVal = "";
     let fieldFiltered = this.state.validFieldsChecker.filter((f:any)=> {
       return(f.fieldName === lookup);
     });
     if(fieldFiltered.length > 0) {
-      fieldAlias = fieldFiltered[0].fieldAlias;
+      if(type === "alias") {
+        returnVal = fieldFiltered[0].fieldAlias;
+      } else {
+        returnVal = fieldFiltered[0].fieldDesc;
+      }
     }
-    return fieldAlias;
+    return returnVal;
   }
 
 }
