@@ -199,7 +199,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           <ServiceExplorerTree width={this.state.tocWidth} callback={this._callbackFromTree} data={this.state.serviceNodes} callbackActiveCards={this._callbackGetActiveCards} ref={this.treeRef} />
           :
           <div style={{paddingLeft:58, width:this.state.tocWidth, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
-            <Progress animated color="Primary" value="100" />
+            <Progress color="primary" value={100} />
             Loading...
           </div>
         }

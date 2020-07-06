@@ -132,7 +132,7 @@ class _ServiceExplorerTree extends React.Component <IProps, IState> {
             </div>
             </div>
           <div style={{display:"inline-block", paddingLeft:"5px", paddingRight:"5px", cursor:"pointer"}} onClick={this._toggleSearchOption} id="iconSearchOptions"><Icon icon={moreIcon} size='16' color='#333' /></div>
-          <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} animated color="Primary" value="100" /></div>
+          <div style={{width:"100%", display:(this.state.searchWait)?"block":"none"}}><Progress theme={this.props.theme} color="primary" value={100} /></div>
           <Popover className="popOverBG" innerClassName="popOverBG" hideArrow={true} placement="left" isOpen={this.state.showSearchOptions} target="iconSearchOptions">
             <PopoverHeader><div className="leftRightPadder5">Search Options</div></PopoverHeader>
             <PopoverBody>

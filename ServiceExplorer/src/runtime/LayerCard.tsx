@@ -111,7 +111,6 @@ export default class LayerCard extends React.Component <IProps, IState> {
 
   render(){
 
-    console.log(this.state);
     let description = this._removeTags(this._unescapeHTML((this.state.metadataDescription !== "")?this.state.metadataDescription:(this.state.nodeData.hasOwnProperty("dataElement"))?(this.state.nodeData.dataElement.description)?this.state.nodeData.dataElement.description:"":this.state.nodeData.description));
 
     return (

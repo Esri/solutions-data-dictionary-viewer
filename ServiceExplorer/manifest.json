@@ -1,5 +1,6 @@
 {
   "name": "ServiceExplorer",
+  "label": "ServiceExplorer",
   "type": "widget",
   "version": "0.0.1",
   "jimuVersion": "0.0.1",
@@ -8,7 +9,9 @@
   "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {},
-  "supportedLocales": ["en", "zh-cn"],
+  "translatedLocales": [
+    "en"
+  ],
   "defaultSize": {
     "width": 800,
     "height": 500

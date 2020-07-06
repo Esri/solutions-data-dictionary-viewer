@@ -1,12 +1,11 @@
-import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceSchema, FieldSchema, DataSourceComponent} from 'jimu-core';
+import {React, FormattedMessage, Immutable, DataSource, DataSourceSchema, FieldSchema, DataSourceManager} from 'jimu-core';
 //import {React, FormattedMessage, DataSourceTypes, Immutable, ImmutableArray, IMUseDataSource, UseDataSource, IMDataSourceInfo, DataSource, DataSourceComponent, loadArcGISJSAPIModules} from 'jimu-core';
 import {loadArcGISJSAPIModules} from 'jimu-arcgis';
 import {BaseWidgetSetting, AllWidgetSettingProps} from 'jimu-for-builder';
-import {DataSourceSelector, SelectedDataSourceJson, AllDataSourceTypes} from 'jimu-ui/data-source-selector';
+import {DataSourceSelector, AllDataSourceTypes} from 'jimu-ui/advanced/data-source-selector';
 import {ArcGISDataSourceTypes} from 'jimu-arcgis';
 import {IMConfig} from '../config';
 import defaultI18nMessages from './translations/default';
-import { DataActionDropDown } from 'jimu-ui';
 
 interface State{
   query: any;
@@ -17,6 +16,7 @@ interface State{
   fields: { [jimuName: string]: FieldSchema };
   serviceURL: string;
   cacheFileName: string;
+  allowUrlLookup:boolean
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
@@ -41,12 +41,12 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       datasource: null,
       fields: {},
       serviceURL: "",
-      cacheFileName: (this.props.config.cacheFileName)?this.props.config.cacheFileName:""
+      cacheFileName: (this.props.config.cacheFileName)?this.props.config.cacheFileName:"",
+      allowUrlLookup: (this.props.config.allowUrlLookup)?this.props.config.allowUrlLookup:false
     };
   }
 
   componentWillMount(){
-    console.log(this);
     if(typeof this.props.config.url !== "undefined") {
       this.setState({serviceURL:this.props.config.url});
     }
@@ -63,17 +63,24 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     this.setDatasource(ds);
   };
 
-  onDataSourceSelected = (allSelectedDss: SelectedDataSourceJson[], currentSelectedDs: SelectedDataSourceJson) => {
-    let sUrl = currentSelectedDs.dataSourceJson.url;
-    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/"));
+  onDataSourceSelected = (allSelectedDss: any[]) => { 
     this.props.onSettingChange({
       id: this.props.id,
-      useDataSources: [{
-        dataSourceId: currentSelectedDs.dataSourceJson && currentSelectedDs.dataSourceJson.id,
-        rootDataSourceId: currentSelectedDs.rootDataSourceId
-      }],
-      config: this.props.config.set('url', sUrl)
+      useDataSources: allSelectedDss,
+      config: this.props.config.set('url', "")
     });
+    let ds = DataSourceManager.getInstance();    
+    let dsList = ds.getDataSources(); 
+
+    let sUrl = dsList[allSelectedDss[0].dataSourceId].url;
+    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/")); 
+
+    this.props.onSettingChange({
+      id: this.props.id,
+      useDataSources: allSelectedDss,
+      config: this.props.config.set('url', "")
+    });    
+    
     this.setState({serviceURL: sUrl});
   };
 
@@ -97,6 +104,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       id: this.props.id,
       config: this.props.config.set('allowUrlLookup', evt.currentTarget.checked)
     });
+    this.setState({allowUrlLookup: evt.currentTarget.checked});
   }
 
   onUseCacheChange = (evt: React.FormEvent<HTMLInputElement>) => {
@@ -173,12 +181,12 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           this.props.useDataSources && Immutable(this.props.useDataSources.map(ds => ds.dataSourceId))
         }
         useDataSourcesEnabled={this.props.useDataSourcesEnabled}
-        onSelect={this.onDataSourceSelected}
+        onChange={this.onDataSourceSelected}
          />
 
 
       <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.state.serviceURL} onChange={this.onURLChange} style={{width:"90%"}} value={this.state.serviceURL}/></div>
-      <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.props.config.useCache} onChange={this.onUseCacheChange} /></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.state.showCacheButton} onChange={this.onUseCacheChange} /></div>
 
       {(this.state.showCacheButton)?
         <div>
@@ -189,7 +197,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         :''
       }
       <div style={{height:"25px"}}></div>
-      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.props.config.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="allowurlLookup" defaultMessage={defaultI18nMessages.urlLookup}/>: <input type="checkbox" checked={this.state.allowUrlLookup} onChange={this.onAllowLookupChange} /></div>
 
     </div>
   }
