@@ -8,6 +8,8 @@ import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
 import { userInfo } from 'os';
+import { compareDesc } from 'date-fns/fp';
+import { deepStrictEqual } from 'assert';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let linkIcon = require('./assets/launch.svg');
@@ -49,6 +51,7 @@ interface IState {
   subtypeList: any,
   expandAlias: any,
   ARList: any;
+  fieldDescriptions: any;
 }
 
 export default class FieldCard extends React.Component <IProps, IState> {
@@ -72,7 +75,8 @@ export default class FieldCard extends React.Component <IProps, IState> {
       metadataElements: null,
       subtypeList: [],
       expandAlias: [],
-      ARList: []
+      ARList: [],
+      fieldDescriptions: []
     };
 
   }
@@ -157,6 +161,11 @@ export default class FieldCard extends React.Component <IProps, IState> {
               :
                 <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Alias:</span> {this.state.nodeData.alias}</div>
           }
+          {
+            (this.state.fieldDescriptions.hasOwnProperty(this.props.data.data.name))?
+              <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this.state.fieldDescriptions[this.props.data.data.name]}</div>
+              :""
+            }
           {(this.props.data.data.hasOwnProperty("precision"))?<div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Model Name:</span> {this.props.data.data.modelName}</div>:""}
           {
             (this.props.data.data.hasOwnProperty("isNullable"))?
@@ -542,6 +551,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
 
   _processMetaData =() => {
     let subtypeList = [];
+    let desc = [];
     let metadata = this.state.metadataElements;
     let metaLevel = metadata.getElementsByTagName("metadata");
     if(metaLevel.length > 0) {
@@ -577,7 +587,19 @@ export default class FieldCard extends React.Component <IProps, IState> {
         }
       }
     }
-    this.setState({subtypeList: subtypeList});
+    let attrNode = metadata.getElementsByTagName("attr");
+    if(attrNode.length > 0) {deepStrictEqual
+      for(let i=0; i< attrNode.length; i++) {
+        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+        if(fieldlabel.length > 0) {
+          if(fieldDesc.length > 0) {
+            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+          }
+        }
+      }
+    }     
+    this.setState({subtypeList: subtypeList, fieldDescriptions: desc});
   }
 
 

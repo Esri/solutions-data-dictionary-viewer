@@ -188,6 +188,8 @@ export default class TableCard extends React.Component <IProps, IState> {
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Field Name</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Domain</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -381,12 +383,27 @@ export default class TableCard extends React.Component <IProps, IState> {
 
   _createFieldList = () => {
     let arrList = [];
+    let fieldMetadata = this._getFieldMetadata();
     this.state.fields.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
           <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.parent)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{(fi.hasOwnProperty("aliasName"))?fi.aliasName:fi.alias}</td>
+        {
+          (fieldMetadata.hasOwnProperty(fi.name))?
+            <td style={{fontSize:"small"}}>{fieldMetadata[fi.name]}</td>
+          :
+          <td style={{fontSize:"small"}}></td>
+        }  
+        {(fi.hasOwnProperty("domain") && fi.domain !== null)?
+          (fi.domain.hasOwnProperty("domainName"))?
+          <td onClick={()=>{this.props.callbackLinkage(fi.domain.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer", width:"100%"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.domain.domainName}</td> 
+          :
+          <td onClick={()=>{this.props.callbackLinkage(fi.domain.name,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer", width:"100%"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.domain.name}</td>        
+        :
+          <td style={{fontSize:"small"}}></td>
+        }              
       </tr>);
     });
     //this.setState({fieldHolder: arrList});
@@ -627,7 +644,40 @@ export default class TableCard extends React.Component <IProps, IState> {
 
       }
     }
+    if(description === "") {
+      let dataInfo = metadata.getElementsByTagName("dataIdInfo");
+      if(dataInfo.length > 0) {
+        let idAbsLevel = dataInfo[0].getElementsByTagName("idAbs");
+        if(idAbsLevel.length > 0) {
+          description = idAbsLevel[0].innerHTML;
+        }
+        if(description === "") {
+          let idPurpLevel = dataInfo[0].getElementsByTagName("idPurp");
+          if(idPurpLevel.length > 0) {
+            description = idPurpLevel[0].innerHTML;
+          }        
+        }
+      }      
+    }
     this.setState({description:description, validFieldsChecker:fieldFilter, assetTypeDesc: ATDesc});
+  }
+
+  _getFieldMetadata =() => {
+    let desc = [];
+    let metadata = this.state.metadataElements;
+    let attrNode = metadata.getElementsByTagName("attr");
+    if(attrNode.length > 0) {
+      for(let i=0; i< attrNode.length; i++) {
+        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+        if(fieldlabel.length > 0) {
+          if(fieldDesc.length > 0) {
+            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+          }
+        }
+      }
+    }
+    return desc;    
   }
 
   _requestObject = async(clause: string, category: string) => {
