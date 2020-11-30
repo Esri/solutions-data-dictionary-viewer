@@ -35,7 +35,8 @@ interface IState {
   esriValueList: any,
   metadataElements: any,
   subtypeList: any,
-  expandAlias: any
+  expandAlias: any,
+  fieldDescriptions: any
 }
 
 export default class FieldsCard extends React.Component <IProps, IState> {
@@ -49,7 +50,8 @@ export default class FieldsCard extends React.Component <IProps, IState> {
       esriValueList: new esriLookup(),
       metadataElements: null,
       subtypeList: [],
-      expandAlias: []
+      expandAlias: [],
+      fieldDescriptions: []
     };
 
   }
@@ -111,6 +113,8 @@ export default class FieldsCard extends React.Component <IProps, IState> {
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Name</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
                     <th style={{fontSize:"small", fontWeight:"bold"}}>Type</th>
+                    <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
+                    <th style={{fontSize:"small", fontWeight:"bold"}}>Domain</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -211,6 +215,20 @@ export default class FieldsCard extends React.Component <IProps, IState> {
             <td style={{fontSize:"small", wordWrap: "break-word"}}>{(f.hasOwnProperty("aliasName"))?this._createAliasList(f.name, f.aliasName):this._createAliasList(f.name, f.alias)}
             </td>
             <td style={{fontSize:"small"}}>{this.state.esriValueList.lookupValue(f.type)}</td>
+            {
+              (this.state.fieldDescriptions.hasOwnProperty(f.name))?
+                <td style={{fontSize:"small"}}>{this.state.fieldDescriptions[f.name]}</td>
+              :
+                <td style={{fontSize:"small"}}></td>
+            }
+            {(f.hasOwnProperty("domain") && f.domain !== null)?
+              (f.domain.hasOwnProperty("domainName"))?
+              <td onClick={()=>{this.props.callbackLinkage(f.domain.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer", width:"100%"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.domain.domainName}</td> 
+              :
+              <td onClick={()=>{this.props.callbackLinkage(f.domain.name,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer", width:"100%"}}><Icon icon={linkIcon} size='12' color='#333' /> {f.domain.name}</td>        
+            :
+              <td style={{fontSize:"small"}}></td>
+            }            
           </tr>
         );
       });
@@ -321,6 +339,7 @@ export default class FieldsCard extends React.Component <IProps, IState> {
 
   _processMetaData =() => {
     let subtypeList = [];
+    let desc = [];
     let metadata = this.state.metadataElements;
     let metaLevel = metadata.getElementsByTagName("metadata");
     if(metaLevel.length > 0) {
@@ -356,7 +375,19 @@ export default class FieldsCard extends React.Component <IProps, IState> {
         }
       }
     }
-    this.setState({subtypeList: subtypeList});
+    let attrNode = metadata.getElementsByTagName("attr");
+    if(attrNode.length > 0) {
+      for(let i=0; i< attrNode.length; i++) {
+        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+        if(fieldlabel.length > 0) {
+          if(fieldDesc.length > 0) {
+            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+          }
+        }
+      }
+    }    
+    this.setState({subtypeList: subtypeList, fieldDescriptions: desc});
   }
 
 

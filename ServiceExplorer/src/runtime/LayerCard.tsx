@@ -149,8 +149,8 @@ export default class LayerCard extends React.Component <IProps, IState> {
                   :
                   <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Controller Membership:</span> {this._getControllerMemberships(this.state.nodeData.dataElement.controllerMemberships)}</div>
                 :
-                "None"
-              :"None"
+                ""
+              :""
             :""
             }
           {
@@ -224,6 +224,7 @@ export default class LayerCard extends React.Component <IProps, IState> {
                 <tr>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Field Name</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Alias</th>
+                  <th style={{fontSize:"small", fontWeight:"bold"}}>Description</th>
                   <th style={{fontSize:"small", fontWeight:"bold"}}>Domain</th>
                 </tr>
                 </thead>
@@ -455,12 +456,20 @@ export default class LayerCard extends React.Component <IProps, IState> {
 
   _createFieldList = () => {
     let arrList = [];
+    let fieldMetadata = this._getFieldMetadata();
+
     this.state.fields.map((fi: any, i: number)=>{
       arrList.push(<tr key={i}>
         <td style={{fontSize:"small", textAlign: "left", verticalAlign: "top"}}>
           <div onClick={()=>{this.props.callbackLinkage(fi.name,"Field", this.props.panel, this.props.data.text)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.name}</div>
         </td>
         <td style={{fontSize:"small"}}>{(fi.hasOwnProperty("aliasName"))?fi.aliasName:fi.alias}</td>
+        {
+          (fieldMetadata.hasOwnProperty(fi.name))?
+            <td style={{fontSize:"small"}}>{fieldMetadata[fi.name]}</td>
+          :
+          <td style={{fontSize:"small"}}></td>
+        }
         {(fi.hasOwnProperty("domain") && fi.domain !== null)?
           (fi.domain.hasOwnProperty("domainName"))?
           <td onClick={()=>{this.props.callbackLinkage(fi.domain.domainName,"Domain", this.props.panel)}} style={{display:"inline-block", verticalAlign: "top", paddingRight:5, cursor:"pointer", width:"100%"}}><Icon icon={linkIcon} size='12' color='#333' /> {fi.domain.domainName}</td> 
@@ -681,9 +690,34 @@ export default class LayerCard extends React.Component <IProps, IState> {
       if(idAbsLevel.length > 0) {
         desc = idAbsLevel[0].innerHTML;
       }
+      if(desc === "") {
+        let idPurpLevel = dataInfo[0].getElementsByTagName("idPurp");
+        if(idPurpLevel.length > 0) {
+          desc = idPurpLevel[0].innerHTML;
+        }        
+      }
     }
     return desc;
   }
+
+  _getFieldMetadata =() => {
+    let desc = [];
+    let metadata = this.state.metadataElements;
+    let attrNode = metadata.getElementsByTagName("attr");
+    if(attrNode.length > 0) {
+      for(let i=0; i< attrNode.length; i++) {
+        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+        if(fieldlabel.length > 0) {
+          if(fieldDesc.length > 0) {
+            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+          }
+        }
+      }
+    }
+    return desc;    
+  }
+
 
   _unescapeHTML =(html:string) => {
     var el = document.createElement('div');
