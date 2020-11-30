@@ -7,9 +7,6 @@ import {TabContent, TabPane} from 'reactstrap';
 import CardHeader from './_header';
 import './css/custom.css';
 import esriLookup from './_constants';
-import { userInfo } from 'os';
-import { compareDesc } from 'date-fns/fp';
-import { deepStrictEqual } from 'assert';
 let rightArrowIcon = require('jimu-ui/lib/icons/arrow-right.svg');
 let downArrowIcon = require('jimu-ui/lib/icons/arrow-down.svg');
 let linkIcon = require('./assets/launch.svg');
@@ -588,7 +585,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
       }
     }
     let attrNode = metadata.getElementsByTagName("attr");
-    if(attrNode.length > 0) {deepStrictEqual
+    if(attrNode.length > 0) {
       for(let i=0; i< attrNode.length; i++) {
         let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
         let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
@@ -598,7 +595,7 @@ export default class FieldCard extends React.Component <IProps, IState> {
           }
         }
       }
-    }     
+    }
     this.setState({subtypeList: subtypeList, fieldDescriptions: desc});
   }
 
