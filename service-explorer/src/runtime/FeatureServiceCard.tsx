@@ -78,8 +78,8 @@ export default class FeatureServiceCard extends React.Component <IProps, IState>
         <TabPane tabId="Properties">
         <div style={{width: "100%", paddingLeft:10, paddingRight:10, wordWrap: "break-word", whiteSpace: "normal" }}>
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Title:</span> {title}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subject:</span> {this._removeTags(this._unescapeHTML(subject))}</div>
-          <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this._removeTags(this._unescapeHTML(this.state.nodeData.serviceDescription))}</div>
+          {(this.state.nodeData.documentInfo) && <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Subject:</span> {this._removeTags(this._unescapeHTML(subject))}</div>}
+          {(this.state.nodeData.documentInfo) && <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Description:</span> {this._removeTags(this._unescapeHTML(this.state.nodeData.serviceDescription))}</div>}
           <div style={{paddingTop:5, paddingBottom:5}}><span style={{fontWeight:"bold"}}>Version:</span> {this.state.nodeData.currentVersion}</div>
           <div style={{paddingTop:5, paddingBottom:5, cursor:"pointer"}} onClick={()=>{this.toggleLayers()}}>{(this.state.expandLayers)?<Icon icon={downArrowIcon} size='12' color='#333' />:<Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{fontWeight:"bold"}}>Layers</span></div>
           <Collapse isOpen={this.state.expandLayers}>

@@ -146,7 +146,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
                   this._processData().then(() => {
                     this.setState({treeReady:true});
                     this._checkCookie();
-                    this._parseStartUpURL();
+                    this._parseStartUpURL();                    
                   });
                 });
               });
@@ -162,7 +162,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               this._processData().then(() => {
                 this.setState({treeReady:true});
                 this._checkCookie();
-                this._parseStartUpURL();
+                this._parseStartUpURL();                    
               });
             });
           });
@@ -460,7 +460,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let unData = null;
       let checkNodes = null;
       //domains.sort(this._compare("name"));
-
+  
       data.layers.map((layer: any, i:number) => {
         checkNodes = this._queryDataElement(layer.id);
         if(checkNodes.hasOwnProperty("dataElement")) {
@@ -474,7 +474,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let nodeStructure = {
         id: cleanId,
         type: "Feature Service",
-        text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title + " Service":data.serviceDescription + " Service",
+        text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title + " Service":data.serviceDescription,
         subNodeCount: 0,
         icon: "",
         requestAdditional: false,
@@ -528,13 +528,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
           {type: "Layers", value:"Layers", node: layersNode.id},
           {type: type, value:layer.name, node: subNode.id}
-        ];
+        ];      
         if(this.state.hasDataElements) {
           subNode.nodes = this._processDataElements(layer.id, crumb, layer.name);
-        } else {
+        } else {           
           let reqData = this._requestCacheObject(null,layer.id);
           subNode.data = reqData;
-          subNode.nodes = this._processDataSimple(reqData, layer.id, crumb, layer.name);
+          subNode.nodes = this._processDataSimple(reqData, layer.id, crumb, layer.name);          
         }
         return(subNode);
       });
@@ -542,7 +542,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       //if(this.state.hasDataElements) {
         nodeStructure.nodes.push(layersNode);
       //}
-
+  
       //Handling TABLE nodes
       if(data.tables.length > 0) {
         let tablesNode = {
@@ -582,7 +582,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
               {type: "Tables", value:"Tables", node:tablesNode.id},
               {type: "Table", value:table.name, node: nodeStruct.id}
-            ];
+            ];      
             if(this.state.hasDataElements) {
               nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name);
             } else {
@@ -596,7 +596,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
         nodeStructure.nodes.push(tablesNode);
       }
-
+  
       //Handling RELATIONSHIP nodes
       if(this.state.serviceElements.hasOwnProperty("relationships")) {
         let relationNode = {
@@ -633,7 +633,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
         nodeStructure.nodes.push(relationNode);
       }
-
+  
       //Handling DOMAINS nodes
       if(this.state.domainElements.length > 0) {
         let domainNode = {
@@ -669,7 +669,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         })
         nodeStructure.nodes.push(domainNode);
       }
-
+  
       //Handling UN specific nodes
       if(unData !== null) {
         let domainNetworkNode = {
@@ -692,7 +692,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         domainNetworkNode.nodes = this._processDataElements(unData.layerId, newCrumb, "Feature Service");
         nodeStructure.nodes.unshift(domainNetworkNode);
       }
-
+  
       this.setState({serviceNodes: [nodeStructure], layerElements:layersNode}, () => {
         resolve(true);
       });
@@ -928,7 +928,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             type:"Fields",
             value:"Fields",
             node: this.replaceColon(id + "_fields")
-          });
+          });          
           let fNode = {
             id: this.replaceColon(id + "_fields"),
             type: "Fields",
@@ -949,7 +949,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             type:"Indexes",
             value:"Indexes",
             node: this.replaceColon(id + "_indexes")
-          });
+          });          
           let iNode = {
             id: this.replaceColon(id + "_indexes"),
             type: "Indexes",
@@ -1370,7 +1370,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Relationship": {
-          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth}
+          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth} 
             serviceElements={this.state.serviceElements}
             dataElements={this.state.dataElements}
             key={dataNode.id}
@@ -2188,23 +2188,29 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
     }
-    if(this.props.queryObject.hasOwnProperty("cacheId")) {
-      this.setState({cacheId: this.props.queryObject.cacheId});
+    if(this.props.hasOwnProperty("queryObject")) {
+      if(this.props.queryObject.hasOwnProperty("cacheId")) {
+        this.setState({cacheId: this.props.queryObject.cacheId});
+      }
     }
   }
 
   _parseStartUpURL =() => {
-    if(this.props.queryObject.hasOwnProperty("startup")) {
-      if(this.props.queryObject.startup !== "") {
-        let param = (this.props.queryObject.startup).split(",");
-        if(param.length > 0) {
-          param.map((p:string) => {
-            if(p.indexOf(":") > -1) {
-              let keys = p.split(":");
-              this.searchLaunchCard(keys[0], keys[1], 0, "");
-            }
-          });
+    if(this.props.hasOwnProperty("queryObject")) {
+      if(this.props.queryObject.hasOwnProperty("startup")) {
+        if(this.props.queryObject.startup !== "") {
+          let param = (this.props.queryObject.startup).split(",");
+          if(param.length > 0) {
+            param.map((p:string) => {
+              if(p.indexOf(":") > -1) {
+                let keys = p.split(":");
+                this.searchLaunchCard(keys[0], keys[1], 0, "");
+              }
+            });
+          }
         }
+      } else {
+        this.searchLaunchCard(this.state.serviceNodes[0].text, "Feature Service", 0);
       }
     } else {
       this.searchLaunchCard(this.state.serviceNodes[0].text, "Feature Service", 0);

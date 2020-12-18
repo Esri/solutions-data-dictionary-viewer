@@ -1,5 +1,5 @@
 export default {
-  _widgetLabel: 'ServiceExplorer',
+  _widgetLabel: 'Service Explorer',
   widgetProperties: 'Widget Properties',
   widgetFunctions: 'Widget Functions',
   widgetName: 'widget name:',

@@ -20,7 +20,6 @@ interface State{
 }
 
 export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMConfig>, State>{
-  supportedTypes = Immutable([ArcGISDataSourceTypes.FeatureLayer]);
   constructor(props) {
     super(props);
     this.state = {
@@ -63,25 +62,21 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     this.setDatasource(ds);
   };
 
-  onDataSourceSelected = (allSelectedDss: any[]) => { 
-    this.props.onSettingChange({
-      id: this.props.id,
-      useDataSources: allSelectedDss,
-      config: this.props.config.set('url', "")
-    });
+  onDataSourceSelected = (evt: any) => { 
     let ds = DataSourceManager.getInstance();    
     let dsList = ds.getDataSources(); 
 
-    let sUrl = dsList[allSelectedDss[0].dataSourceId].url;
-    sUrl = sUrl.substring(0,sUrl.lastIndexOf("/")); 
-
-    this.props.onSettingChange({
-      id: this.props.id,
-      useDataSources: allSelectedDss,
-      config: this.props.config.set('url', "")
-    });    
-    
-    this.setState({serviceURL: sUrl});
+    for (const key in dsList) {
+      if (key === evt[0].dataSourceId) {
+        const dsJson = dsList[key].getDataSourceJson();
+        let trunURL = dsJson.url; 
+        this.props.onSettingChange({
+          id: this.props.id,
+          config: this.props.config.set('url', trunURL)
+        }); 
+        this.setState({serviceURL: trunURL});
+      }
+    }   
   };
 
 
@@ -172,25 +167,20 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     return <div className="widget-setting-demo">
 
       <DataSourceSelector
-        mustUseDataSource
-        types={Immutable([
-          AllDataSourceTypes.FeatureLayer,
-          AllDataSourceTypes.FeatureQuery
-        ])}
-        selectedDataSourceIds={
-          this.props.useDataSources && Immutable(this.props.useDataSources.map(ds => ds.dataSourceId))
-        }
-        useDataSourcesEnabled={this.props.useDataSourcesEnabled}
+        types={Immutable([AllDataSourceTypes.FeatureService])}
         onChange={this.onDataSourceSelected}
+        mustUseDataSource={true}
+        useDataSources={this.props.useDataSources}
+        useDataSourcesEnabled={this.props.useDataSourcesEnabled}
+        widgetId={this.props.id}
          />
 
-
-      <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input defaultValue={this.state.serviceURL} onChange={this.onURLChange} style={{width:"90%"}} value={this.state.serviceURL}/></div>
+      <div style={{paddingBottom:10}}><FormattedMessage id="url" defaultMessage={defaultI18nMessages.url}/>: <input onChange={this.onURLChange} style={{width:"90%"}} value={this.state.serviceURL}/></div>
       <div style={{paddingBottom:10}}><FormattedMessage id="Use Cache" defaultMessage={defaultI18nMessages.useCache}/>: <input type="checkbox" checked={this.state.showCacheButton} onChange={this.onUseCacheChange} /></div>
 
       {(this.state.showCacheButton)?
         <div>
-          <div style={{paddingBottom:10}}>Name of Cache: <input defaultValue={this.state.cacheFileName} onChange={this.onCacheNameChange} style={{width:"90%"}} value={this.state.cacheFileName}/></div>
+          <div style={{paddingBottom:10}}>Name of Cache: <input onChange={this.onCacheNameChange} style={{width:"90%"}} value={this.state.cacheFileName}/></div>
           <div style={{paddingBottom:10}}>Build cache: <input defaultValue="Build Cache" onClick={this.checkCreatePortalItem} type="button"/></div>
           <div style={{paddingBottom:10}}>{this.state.cacheStatus}</div>
         </div>
@@ -374,6 +364,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     return new Promise((resolve, reject) => {
       let response = {};
       let requestURL = url;
+      requestURL = requestURL + "&token=" + this.props.token;
       fetch(requestURL, {method: 'GET'})
       .then((response) => {
         if(params.type == "metadata") {
@@ -401,6 +392,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     return new Promise((resolve, reject) => {
       let response = {};
       let requestURL = url;
+      requestURL = requestURL + "&token=" + this.props.token;
       fetch(requestURL, {method: 'GET'})
       .then((response) => {
         if(params.type == "metadata") {
