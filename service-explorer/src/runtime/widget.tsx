@@ -55,14 +55,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     this.toggleTree = this.toggleTree.bind(this);
 
     this.state = {
-      useCache: (props.config.useCache)?props.config.useCache:true,
+      useCache: (props.config.useCache)?props.config.useCache:false,
       cacheId: props.config.cacheId,
       cacheData: null,
       stagePanels: 0,
       showPanel2: false,
       panelList: [],
       activeTab: 'properties',
-      requestURL: props.config.url,
+      requestURL: this.props.config.hasOwnProperty("serviceURL")?props.config.serviceURL:'',
       serviceElements: {},
       hasDataElements: false,
       controllerDS: null,
@@ -114,6 +114,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   componentWillMount() {
+    console.log(this.props);
     window.addEventListener('resize', this.handleResize);
 
     let newActive = [...this.state.activeCards];
@@ -155,19 +156,21 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
       });
     } else {
-      this.requestServiceDetails().then(() => {
-        this._requestObject("queryDataElements", -1).then(() => {
-          this._requestObject("relationships", -1).then(() => {
-            this._requestObject("queryDomains", -1).then(() => {
-              this._processData().then(() => {
-                this.setState({treeReady:true});
-                this._checkCookie();
-                this._parseStartUpURL();                    
+      if(this.props.config.hasOwnProperty("serviceURL")) {
+        this.requestServiceDetails().then(() => {
+          this._requestObject("queryDataElements", -1).then(() => {
+            this._requestObject("relationships", -1).then(() => {
+              this._requestObject("queryDomains", -1).then(() => {
+                this._processData().then(() => {
+                  this.setState({treeReady:true});
+                  this._checkCookie();
+                  this._parseStartUpURL();                    
+                });
               });
             });
           });
         });
-      });
+      }
     }
     //this._featureLayerList();
   }
@@ -176,21 +179,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   render(){
-
-/*
-        <Button id="popoverSearch" type="secondary" onClick={this.toggleSearch}>
-          <Icon icon={searchIcon} size='16' color='#333' />
-        </Button>
-        <Popover placement="left" isOpen={this.state.popoverSearch} target="popoverSearch">
-          <PopoverHeader>Search Active Cards</PopoverHeader>
-          <PopoverBody>
-            <Input placeholder="Search Active Cards" ref="activeSearchValue" onChange={(e)=>{this.searchService(e.target.value, "active")}}></Input>
-          </PopoverBody>
-        </Popover>
-        <br></br>
-*/
-
-
     return <div className="widget-demo" style={{top:0, height:this.state.winHeight, backgroundColor:"#fff"}}>
       <div>
         <Collapse isOpen={this.state.showTree}>
@@ -199,7 +187,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           :
           <div style={{paddingLeft:58, width:this.state.tocWidth, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
             <Progress color="primary" value={100} />
-            Loading...
+            {(this.props.config.hasOwnProperty("serviceURL"))?'Loading...':'Widget is not configured'}
           </div>
         }
         </Collapse>
@@ -211,7 +199,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             this.state.activeCards[0]
           :
             <div style={{width:"100%", textAlign:"center", paddingTop:"25%"}}>
-              Click on topics in the table of contents to load more information.
+              {(this.props.config.hasOwnProperty("serviceURL"))?'Click on topics in the table of contents to load more information.':'Widget is not configured'} 
             </div>
         }
         </div>
@@ -295,16 +283,27 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(this.state.useCache) {
       this.setState({serviceElements: this.state.cacheData.featureServer});
     } else {
-      let url = this.state.requestURL + "/?f=pjson";
-      await fetch(url, {
-        method: 'GET'
-      })
-      .then((response) => {return response.json()})
-      .then((data) => {
-        if(!data.hasOwnProperty("error")){
-          this.setState({serviceElements: data});
+      if(this.state.requestURL !== '') {
+        let url = this.state.requestURL + "/?f=pjson";
+        if(this.props.hasOwnProperty('token')) {
+          url = url + '&token='+this.props.token;
         }
-      });
+        await fetch(url, {
+          method: 'GET'
+        })
+        .then((response) => {
+          return response.json()
+        })
+        .then((data) => {
+          console.log(data);
+          if(!data.hasOwnProperty("error")){
+            this.setState({serviceElements: data});
+          }
+        })
+        .catch((e:any) => {
+          console.log(e);
+        });
+      }
     }
   }
 
