@@ -55,14 +55,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     this.toggleTree = this.toggleTree.bind(this);
 
     this.state = {
-      useCache: (props.config.useCache)?props.config.useCache:true,
+      useCache: (props.config.useCache)?props.config.useCache:false,
       cacheId: props.config.cacheId,
       cacheData: null,
       stagePanels: 0,
       showPanel2: false,
       panelList: [],
       activeTab: 'properties',
-      requestURL: props.config.url,
+      requestURL: this.props.config.hasOwnProperty("serviceURL")?props.config.serviceURL:'',
       serviceElements: {},
       hasDataElements: false,
       controllerDS: null,
@@ -114,6 +114,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   componentWillMount() {
+    console.log(this.props);
     window.addEventListener('resize', this.handleResize);
 
     let newActive = [...this.state.activeCards];
@@ -146,7 +147,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
                   this._processData().then(() => {
                     this.setState({treeReady:true});
                     this._checkCookie();
-                    this._parseStartUpURL();
+                    this._parseStartUpURL();                    
                   });
                 });
               });
@@ -155,19 +156,21 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
       });
     } else {
-      this.requestServiceDetails().then(() => {
-        this._requestObject("queryDataElements", -1).then(() => {
-          this._requestObject("relationships", -1).then(() => {
-            this._requestObject("queryDomains", -1).then(() => {
-              this._processData().then(() => {
-                this.setState({treeReady:true});
-                this._checkCookie();
-                this._parseStartUpURL();
+      if(this.props.config.hasOwnProperty("serviceURL")) {
+        this.requestServiceDetails().then(() => {
+          this._requestObject("queryDataElements", -1).then(() => {
+            this._requestObject("relationships", -1).then(() => {
+              this._requestObject("queryDomains", -1).then(() => {
+                this._processData().then(() => {
+                  this.setState({treeReady:true});
+                  this._checkCookie();
+                  this._parseStartUpURL();                    
+                });
               });
             });
           });
         });
-      });
+      }
     }
     //this._featureLayerList();
   }
@@ -176,21 +179,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
   }
 
   render(){
-
-/*
-        <Button id="popoverSearch" type="secondary" onClick={this.toggleSearch}>
-          <Icon icon={searchIcon} size='16' color='#333' />
-        </Button>
-        <Popover placement="left" isOpen={this.state.popoverSearch} target="popoverSearch">
-          <PopoverHeader>Search Active Cards</PopoverHeader>
-          <PopoverBody>
-            <Input placeholder="Search Active Cards" ref="activeSearchValue" onChange={(e)=>{this.searchService(e.target.value, "active")}}></Input>
-          </PopoverBody>
-        </Popover>
-        <br></br>
-*/
-
-
     return <div className="widget-demo" style={{top:0, height:this.state.winHeight, backgroundColor:"#fff"}}>
       <div>
         <Collapse isOpen={this.state.showTree}>
@@ -199,7 +187,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           :
           <div style={{paddingLeft:58, width:this.state.tocWidth, height:document.body.clientHeight-10, overflow: "auto", position: "fixed"}}>
             <Progress color="primary" value={100} />
-            Loading...
+            {(this.props.config.hasOwnProperty("serviceURL"))?'Loading...':'Widget is not configured'}
           </div>
         }
         </Collapse>
@@ -211,7 +199,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             this.state.activeCards[0]
           :
             <div style={{width:"100%", textAlign:"center", paddingTop:"25%"}}>
-              Click on topics in the table of contents to load more information.
+              {(this.props.config.hasOwnProperty("serviceURL"))?'Click on topics in the table of contents to load more information.':'Widget is not configured'} 
             </div>
         }
         </div>
@@ -295,16 +283,27 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
     if(this.state.useCache) {
       this.setState({serviceElements: this.state.cacheData.featureServer});
     } else {
-      let url = this.state.requestURL + "/?f=pjson";
-      await fetch(url, {
-        method: 'GET'
-      })
-      .then((response) => {return response.json()})
-      .then((data) => {
-        if(!data.hasOwnProperty("error")){
-          this.setState({serviceElements: data});
+      if(this.state.requestURL !== '') {
+        let url = this.state.requestURL + "/?f=pjson";
+        if(this.props.hasOwnProperty('token')) {
+          url = url + '&token='+this.props.token;
         }
-      });
+        await fetch(url, {
+          method: 'GET'
+        })
+        .then((response) => {
+          return response.json()
+        })
+        .then((data) => {
+          console.log(data);
+          if(!data.hasOwnProperty("error")){
+            this.setState({serviceElements: data});
+          }
+        })
+        .catch((e:any) => {
+          console.log(e);
+        });
+      }
     }
   }
 
@@ -460,7 +459,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let unData = null;
       let checkNodes = null;
       //domains.sort(this._compare("name"));
-
+  
       data.layers.map((layer: any, i:number) => {
         checkNodes = this._queryDataElement(layer.id);
         if(checkNodes.hasOwnProperty("dataElement")) {
@@ -474,7 +473,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       let nodeStructure = {
         id: cleanId,
         type: "Feature Service",
-        text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title + " Service":data.serviceDescription + " Service",
+        text: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title + " Service":data.serviceDescription,
         subNodeCount: 0,
         icon: "",
         requestAdditional: false,
@@ -528,13 +527,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
           {type: "Layers", value:"Layers", node: layersNode.id},
           {type: type, value:layer.name, node: subNode.id}
-        ];
+        ];      
         if(this.state.hasDataElements) {
           subNode.nodes = this._processDataElements(layer.id, crumb, layer.name);
-        } else {
+        } else {           
           let reqData = this._requestCacheObject(null,layer.id);
           subNode.data = reqData;
-          subNode.nodes = this._processDataSimple(reqData, layer.id, crumb, layer.name);
+          subNode.nodes = this._processDataSimple(reqData, layer.id, crumb, layer.name);          
         }
         return(subNode);
       });
@@ -542,7 +541,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
       //if(this.state.hasDataElements) {
         nodeStructure.nodes.push(layersNode);
       //}
-
+  
       //Handling TABLE nodes
       if(data.tables.length > 0) {
         let tablesNode = {
@@ -582,7 +581,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
               {type: "Feature Service", value: (data.hasOwnProperty("documentInfo"))?data.documentInfo.Title+" Service":data.serviceDescription+" Service", node: nodeStructure.id},
               {type: "Tables", value:"Tables", node:tablesNode.id},
               {type: "Table", value:table.name, node: nodeStruct.id}
-            ];
+            ];      
             if(this.state.hasDataElements) {
               nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name);
             } else {
@@ -596,7 +595,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
         nodeStructure.nodes.push(tablesNode);
       }
-
+  
       //Handling RELATIONSHIP nodes
       if(this.state.serviceElements.hasOwnProperty("relationships")) {
         let relationNode = {
@@ -633,7 +632,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         });
         nodeStructure.nodes.push(relationNode);
       }
-
+  
       //Handling DOMAINS nodes
       if(this.state.domainElements.length > 0) {
         let domainNode = {
@@ -669,7 +668,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         })
         nodeStructure.nodes.push(domainNode);
       }
-
+  
       //Handling UN specific nodes
       if(unData !== null) {
         let domainNetworkNode = {
@@ -692,7 +691,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         domainNetworkNode.nodes = this._processDataElements(unData.layerId, newCrumb, "Feature Service");
         nodeStructure.nodes.unshift(domainNetworkNode);
       }
-
+  
       this.setState({serviceNodes: [nodeStructure], layerElements:layersNode}, () => {
         resolve(true);
       });
@@ -928,7 +927,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             type:"Fields",
             value:"Fields",
             node: this.replaceColon(id + "_fields")
-          });
+          });          
           let fNode = {
             id: this.replaceColon(id + "_fields"),
             type: "Fields",
@@ -949,7 +948,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
             type:"Indexes",
             value:"Indexes",
             node: this.replaceColon(id + "_indexes")
-          });
+          });          
           let iNode = {
             id: this.replaceColon(id + "_indexes"),
             type: "Indexes",
@@ -1370,7 +1369,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
           break;
         }
         case "Relationship": {
-          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth}
+          newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth} 
             serviceElements={this.state.serviceElements}
             dataElements={this.state.dataElements}
             key={dataNode.id}
@@ -2188,23 +2187,29 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any>{
         }
       }
     }
-    if(this.props.queryObject.hasOwnProperty("cacheId")) {
-      this.setState({cacheId: this.props.queryObject.cacheId});
+    if(this.props.hasOwnProperty("queryObject")) {
+      if(this.props.queryObject.hasOwnProperty("cacheId")) {
+        this.setState({cacheId: this.props.queryObject.cacheId});
+      }
     }
   }
 
   _parseStartUpURL =() => {
-    if(this.props.queryObject.hasOwnProperty("startup")) {
-      if(this.props.queryObject.startup !== "") {
-        let param = (this.props.queryObject.startup).split(",");
-        if(param.length > 0) {
-          param.map((p:string) => {
-            if(p.indexOf(":") > -1) {
-              let keys = p.split(":");
-              this.searchLaunchCard(keys[0], keys[1], 0, "");
-            }
-          });
+    if(this.props.hasOwnProperty("queryObject")) {
+      if(this.props.queryObject.hasOwnProperty("startup")) {
+        if(this.props.queryObject.startup !== "") {
+          let param = (this.props.queryObject.startup).split(",");
+          if(param.length > 0) {
+            param.map((p:string) => {
+              if(p.indexOf(":") > -1) {
+                let keys = p.split(":");
+                this.searchLaunchCard(keys[0], keys[1], 0, "");
+              }
+            });
+          }
         }
+      } else {
+        this.searchLaunchCard(this.state.serviceNodes[0].text, "Feature Service", 0);
       }
     } else {
       this.searchLaunchCard(this.state.serviceNodes[0].text, "Feature Service", 0);

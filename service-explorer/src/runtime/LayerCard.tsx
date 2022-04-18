@@ -641,24 +641,36 @@ export default class LayerCard extends React.Component <IProps, IState> {
   //****** helper functions and request functions
   //********************************************
   _requestMetadata = async() => {
+    let layerId = null;
+    if(this.props.data.data.hasOwnProperty("layerId")) {
+      layerId = this.props.data.data.layerId;
+    } else {
+      if(this.props.data.data.hasOwnProperty("id")) {
+        layerId = this.props.data.data.id;
+      }
+    }
     if(this.props.config.useCache) {
-      if(this.props.cacheData.metadata.hasOwnProperty(this.props.data.data.layerId)) {
-        let data  = this.props.cacheData.metadata[this.props.data.data.layerId];
-        let parser = new DOMParser();
-        let xmlDoc = parser.parseFromString(data,"text/xml");
-        this.setState({metadataElements: xmlDoc});
+      if(layerId !== null) {
+        if(this.props.cacheData.metadata.hasOwnProperty(layerId)) {
+          let data  = this.props.cacheData.metadata[layerId];
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(data,"text/xml");
+          this.setState({metadataElements: xmlDoc});
+        }
       }
     } else {
-      let url = this.props.requestURL + "/" + this.props.data.data.layerId + "/metadata";
-      await fetch(url, {
-        method: 'GET'
-      })
-      .then((response) => {return response.text()})
-      .then((data) => {
-        let parser = new DOMParser();
-        let xmlDoc = parser.parseFromString(data,"text/xml");
-        this.setState({metadataElements: xmlDoc});
-      });
+      if(layerId !== null) {
+        let url = this.props.requestURL + "/" + layerId + "/metadata";
+        await fetch(url, {
+          method: 'GET'
+        })
+        .then((response) => {return response.text()})
+        .then((data) => {
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(data,"text/xml");
+          this.setState({metadataElements: xmlDoc});
+        });
+      }
     }
 
   }
@@ -703,14 +715,16 @@ export default class LayerCard extends React.Component <IProps, IState> {
   _getFieldMetadata =() => {
     let desc = [];
     let metadata = this.state.metadataElements;
-    let attrNode = metadata.getElementsByTagName("attr");
-    if(attrNode.length > 0) {
-      for(let i=0; i< attrNode.length; i++) {
-        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
-        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
-        if(fieldlabel.length > 0) {
-          if(fieldDesc.length > 0) {
-            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+    if(metadata !== null) {
+      let attrNode = metadata.getElementsByTagName("attr");
+      if(attrNode.length > 0) {
+        for(let i=0; i< attrNode.length; i++) {
+          let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+          let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+          if(fieldlabel.length > 0) {
+            if(fieldDesc.length > 0) {
+              desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+            }
           }
         }
       }

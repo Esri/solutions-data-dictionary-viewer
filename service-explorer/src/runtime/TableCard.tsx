@@ -665,14 +665,16 @@ export default class TableCard extends React.Component <IProps, IState> {
   _getFieldMetadata =() => {
     let desc = [];
     let metadata = this.state.metadataElements;
-    let attrNode = metadata.getElementsByTagName("attr");
-    if(attrNode.length > 0) {
-      for(let i=0; i< attrNode.length; i++) {
-        let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
-        let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
-        if(fieldlabel.length > 0) {
-          if(fieldDesc.length > 0) {
-            desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+    if(metadata !== null) {
+      let attrNode = metadata.getElementsByTagName("attr");
+      if(attrNode.length > 0) {
+        for(let i=0; i< attrNode.length; i++) {
+          let fieldlabel = attrNode[i].getElementsByTagName("attrlabl");
+          let fieldDesc = attrNode[i].getElementsByTagName("attrdef");
+          if(fieldlabel.length > 0) {
+            if(fieldDesc.length > 0) {
+              desc[fieldlabel[0].innerHTML] = fieldDesc[0].innerHTML;
+            }
           }
         }
       }

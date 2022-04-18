@@ -1,6 +1,6 @@
 {
-  "name": "ServiceExplorer",
-  "label": "ServiceExplorer",
+  "name": "service-explorer",
+  "label": "Service Explorer",
   "type": "widget",
   "version": "0.0.1",
   "jimuVersion": "0.0.1",
@@ -13,7 +13,7 @@
     "en"
   ],
   "defaultSize": {
-    "width": 800,
-    "height": 500
+    "width": 1024,
+    "height": 760
   }
 }
