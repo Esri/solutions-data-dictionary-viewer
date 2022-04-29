@@ -161,7 +161,7 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
             fg.uniqueValues = unique
             fg.filteredPossible = justValues
             fg.filteredUniqueValues = unique
-            fg.filteredSelection = unique.forEach((u: any, i: number) => {
+            fg.filteredSelection = unique.map((u: any, i: number) => {
               if (this.props.assetType !== '') {
                 if (existingSelection === i) {
                   return this.props.assetType
@@ -227,7 +227,7 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
       if (filterCAVFieldGroups.length > 0) {
         fieldGroup.filteredUniqueValues.forEach((fuv: any, p: number) => {
           if (fieldGroup.filteredSelection) {
-            const valueList = this._createValueList(fuv, filterCAVFieldGroups[0].fieldNames.names[p], fieldGroup.filteredSelection[p])
+            const valueList = this._createValueList(fuv, filterCAVFieldGroups[0].fieldNames.names[p], (fieldGroup?.filteredSelection) ? fieldGroup.filteredSelection[p] : -1)
             const cell = (
             <td>
               <div style={{ fontSize: 'small', fontWeight: 'bold' }}>{filterCAVFieldGroups[0].fieldNames.names[p]}</div>
@@ -265,21 +265,21 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
       fuv.forEach((cav: any, c: number) => {
         if (cav !== true || cav !== false) {
           const matchCV = codeValues.filter((cv: any) => {
-            return (cv.code === cav)
+            return (cv.code === cav || (cv.code).toString() === cav.toString())
           })
           if (parseInt(existing) !== -1) {
             if (parseInt(existing) === parseInt(cav)) {
               if (matchCV.length > 0) {
                 selOptions.push(<option key={c} value={cav} selected>{matchCV[0].name}</option>)
               } else {
-                selOptions.push(<option key={c} value={cav} selected>{cav}</option>)
+                //selOptions.push(<option key={c} value={cav} selected>{cav}</option>)
               }
             }
           } else {
             if (matchCV.length > 0) {
               selOptions.push(<option key={c} value={cav}>{matchCV[0].name}</option>)
             } else {
-              selOptions.push(<option key={c} value={cav}>{cav}</option>)
+              //selOptions.push(<option key={c} value={cav}>{cav}</option>)
             }
           }
         }
@@ -313,7 +313,7 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
             if (cav !== true || cav !== false) {
               if (c === slot) {
                 const matchCV = codeValues.filter((cv: any) => {
-                  return (cv.code === cav)
+                  return (cv.code === cav || (cv.code).toString() === cav.toString())
                 })
                 if (matchCV.length > 0) {
                   if (!list.includes(matchCV[0].name)) {
@@ -321,10 +321,10 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
                     valueList.push(<div key={matchCV[0].name} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{matchCV[0].name}</div>)
                   }
                 } else {
-                  if (!list.includes(cav)) {
-                    list.push(cav)
-                    valueList.push(<div key={cav} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{cav}</div>)
-                  }
+                  //if (!list.includes(cav)) {
+                  //  list.push(cav)
+                  //  valueList.push(<div key={cav} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{cav}</div>)
+                  //}
                 }
               }
             }
@@ -382,12 +382,12 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
                 const codeValues = matchDomain[0].codedValues
                 this.state.uniqueCAVChoice[keyNode][i].forEach((cav: any, c: number) => {
                   const matchCV = codeValues.filter((cv: any) => {
-                    return (cv.code === cav)
+                    return (cv.code === cav || (cv.code).toString() === cav.toString())
                   })
                   if (matchCV.length > 0) {
                     selOption.push(<option key={c} value={cav}>{matchCV[0].name}</option>)
                   } else {
-                    selOption.push(<option key={c} value={cav}>{cav}</option>)
+                    //selOption.push(<option key={c} value={cav}>{cav}</option>)
                   }
                 })
                 header.push(<th key={i} style={{ fontSize: 'small', fontWeight: 'bold' }}><div style={{ fontSize: 'small' }}>{filterCAVFieldGroups[0].fieldNames.names[i]}</div>
@@ -439,7 +439,9 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
     cavCopy.forEach((c: any) => {
       c.fieldGroups.forEach((fg: any) => {
         if (fg.name === name) {
-          fg.filteredSelection[slot] = value
+          if (fg.filteredSelection) {
+            fg.filteredSelection[slot] = value
+          }
           const matchPossible = fg.filteredPossible.filter((poss: any) => {
             return (parseInt(poss[slot]) === parseInt(value))
           })
@@ -479,16 +481,18 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
     cavCopy.forEach((c: any) => {
       c.fieldGroups.forEach((fg: any) => {
         if (fg.name === fldGrp.name) {
-          for (let i = 0; i < fg.filteredSelection.length; i++) {
-            if (this.props.assetType !== '') {
-              if (fg.filteredSelection[i] !== this.props.assetType) {
+          if (fg.filteredSelection) {
+            for (let i = 0; i < fg.filteredSelection.length; i++) {
+              if (this.props.assetType !== '') {
+                if (fg.filteredSelection[i] !== this.props.assetType) {
+                  fg.filteredSelection[i] = -1
+                }
+              } else {
                 fg.filteredSelection[i] = -1
               }
-            } else {
-              fg.filteredSelection[i] = -1
-            }
-            doms.push(ReactDOM.findDOMNode(this.refs[fldGrp.name + i]))
-          };
+              doms.push(ReactDOM.findDOMNode(this.refs[fldGrp.name + i]))
+            };
+          }
           fg.filteredUniqueValues = fg.uniqueValues
           fg.filteredPossible = fg.allPossible
         }
@@ -504,7 +508,7 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
 
   _checkIfFiltered =(fldGrp: any) => {
     let value = false
-    if (fldGrp.filteredSelectio) {
+    if (fldGrp.filteredSelection) {
       value = fldGrp.filteredSelection.some((fs: any) => {
         return fs !== -1
       })
