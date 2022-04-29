@@ -262,24 +262,37 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
     if (matchField.length > 0) {
       const matchDomain = this._matchDomain(matchField[0].domainName)
       const codeValues = matchDomain[0].codedValues
+      let matchFound = false
       fuv.forEach((cav: any, c: number) => {
+        matchFound = false
         if (cav !== true || cav !== false) {
           const matchCV = codeValues.filter((cv: any) => {
-            return (cv.code === cav || (cv.code).toString() === cav.toString())
+            return (cv.code === cav)
           })
+          if (matchCV.length > 0) {
+            matchFound = true
+          }
           if (parseInt(existing) !== -1) {
             if (parseInt(existing) === parseInt(cav)) {
               if (matchCV.length > 0) {
                 selOptions.push(<option key={c} value={cav} selected>{matchCV[0].name}</option>)
               } else {
-                //selOptions.push(<option key={c} value={cav} selected>{cav}</option>)
+                selOptions.push(<option key={c} value={cav} selected>{cav}</option>)
               }
             }
           } else {
             if (matchCV.length > 0) {
               selOptions.push(<option key={c} value={cav}>{matchCV[0].name}</option>)
             } else {
-              //selOptions.push(<option key={c} value={cav}>{cav}</option>)
+              //try and match by string dictionary
+              const matchCVbyStringDict = codeValues.filter((cv: any, i: number) => {
+                return (i === cav && !matchFound)
+              })
+              if (matchCVbyStringDict.length > 0) {
+                selOptions.push(<option key={c} value={cav}>{matchCVbyStringDict[0].name}</option>)
+              } else {
+                selOptions.push(<option key={c} value={cav}>{cav}</option>)
+              }
             }
           }
         }
@@ -309,22 +322,37 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
         if (matchField.length > 0) {
           const matchDomain = this._matchDomain(matchField[0].domainName)
           const codeValues = matchDomain[0].codedValues
+          let matchFound = false
           fuv.forEach((cav: any, c: number) => {
+            matchFound = false
             if (cav !== true || cav !== false) {
               if (c === slot) {
                 const matchCV = codeValues.filter((cv: any) => {
-                  return (cv.code === cav || (cv.code).toString() === cav.toString())
+                  return (cv.code === cav)
                 })
+                if (matchCV.length > 0) {
+                  matchFound = true
+                }
                 if (matchCV.length > 0) {
                   if (!list.includes(matchCV[0].name)) {
                     list.push(matchCV[0].name)
                     valueList.push(<div key={matchCV[0].name} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{matchCV[0].name}</div>)
                   }
                 } else {
-                  //if (!list.includes(cav)) {
-                  //  list.push(cav)
-                  //  valueList.push(<div key={cav} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{cav}</div>)
-                  //}
+                  const matchCVbyStringDict = codeValues.filter((cv: any, i: number) => {
+                    return (i === cav && !matchFound)
+                  })
+                  if (matchCVbyStringDict.length > 0) {
+                    if (!list.includes(cav)) {
+                      list.push(cav)
+                      valueList.push(<div key={cav} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{matchCVbyStringDict[0].name}</div>)
+                    }
+                  } else {
+                    if (!list.includes(cav)) {
+                      list.push(cav)
+                      valueList.push(<div key={cav} onClick={() => { this._showCAVMatch(cav, slot, fieldGroup.name) }} style={{ textDecoration: 'underline', fontSize: 'small', cursor: 'pointer' }}>{cav}</div>)
+                    }
+                  }
                 }
               }
             }
@@ -380,14 +408,26 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
               if (matchField.length > 0) {
                 const matchDomain = this._matchDomain(matchField[0].domainName)
                 const codeValues = matchDomain[0].codedValues
+                let matchFound = false
                 this.state.uniqueCAVChoice[keyNode][i].forEach((cav: any, c: number) => {
+                  matchFound = false
                   const matchCV = codeValues.filter((cv: any) => {
-                    return (cv.code === cav || (cv.code).toString() === cav.toString())
+                    return (cv.code === cav)
                   })
+                  if (matchCV.length > 0) {
+                    matchFound = true
+                  }
                   if (matchCV.length > 0) {
                     selOption.push(<option key={c} value={cav}>{matchCV[0].name}</option>)
                   } else {
-                    //selOption.push(<option key={c} value={cav}>{cav}</option>)
+                    const matchCVbyStringDict = codeValues.filter((cv: any, i: number) => {
+                      return (i === cav && !matchFound)
+                    })
+                    if (matchCVbyStringDict.length > 0) {
+                      selOption.push(<option key={c} value={cav}>{matchCVbyStringDict[0].name}</option>)
+                    } else {
+                      selOption.push(<option key={c} value={cav}>{cav}</option>)
+                    }
                   }
                 })
                 header.push(<th key={i} style={{ fontSize: 'small', fontWeight: 'bold' }}><div style={{ fontSize: 'small' }}>{filterCAVFieldGroups[0].fieldNames.names[i]}</div>
@@ -436,6 +476,19 @@ export default class CAVWorkSpace extends React.Component <IProps, IState> {
   _showCAVMatch =(value: any, slot: number, name: string) => {
     //let selValue = code.options[code.selectedIndex].value;
     const cavCopy = [...this.state.allCAV]
+    if (!isNaN(value)) {
+      if (this.state.allCAV.length > 0) {
+        this.state.allCAV.forEach((acv) => {
+          for (let i = 0; i < acv.stringDictionary.length; i++) {
+            if (acv.stringDictionary[i] === value) {
+              console.log(this.state.allCAV)
+              value = i
+              break
+            }
+          }
+        })
+      }
+    }
     cavCopy.forEach((c: any) => {
       c.fieldGroups.forEach((fg: any) => {
         if (fg.name === name) {

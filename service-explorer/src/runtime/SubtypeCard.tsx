@@ -614,9 +614,12 @@ export default class SubtypeCard extends React.Component <IProps, IState> {
 
   _createARList = () => {
     const arrList = []
-    const filterAR = this.props.data.attributeRules.filter((ar: any, i: number) => {
+    let filterAR = this.props.data.attributeRules.filter((ar: any, i: number) => {
       return (ar.subtypeCode === this.state.nodeData.subtypeCode)
     })
+    if (filterAR.length === 0) {
+      filterAR = this.props.data.attributeRules
+    }
     if (filterAR.length > 0) {
       filterAR.forEach((ar: any, i: number) => {
         arrList.push(
