@@ -15,7 +15,7 @@ An application that allows viewing and searching of details of a feature Service
 
 3. In a command prompt, navigate to ```<drive letter>:\<ExB install location>\client\your-extensions\server```. Type ```npm ci```. After it completes, type ```npm start```
 
-4. Open a second command prompt, navigate to ```<drive letter>:\<ExB install location>\client```. Type ```npm ci```. After it completes, type ```npm start```.  Make sure you see the widget copied over in the command window.
+4. Open a second command prompt, navigate to ```<drive letter>:\<ExB install location>\server```. Type ```npm ci```. After it completes, type ```npm start```.  Make sure you see the widget copied over in the command window.
 
 5. Launch ExB in the browser (usually http://localhost:3000/).  Create a new app (full screen blank preferred).
 
