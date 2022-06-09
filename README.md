@@ -11,11 +11,11 @@ An application that allows viewing and searching of details of a feature Service
 ## Installation
 1. Make sure you have ArcGIS Experience Builder (ExB) Developer Edition installed on your machine.
 
-2. Fork and then clone the repo. Copy the folder "ServiceExplorer" into the your ```<ExB install location>\client\your-extensions\widgets```
+2. Fork and then clone the repo. Copy the folder "service-explorer" into the your ```<ExB install location>\client\your-extensions\widgets```
 
 3. In a command prompt, navigate to ```<drive letter>:\<ExB install location>\client\your-extensions\server```. Type ```npm ci```. After it completes, type ```npm start```
 
-4. Open a second command prompt, navigate to ```<drive letter>:\<ExB install location>\client\your-extensions\client```. Type ```npm ci```. After it completes, type ```npm start```.  Make sure you see the widget copied over in the command window.
+4. Open a second command prompt, navigate to ```<drive letter>:\<ExB install location>\client```. Type ```npm ci```. After it completes, type ```npm start```.  Make sure you see the widget copied over in the command window.
 
 5. Launch ExB in the browser (usually http://localhost:3000/).  Create a new app (full screen blank preferred).
 
