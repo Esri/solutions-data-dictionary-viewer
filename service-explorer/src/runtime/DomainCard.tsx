@@ -13,6 +13,7 @@ interface IProps {
   data: any
   dataElements: any
   layerElements: any
+  tableElements: any
   requestURL: string
   key: any
   panel: number
@@ -130,7 +131,7 @@ export default class DomainCard extends React.Component <IProps, IState> {
                 <Table hover>
                   <thead>
                   <tr>
-                    <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Layer</th>
+                    <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Layer / Table</th>
                     {(this.props.dataElements.length > 0) ? <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Subtype</th> : ''}
                     <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Field</th>
                   </tr>
@@ -307,8 +308,16 @@ export default class DomainCard extends React.Component <IProps, IState> {
 
   createMatchLayer =() => {
     const arrList = []
+    let fields = []
     this.props.layerElements.nodes.forEach((n: any, z: number) => {
-      const fields = (n.data?.dataElement) ? n.data.dataElement.fields.fieldArray : n.data.fields
+      if (n.data?.dataElement) {
+        if (n.data?.dataElement.fields) {
+          fields = n.data.dataElement.fields.fieldArray
+        }
+      } else {
+        fields = n.data.fields
+      }
+      //const fields = (n.data?.dataElement) ? n.data.dataElement.fields.fieldArray : n.data.fields
       const matchFields = fields.filter((fld: any) => {
         if (fld?.domain) {
           if (fld.domain?.domainName) {
@@ -333,6 +342,71 @@ export default class DomainCard extends React.Component <IProps, IState> {
         })
       }
     })
+
+    if (this.props.tableElements?.nodes) {
+      this.props.tableElements.nodes.forEach((n: any, z: number) => {
+        const fields = n.data?.dataElement ? n.data.dataElement.fields.fieldArray : n.data.fields
+        const matchFields = fields.filter((fld: any) => {
+          let domainName = ''
+          if (fld.domain) {
+            domainName = fld.domain?.domainName ? fld.domain?.domainName : fld.domain.name
+          }
+          return (
+            fld.domain && domainName === this.props.data.data.name
+          )
+        })
+
+        if (matchFields.length > 0) {
+          matchFields.forEach((match: any) => {
+            arrList.push(
+              <tr key={n.text + match.name + this.props.data.data.name}>
+                <td>
+                  <div
+                    onClick={() => {
+                      this.props.callbackLinkage(
+                        n.text,
+                        'Table',
+                        this.props.panel
+                      )
+                    }}
+                    style={{
+                      display: 'inline-block',
+                      verticalAlign: 'top',
+                      paddingRight: 5,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Icon icon={linkIcon} size="12" color="#333" /> {n.text}
+                  </div>
+                </td>
+                <td></td>
+                <td>
+                  <div
+                    onClick={() => {
+                      this.props.callbackLinkage(
+                        match.name,
+                        'Field',
+                        this.props.panel,
+                        n.text
+                      )
+                    }}
+                    style={{
+                      display: 'inline-block',
+                      verticalAlign: 'top',
+                      paddingRight: 5,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Icon icon={linkIcon} size="12" color="#333" /> {match.name}
+                  </div>
+                </td>
+              </tr>
+            )
+          })
+        }
+      })
+    }
+
     return arrList
   }
 

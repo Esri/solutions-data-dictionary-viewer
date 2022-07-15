@@ -46,7 +46,9 @@ export default class NetworkAttributeCard extends React.Component <IProps, IStat
     }
   }
 
-  componentWillMount () { console.log(this.state.nodeData) }
+  componentWillMount () {
+    //console.log(this.state.nodeData)
+  }
 
   componentDidMount () {
     //this._processData();

@@ -11,6 +11,9 @@ interface IProps {
   requestURL: string
   key: any
   panel: number
+  dataElements: any
+  serviceElements: any
+  relationshipElements: any
   callbackClose: any
   callbackSave: any
   callbackLinkage: any
@@ -170,14 +173,44 @@ export default class RelationshipsCard extends React.Component <IProps, IState> 
   //********************************************
   _createARList = () => {
     const arrList = []
+    let org = null
+    let dest = null
     this.props.data.data.forEach((r: any, i: number) => {
+      if (r?.backwardPathLabel) {
+        org = r.backwardPathLabel
+      } else {
+        if (r.role === 'esriRelRoleOrigin') {
+          // for hosted service, the table id is the reverse of the destination(role)
+          dest = this._SElayerNameLookup(r.relatedTableId)
+        } else {
+          const orgMatch = this._matchCorresRelation(r.id, r.role)
+          if (orgMatch !== null) {
+            dest = this._SElayerNameLookup(orgMatch.relatedTableId)
+          }
+        }
+      }
+
+      if (r?.forwardPathLabel) {
+        dest = r.forwardPathLabel
+      } else {
+        if (r.role === 'esriRelRoleDestination') {
+          // for hosted service, the table id is the reverse of the destination(role)
+          org = this._SElayerNameLookup(r.relatedTableId)
+        } else {
+          const orgMatch = this._matchCorresRelation(r.id, r.role)
+          if (orgMatch !== null) {
+            org = this._SElayerNameLookup(orgMatch.relatedTableId)
+          }
+        }
+      }
+
       arrList.push(
           <tr key={i}>
             <td style={{ fontSize: 'small' }}>
             <div onClick={() => { this.props.callbackLinkage(r.name, 'Relationship', this.props.panel) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /> {r.name} </div>
             </td>
-            <td style={{ fontSize: 'small' }}>{r.backwardPathLabel}</td>
-            <td style={{ fontSize: 'small' }}>{r.forwardPathLabel}</td>
+            <td style={{ fontSize: 'small' }}>{org}</td>
+            <td style={{ fontSize: 'small' }}>{dest}</td>
           </tr>
       )
     })
@@ -186,4 +219,54 @@ export default class RelationshipsCard extends React.Component <IProps, IState> 
 
   //****** helper functions and request functions
   //*******************************************
+  _layerForLinkageLookup =(layerId: number) => {
+    if (this.props.dataElements.length > 0) {
+      return this._DElayerNameLookup(layerId)
+    } else {
+      //for non un services
+      return this._SElayerNameLookup(layerId)
+    }
+  }
+
+  _DElayerNameLookup = (layerId: number) => {
+    let foundLayer = ''
+    const filterDE = this.props.dataElements.filter((de: any) => {
+      return (de.layerId === layerId)
+    })
+    if (filterDE.length > 0) {
+      foundLayer = filterDE[0].dataElement.aliasName
+    }
+    return foundLayer
+  }
+
+  _SElayerNameLookup =(layerId: number) => {
+    let foundLayer = layerId
+    const filterSETables = this.props.serviceElements.tables.filter((se: any) => {
+      return (se.id === layerId)
+    })
+    if (filterSETables.length > 0) {
+      foundLayer = filterSETables[0].name
+    } else {
+      //if it's not a table, see if it's a lyer
+      const filterSELayers = this.props.serviceElements.layers.filter((se: any) => {
+        return (se.id === layerId)
+      })
+      if (filterSELayers.length > 0) {
+        foundLayer = filterSELayers[0].name
+      }
+    }
+    return foundLayer
+  }
+
+  _matchCorresRelation = (id: number, direction: string) => {
+    let found = null
+    this.state.nodeData.forEach((re: any) => {
+      if (re.id === id) {
+        if (re.role !== direction) {
+          found = re
+        }
+      }
+    })
+    return found
+  }
 }

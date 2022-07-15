@@ -14,6 +14,7 @@ interface IProps {
   width: any
   serviceElements: any
   dataElements: any
+  relationshipElements: any
   panel: number
   callbackClose: any
   callbackSave: any
@@ -53,6 +54,78 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
   componentDidMount () {}
 
   render () {
+    const cardinality = this.state.nodeData.cardinality
+    const composite = this.state.nodeData.composite
+    let orgId = -1
+    let destId = -1
+    let orgField = ''
+    let destField = ''
+    if (this.state.nodeData?.originLayerId) {
+      orgId = this.state.nodeData.originLayerId
+    } else {
+      if (this.state.nodeData.role === 'esriRelRoleOrigin') {
+        // for hosted service, the table id is the reverse of the destination(role)
+        destId = this.state.nodeData.relatedTableId
+      } else {
+        const orgMatch = this._matchCorresRelation(
+          this.state.nodeData.id,
+          this.state.nodeData.role
+        )
+        if (orgMatch !== null) {
+          destId = orgMatch.relatedTableId
+        }
+      }
+    }
+
+    if (this.state.nodeData?.destinationLayerId) {
+      destId = this.state.nodeData.destinationLayerId
+    } else {
+      if (this.state.nodeData.role === 'esriRelRoleDestination') {
+        // for hosted service, the table id is the reverse of the destination(role)
+        orgId = this.state.nodeData.relatedTableId
+      } else {
+        const orgMatch = this._matchCorresRelation(
+          this.state.nodeData.id,
+          this.state.nodeData.role
+        )
+        if (orgMatch !== null) {
+          orgId = orgMatch.relatedTableId
+        }
+      }
+    }
+
+    if (this.state.nodeData?.originPrimaryKey) {
+      orgField = this.state.nodeData.originPrimaryKey
+    } else {
+      if (this.state.nodeData.role === 'esriRelRoleOrigin') {
+        orgField = this.state.nodeData.keyField
+      } else {
+        const orgMatch = this._matchCorresRelation(
+          this.state.nodeData.id,
+          this.state.nodeData.role
+        )
+        if (orgMatch !== null) {
+          orgField = orgMatch.keyField
+        }
+      }
+    }
+
+    if (this.state.nodeData?.originForeignKey) {
+      destField = this.state.nodeData.originForeignKey
+    } else {
+      if (this.state.nodeData.role === 'esriRelRoleDestination') {
+        destField = this.state.nodeData.keyField
+      } else {
+        const orgMatch = this._matchCorresRelation(
+          this.state.nodeData.id,
+          this.state.nodeData.role
+        )
+        if (orgMatch !== null) {
+          destField = orgMatch.keyField
+        }
+      }
+    }
+
     return (
       <div style={{ width: '100%', backgroundColor: '#fff', borderWidth: 2, borderStyle: 'solid', borderColor: '#000', float: 'left', display: 'inline-block' }}>
       <CardHeader title={this.props.data.text} isFavorite={this.headerSearchFavorites} id={'tt_' + (this.props.data.id).toString()}
@@ -78,24 +151,24 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
               <table style={{ width: '100%' }} cellPadding={0} cellSpacing={0}>
                 <tbody>
                   <tr>
-                    <td className="relationshipTableStyleHeader">Cardinality: </td><td className="relationshipTableStyle">{this._cardinalityLookup(this.state.nodeData.cardinality)}</td>
-                    <td className="relationshipTableStyleHeader">Type: </td><td className="relationshipTableStyle">{(this.state.nodeData.composite) ? 'Composite' : 'Simple'}</td>
+                    <td className="relationshipTableStyleHeader">Cardinality: </td><td className="relationshipTableStyle">{this._cardinalityLookup(cardinality)}</td>
+                    <td className="relationshipTableStyleHeader">Type: </td><td className="relationshipTableStyle">{(composite) ? 'Composite' : 'Simple'}</td>
                   </tr>
                   <tr>
                     <td className="relationshipTableStyleHeader">Origin Name: </td>
-                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.originLayerId), 'Layer', this.props.panel) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.backwardPathLabel}</td>
+                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this._layerForLinkageLookup(orgId), 'Layer', this.props.panel) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {(this.props?.dataElements?.length > 0) ? this.state.nodeData.backwardPathLabel : this._SElayerNameLookup(orgId)}</td>
                     <td className="relationshipTableStyleHeader">Destination Name: </td>
-                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this._layerForLinkageLookup(this.state.nodeData.destinationLayerId), 'Table', this.props.panel) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.forwardPathLabel}</td>
+                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this._layerForLinkageLookup(destId), 'Table', this.props.panel) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {(this.props?.dataElements?.length > 0) ? this.state.nodeData.forwardPathLabel : this._SElayerNameLookup(destId)}</td>
                   </tr>
                   <tr>
                     <td className="relationshipTableStyleHeader">Origin Primary Key: </td>
-                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this.state.nodeData.originPrimaryKey, 'Field', this.props.panel, this._layerForLinkageLookup(this.state.nodeData.originLayerId)) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originPrimaryKey}</td>
+                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(orgField, 'Field', this.props.panel, this._layerForLinkageLookup((this.props?.dataElements?.length > 0) ? this.state.nodeData.originLayerId : orgId)) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {orgField}</td>
                     <td className="relationshipTableStyleHeader">Origin Foreign Key: </td>
-                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(this.state.nodeData.originForeignKey, 'Field', this.props.panel, this._layerForLinkageLookup(this.state.nodeData.destinationLayerId)) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {this.state.nodeData.originForeignKey}</td>
+                    <td className="relationshipTableStyle"><div onClick={() => { this.props.callbackLinkage(destField, 'Field', this.props.panel, this._layerForLinkageLookup((this.props?.dataElements?.length > 0) ? this.state.nodeData.destinationLayerId : destId)) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /></div> {destField}</td>
                   </tr>
                 </tbody>
               </table>
-              <div style={{ paddingLeft: 10, paddingTop: 5, paddingBottom: 5, cursor: 'pointer' }} onClick={() => { this.toggleRules() }}>{(this.state.expandRules) ? <Icon icon={downArrowIcon} size='12' color='#333' /> : <Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{ fontWeight: 'bold' }}>Rules</span></div>
+              {(this.props?.dataElements?.length > 0) ? <div style={{ paddingLeft: 10, paddingTop: 5, paddingBottom: 5, cursor: 'pointer' }} onClick={() => { this.toggleRules() }}>{(this.state.expandRules) ? <Icon icon={downArrowIcon} size='12' color='#333' /> : <Icon icon={rightArrowIcon} size='12' color='#333' />} <span style={{ fontWeight: 'bold' }}>Rules</span></div> : ''}
               <Collapse isOpen={this.state.expandRules}>
               <table style={{ width: '100%' }} cellPadding={0} cellSpacing={0}>
                 <tbody>
@@ -203,7 +276,7 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
   //********************************************
   _relationshipRules = () => {
     const rows = []
-    if (this.state.nodeData.rules.length > 0) {
+    if (this.state.nodeData?.rules?.length > 0) {
       rows.push(
         <tr>
           <td className="relationshipTableStyleHeader">Origin Subtype</td>
@@ -305,4 +378,16 @@ export default class RelationshipCard extends React.Component <IProps, IState> {
     }
     return foundST
   }
+
+  _matchCorresRelation = (id: number, direction: string) => {
+    let found = null
+    this.props.relationshipElements.forEach((re: any) => {
+      if (re.id === id) {
+        if (re.role !== direction) {
+          found = re
+        }
+      }
+    })
+    return found
+  };
 }

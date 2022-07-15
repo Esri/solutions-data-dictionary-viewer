@@ -65,6 +65,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
       controllerDS: null,
       dataElements: [],
       layerElements: [],
+      tableElements: [],
       relationshipElements: [],
       domainElements: [],
       metadataElements: null,
@@ -90,7 +91,6 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
       favoriteMessage: 'Added to Favorites'
     }
   }
-  //https://pleblanc3.esri.com/server/rest/services/cav/FeatureServer
   //https://arcgisutilitysolutionsdemo.esri.com/server/rest/services/Water_Distribution_Utility_Network/FeatureServer
   //https://arcgisutilitysolutionsdemo.esri.com/server/rest/services/Water_Distribution_Utility_Network_Metadata/FeatureServer
 
@@ -363,7 +363,38 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
       case 'relationships': {
         if (!data?.error) {
           if (!this.isEmpty(data.relationships)) {
-            this.setState({ relationshipElements: data.relationships })
+            if (data.relationships.length > 0) {
+              if (data.relationships[0]?.originLayerId) {
+                this.setState({ relationshipElements: data.relationships })
+              } else {
+                //it's hosted
+                data.relationships.forEach(r => {
+                  let org: string = ''
+                  let dest: string = ''
+                  if (r.name === '' || r.name === 'Relate') {
+                    if (r.role === 'esriRelRoleOrigin') {
+                      const desMatch = this._matchCorresRelation(r.id, r.role, data.relationships)
+                      if (desMatch !== null) {
+                        dest = this._SElayerNameLookup(desMatch.relatedTableId)
+                      }
+                    } else {
+                      const orgMatch = this._matchCorresRelation(r.id, r.role, data.relationships)
+                      if (orgMatch !== null) {
+                        org = this._SElayerNameLookup(orgMatch.relatedTableId)
+                      }
+                    }
+                    if (org !== r.relatedTableId && org !== '') {
+                      r.name = org
+                    } else {
+                      if (dest !== r.relatedTableId && dest !== '') {
+                        r.name = dest
+                      }
+                    }
+                  }
+                })
+                this.setState({ relationshipElements: data.relationships })
+              }
+            }
           }
         }
         break
@@ -391,10 +422,19 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
   _requestCacheObject = (type: any, layer: number) => {
     let data = null
     if (layer !== -1) {
-      if (type === 'metadata') {
-        data = this.state.cacheData.metadata[layer]
-      } else {
-        data = this.state.cacheData.layers[layer]
+      switch (type) {
+        case 'metadata': {
+          data = this.state.cacheData.metadata[layer]
+          break
+        }
+        case 'table': {
+          data = this.state.cacheData.tables[layer]
+          break
+        }
+        default: {
+          data = this.state.cacheData.layers[layer]
+          break
+        }
       }
     } else {
       data = this.state.cacheData[type]
@@ -539,8 +579,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
       //}
 
       //Handling TABLE nodes
+      let tablesNode: any = {}
       if (data.tables.length > 0) {
-        const tablesNode = {
+        tablesNode = {
           id: 'Tables',
           type: 'Tables',
           text: 'Tables',
@@ -581,10 +622,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
             if (this.state.hasDataElements) {
               nodeStruct.nodes = this._processDataElements(table.id, crumb, table.name)
             } else {
-              await this._requestObject(null, table.id).then((data) => {
-                nodeStruct.data = data
-                nodeStruct.nodes = this._processDataSimple(data, table.id, crumb, table.name)
-              })
+              //await this._requestObject(null, table.id).then((data) => {
+              //  nodeStruct.data = data
+              //  nodeStruct.nodes = this._processDataSimple(data, table.id, crumb, table.name)
+              //})
+              const reqData = this._requestCacheObject('table', table.id)
+              nodeStruct.data = reqData
+              nodeStruct.nodes = this._processDataSimple(reqData, table.id, crumb, table.name)
             }
             tablesNode.nodes.push(nodeStruct)
           }
@@ -593,12 +637,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
       }
 
       //Handling RELATIONSHIP nodes
-      if (this.state.serviceElements?.relationships) {
+      if (this.state.serviceElements?.relationships || relationship.length > 0) {
         const relationNode = {
           id: 'Relationships',
           type: 'Relationships',
           text: 'Relationships',
-          subNodeCount: this.state.serviceElements.relationships.length,
+          subNodeCount: (relationship.length > 0) ? relationship.length : this.state.serviceElements.relationships.length,
           data: relationship,
           clickable: true,
           crumb: [
@@ -688,7 +732,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
         nodeStructure.nodes.unshift(domainNetworkNode)
       }
 
-      this.setState({ serviceNodes: [nodeStructure], layerElements: layersNode }, () => {
+      this.setState({ serviceNodes: [nodeStructure], layerElements: layersNode, tableElements: tablesNode }, () => {
         resolve(true)
       })
       //this._serviceList(rest);
@@ -1352,6 +1396,9 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
           newActiveList.push(<RelationshipsCard data={dataNode} requestURL={this.state.requestURL}
             key={dataNode.id}
             panel={slot}
+            serviceElements={this.state.serviceElements}
+            dataElements={this.state.dataElements}
+            relationshipElements={this.state.relationshipElements}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
             callbackLinkage={this.searchLaunchCard}
@@ -1367,6 +1414,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
           newActiveList.push(<RelationshipCard data={dataNode} width={this.state.cardWidth}
             serviceElements={this.state.serviceElements}
             dataElements={this.state.dataElements}
+            relationshipElements={this.state.relationshipElements}
             key={dataNode.id}
             panel={slot}
             callbackClose={this._callbackCloseChild}
@@ -1489,9 +1537,11 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
           break
         }
         case 'Domain': {
-          newActiveList.push(<DomainCard data={dataNode} dataElements={this.state.dataElements} requestURL={this.state.requestURL} layerElements={this.state.layerElements}
+          newActiveList.push(<DomainCard data={dataNode} dataElements={this.state.dataElements} requestURL={this.state.requestURL}
             key={dataNode.id}
             panel={slot}
+            layerElements={this.state.layerElements}
+            tableElements={this.state.tableElements}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
             callbackLinkage={this.searchLaunchCard}
@@ -2053,7 +2103,14 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
                 //see if there is another level of parent to search for example if "unknown" asset type is passed
                 if (typeof (parentSub) !== 'undefined') {
                   if ((nodeText).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
-                    matchNode = node
+                    node.crumb.forEach((c: any) => {
+                      //if((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
+                      if ((nodeText).toLowerCase() === (cleanValue).toLowerCase()) {
+                        matchNode = node
+                      }
+                      //}
+                    })
+                    //matchNode = node;
                   } else {
                     node.crumb.forEach((c: any) => {
                       if ((this.replaceSpaces(c.value)).toLowerCase() === (this.replaceSpaces(parentSub)).toLowerCase()) {
@@ -2082,12 +2139,16 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
         }
         if (node?.nodes) {
           node.nodes.forEach((n: any) => {
-            hasSubNodes(n)
+            if (matchNode === null) {
+              hasSubNodes(n)
+            }
           })
         }
       }
       serviceNodes.forEach((sn: any) => {
-        hasSubNodes(sn)
+        if (matchNode === null) {
+          hasSubNodes(sn)
+        }
       })
 
       if (matchNode !== null) {
@@ -2099,6 +2160,37 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
   }
 
   //Helper Functions
+  _SElayerNameLookup =(layerId: number) => {
+    let foundLayer = layerId
+    const filterSETables = this.state.serviceElements.tables.filter((se: any) => {
+      return (se.id === layerId)
+    })
+    if (filterSETables.length > 0) {
+      foundLayer = filterSETables[0].name
+    } else {
+      //if it's not a table, see if it's a lyer
+      const filterSELayers = this.state.serviceElements.layers.filter((se: any) => {
+        return (se.id === layerId)
+      })
+      if (filterSELayers.length > 0) {
+        foundLayer = filterSELayers[0].name
+      }
+    }
+    return foundLayer.toString()
+  }
+
+  _matchCorresRelation = (id: number, direction: string, data: any) => {
+    let found = null
+    data.forEach((re: any) => {
+      if (re.id === id) {
+        if (re.role !== direction) {
+          found = re
+        }
+      }
+    })
+    return found
+  }
+
   togglePanel2 =(panel2State: boolean) => {
     let newState = false
     let newSize = document.body.clientWidth
