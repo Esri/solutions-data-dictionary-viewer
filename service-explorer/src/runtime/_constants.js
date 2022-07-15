@@ -1,4 +1,4 @@
-export default class esriLookup {
+export default class EsriLookup {
   constructor() {
     this.valueList = {
       "esriNETEdge": "Edge",
@@ -154,7 +154,7 @@ export default class esriLookup {
   }
 
   lookupValue(value) {
-    if(this.valueList.hasOwnProperty(value)) {
+    if (this.valueList.hasOwnProperty(value)) {
       return this.valueList[value];
     } else {
       return value;

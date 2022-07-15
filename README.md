@@ -53,6 +53,8 @@ Optionally, if you want to be able to load other services via a url parameter ch
 ## Resources
 
 ## Usage
+To load a specific cache, add the cacheId url parameter pointing to the cache item in your AGOL/Enterprise.  Make sure to share the item public.
+* ?cacheId=<enterprise/arcgis online item id>
 
 The application loads a default feature service defined in the configuration.  You can load your own by adding a url parameter if allowed in the configuration.
 at the end of the url, type:
