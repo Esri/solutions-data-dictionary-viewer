@@ -337,6 +337,17 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           currStruct.queryDomains = { domains: domains }
         }
 
+        if (!this.state.cacheStructure.relationships.hasOwnProperty('relationships')) {
+          currStruct.relationships = { relationships: lyrData.relationships }
+        } else {
+          //const tempArray = [...currStruct.relationships.relationships]
+          lyrData.relationships.forEach((rel) => {
+            currStruct.relationships.relationships.push(rel)
+            currStruct.relationships.relationships = [...new Set(currStruct.relationships.relationships.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
+          })
+          //currStruct.relationships = { relationships: tempArray }
+        }
+
         const metadataUrl = url + '/' + lyr.id + '/metadata'
         const lyrMeta = await this.fetchRequestNoProcess(metadataUrl, { type: 'metadata' }, itemId, (lyr.id).toString())
         if ((lyr.id).toString() !== '') {
@@ -345,7 +356,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           currStruct.metadata = lyrMeta
         }
 
-        this.setState({ cacheStructure: currStruct })
+        await this.setState({ cacheStructure: currStruct })
       })
       await Promise.all(promises).then(async (result) => {
         console.log(this.state.cacheStructure)
@@ -366,6 +377,18 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
             currStruct.tables[tbl.id] = {}
             currStruct.tables[tbl.id] = tblData
           }
+
+          if (!this.state.cacheStructure.relationships.hasOwnProperty('relationships')) {
+            currStruct.relationships = { relationships: tblData.relationships }
+          } else {
+            //const tempArray = [...currStruct.relationships.relationships]
+            tblData.relationships.forEach((rel) => {
+              currStruct.relationships.relationships.push(rel)
+              currStruct.relationships.relationships = [...new Set(currStruct.relationships.relationships.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
+            })
+            //currStruct.relationships = { relationships: tempArray }
+          }
+
           const metadataUrl = url + '/' + tbl.id + '/metadata'
           const tblMeta = await this.fetchRequestNoProcess(metadataUrl, { type: 'metadata' }, itemId, (tbl.id).toString())
           if (currStruct.metadata.hasOwnProperty(tbl.id)) {
@@ -374,7 +397,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
             currStruct.metadata[tbl.id] = {}
             currStruct.metadata[tbl.id] = tblMeta
           }
-          this.setState({ cacheStructure: currStruct })
+          await this.setState({ cacheStructure: currStruct })
         })
         await Promise.all(tableDatapromise).then(async () => {
           await this.updateCache(itemId)
@@ -393,14 +416,14 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       //requestURL = requestURL + '&token=' + this.props.token
       fetch(requestURL, { method: 'GET' })
         .then((response) => {
-          if (params.type == 'metadata') {
+          if (params.type === 'metadata' || params.type === 'contingentValues') {
             return response.text()
           } else {
             return response.json()
           }
         })
         .then(async (data) => {
-          if (params.type === 'metadata') {
+          if (params.type === 'metadata' || params.type === 'contingentValues') {
             await this.processCache(data, params.type, itemId, subCat)
           } else {
             if (!data.hasOwnProperty('error')) {
