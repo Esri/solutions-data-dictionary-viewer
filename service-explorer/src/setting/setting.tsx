@@ -273,29 +273,29 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
     const url = this.state.serviceURL
     //grab feature Service json to store
     this.setState({ cacheStatus: 'Step 1 of 10: Saving Feature Service' })
-    await this.fetchRequest(url + '/?f=pjson', { type: 'featureServer' }, itemId, '').then(async (response: any) => {
+    await this.fetchRequest(url + '/?f=json', { type: 'featureServer' }, itemId, '').then(async (response: any) => {
       //Grab all Domains
       this.setState({ cacheStatus: 'Step 2 of 10: Saving Domains' })
-      const qDomainURL = url + '/queryDomains/?f=pjson'
+      const qDomainURL = url + '/queryDomains/?f=json'
       await this.fetchRequest(qDomainURL, { type: 'queryDomains' }, itemId, '')
 
       //Grab all CAVs
       this.setState({ cacheStatus: 'Step 3 of 10: Saving Contingent Attribute Values' })
-      const qCAVURL = url + '/queryContingentValues/?f=pjson'
+      const qCAVURL = url + '/queryContingentValues/?f=json'
       await this.fetchRequest(qCAVURL, { type: 'contingentValues' }, itemId, '')
 
       this.setState({ cacheStatus: 'Step 4 of 10: Saving Diagram Templates' })
-      const qDiagrams = url + '/NetworkDiagramServer/diagramDataset?f=pjson'
+      const qDiagrams = url + '/NetworkDiagramServer/diagramDataset?f=json'
       await this.fetchRequest(qDiagrams, { type: 'diagramTemplateInfos' }, itemId, '')
 
       //Grab all Relationships
-      const qRelUrl = url + '/relationships/?f=pjson'
+      const qRelUrl = url + '/relationships/?f=json'
       this.setState({ cacheStatus: 'Step 5 of 10: Saving Relationships' })
       await this.fetchRequest(qRelUrl, { type: 'relationships' }, itemId, '')
 
       //Grab all Data Elements
       this.setState({ cacheStatus: 'Step 6 of 10: Saving Data Elements' })
-      const qDEUrl = url + '/queryDataElements/?f=pjson'
+      const qDEUrl = url + '/queryDataElements/?f=json'
       await this.fetchRequest(qDEUrl, { type: 'queryDataElements' }, itemId, '').then(async (response: any) => {
         //do connectivity rules by layer and subtype
         if (response.hasOwnProperty('layerDataElements')) {
@@ -315,7 +315,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       this.setState({ cacheStatus: 'Step 8 of 10: Saving Layers and Metadata' })
       const domains = []
       const promises = response.layers.map(async (lyr: any, i: number) => {
-        const newURL = url + '/' + lyr.id + '/?f=pjson'
+        const newURL = url + '/' + lyr.id + '/?f=json'
         const lyrData = await this.fetchRequestNoProcess(newURL, { type: 'layers' }, itemId, '')
         const currStruct = { ...this.state.cacheStructure }
         if (currStruct.layers.hasOwnProperty(lyr.id)) {
@@ -368,7 +368,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       this.setState({ cacheStatus: 'Step 9 of 10: Saving Tables and Metadata' })
       if (response.tables.length > 0) {
         const tableDatapromise = response.tables.map(async (tbl: any, i: number) => {
-          const newURL = url + '/' + tbl.id + '/?f=pjson'
+          const newURL = url + '/' + tbl.id + '/?f=json'
           const tblData = await this.fetchRequestNoProcess(newURL, { type: 'tables' }, itemId, '')
           const currStruct = { ...this.state.cacheStructure }
           if (currStruct.tables.hasOwnProperty(tbl.id)) {
@@ -550,7 +550,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
             const currStruct = { ...this.state.cacheStructure }
             de.subtypes.map(async (st: any) => {
               whereClause = '(fromassetgroup=' + st.subtypeCode + ' and fromnetworksourceid=' + sourceId + ') OR (toassetgroup=' + st.subtypeCode + ' and tonetworksourceid=' + sourceId + ')'
-              const qCRurl = url + '/' + rulesLayer + '/query?where=' + whereClause + '&f=pjson'
+              const qCRurl = url + '/' + rulesLayer + '/query?where=' + whereClause + '&f=json'
               const data = await this.fetchRequestNoProcess(qCRurl, { type: 'connectivityRules' }, itemId, sourceId.toString())
               if (sourceId.toString() !== '') {
                 if (currStruct.connectivityRules.hasOwnProperty(sourceId.toString())) {

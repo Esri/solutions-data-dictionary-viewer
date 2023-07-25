@@ -10,6 +10,8 @@ interface IProps {
   data: any
   requestURL: string
   panel: number
+  config: any
+  cacheData: any
   callbackClose: any
   callbackSave: any
   callbackLinkage: any
@@ -24,6 +26,8 @@ interface IState {
   nodeData: any
   activeTab: string
   minimizedDetails: boolean
+  assetTypeDesc: string[]
+  metadataElements: any
 }
 
 export default class SubTypesCard extends React.Component <IProps, IState> {
@@ -33,11 +37,16 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
     this.state = {
       nodeData: this.props.data.data,
       activeTab: 'Properties',
-      minimizedDetails: false
+      minimizedDetails: false,
+      assetTypeDesc: [],
+      metadataElements: null
     }
   }
 
   componentWillMount () {
+    this._requestMetadata().then(() => {
+      this._processMetaData()
+    })
   }
 
   componentDidMount () {
@@ -71,6 +80,7 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
                 <tr>
                   <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Name</th>
                   <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Code</th>
+                  <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Description</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -171,12 +181,18 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
   _createSTList = () => {
     const arrList = []
     this.state.nodeData.forEach((ar: any, i: number) => {
+      //get matching AT desc
+      const atDesc: any = this.state.assetTypeDesc.filter((atd: any) => {
+        return (parseInt(atd.code) === parseInt(ar.data.assetTypeCode))
+      })
+
       arrList.push(
           <tr key={i}>
             <td style={{ fontSize: 'small' }}>
             <div onClick={() => { this.props.callbackLinkage(ar.data.assetTypeName, 'Assettype', this.props.panel, this.props.data.parent, this.props.data.subtypes.subtypeName) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.assetTypeName} </div>
             </td>
             <td style={{ fontSize: 'small' }}>{ar.data.assetTypeCode}</td>
+            <td style={{ fontSize: 'small' }}>{atDesc.length > 0 ? atDesc[0].description : ''}</td>
           </tr>
       )
     })
@@ -185,4 +201,72 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
 
   //****** helper functions and request functions
   //********************************************
+  _requestMetadata = async () => {
+    if (this.props.config.useCache) {
+      const data = this.props.cacheData.metadata[this.props.data.parentId]
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(data, 'text/xml')
+      this.setState({ metadataElements: xmlDoc })
+    } else {
+      const url = this.props.requestURL + '/' + this.props.data.parentId + '/metadata'
+      await fetch(url, {
+        method: 'GET'
+      })
+        .then((response) => { return response.text() })
+        .then((data) => {
+          const parser = new DOMParser()
+          const xmlDoc = parser.parseFromString(data, 'text/xml')
+          this.setState({ metadataElements: xmlDoc })
+        })
+    }
+  }
+
+  _processMetaData =() => {
+    const ATDesc = []
+    const metadata = this.state.metadataElements
+    const metaLevel = metadata.getElementsByTagName('metadata')
+    if (metaLevel.length > 0) {
+      const eaInfoLevel = metaLevel[0].getElementsByTagName('eainfo')
+      if (eaInfoLevel.length > 0) {
+        const detailedLevel = eaInfoLevel[0].getElementsByTagName('detailed')
+        if (detailedLevel.length > 0) {
+          for (let i = 0; i < detailedLevel.length; i++) {
+            const subTypeCodeLevel = detailedLevel[i].getElementsByTagName('enttypdv')
+            if (subTypeCodeLevel.length > 0) {
+              //loop thorugh details and get code node and see if it's the current code card is on.
+              if (parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData[0].subtypeCode)) {
+                //now add only fields that pertain to this subtype
+                const attrLevel = detailedLevel[i].getElementsByTagName('attr')
+                if (attrLevel.length > 0) {
+                  for (let z = 0; z < attrLevel.length; z++) {
+                    const fieldName = attrLevel[z].getElementsByTagName('attrlabl')
+                    if (fieldName.length > 0) {
+                      if (fieldName[0].innerHTML.toLowerCase() === 'assettype') {
+                        //get AT descriptions
+                        const attrdomvLevel = attrLevel[z].getElementsByTagName('attrdomv')
+                        if (attrdomvLevel.length > 0) {
+                          const edomLevel = attrdomvLevel[0].getElementsByTagName('edom')
+                          if (edomLevel.length > 0) {
+                            for (let e = 0; e < edomLevel.length; e++) {
+                              const edomvLevel = edomLevel[e].getElementsByTagName('edomv')
+                              const edomvddLevel = edomLevel[e].getElementsByTagName('edomvdd')
+                              //where AT desc is stored
+                              if (edomvddLevel.length > 0) {
+                                ATDesc.push({ code: edomvLevel[0].innerHTML, description: edomvddLevel[0].innerHTML })
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    this.setState({ assetTypeDesc: ATDesc })
+  }
 }
