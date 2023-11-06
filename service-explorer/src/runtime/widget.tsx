@@ -274,12 +274,12 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
 
   //Request Info
   requestServiceDetails = async () => {
-    //let qDE_url = FSurl + "/queryDomains?layers=" + args.searchLayers +"&f=pjson";
+    //let qDE_url = FSurl + "/queryDomains?layers=" + args.searchLayers +"&f=json";
     if (this.state.useCache) {
       this.setState({ serviceElements: this.state.cacheData.featureServer })
     } else {
       if (this.state.requestURL !== '') {
-        let url = this.state.requestURL + '/?f=pjson'
+        let url = this.state.requestURL + '/?f=json'
         if (this.props?.token) {
           url = url + '&token=' + this.props.token
         }
@@ -314,13 +314,13 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
         }
       } else {
         if (type !== null) {
-          url = url + '/' + layer + '/' + type + '?f=pjson'
+          url = url + '/' + layer + '/' + type + '?f=json'
         } else {
           if (this.state.useCache) {
             data = this.state.cacheData.layers[layer]
             //url = this.state.cachePath + "layers/" + layer + ".json";
           } else {
-            url = url + '/' + layer + '?f=pjson'
+            url = url + '/' + layer + '?f=json'
           }
         }
       }
@@ -329,7 +329,7 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
         data = this.state.cacheData[type]
         //url = this.state.cachePath + type + "/" + type + ".json";
       } else {
-        url = url + '/' + type + '?f=pjson'
+        url = url + '/' + type + '?f=json'
       }
     }
     if (!this.state.useCache) {
@@ -759,7 +759,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
             clickable: true,
             crumb: crumb,
             search: false,
-            parent: parent
+            parent: parent,
+            layerId: de.layerId
           }
           const newCrumb = [...crumb]
           newCrumb.push({
@@ -1065,7 +1066,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
         clickable: true,
         search: false,
         crumb: crumb,
-        parent: parent
+        parent: parent,
+        parentId: parentId
       }
       const newCrumb = [...crumb]
       newCrumb.push({
@@ -1331,6 +1333,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
           newActiveList.push(<SubtypesCard data={dataNode} requestURL={this.state.requestURL}
             key={dataNode.id}
             panel={slot}
+            config={this.props.config}
+            cacheData={this.state.cacheData}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
             callbackLinkage={this.searchLaunchCard}
@@ -1362,6 +1366,8 @@ export default class Widget extends BaseWidget<AllWidgetProps<IMConfig>, any> {
           newActiveList.push(<AssetTypesCard data={dataNode} requestURL={this.state.requestURL}
             key={dataNode.id}
             panel={slot}
+            config={this.props.config}
+            cacheData={this.state.cacheData}
             callbackClose={this._callbackCloseChild}
             callbackSave={this._callbackSaveChild}
             callbackLinkage={this.searchLaunchCard}

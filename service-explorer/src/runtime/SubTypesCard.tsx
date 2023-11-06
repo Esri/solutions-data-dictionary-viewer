@@ -9,6 +9,8 @@ const linkIcon = require('./assets/launch.svg')
 interface IProps {
   data: any
   requestURL: string
+  config: any
+  cacheData: any
   panel: number
   callbackClose: any
   callbackSave: any
@@ -24,6 +26,8 @@ interface IState {
   nodeData: any
   activeTab: string
   minimizedDetails: boolean
+  subTypeDesc: string[]
+  metadataElements: any
 }
 
 export default class SubTypesCard extends React.Component <IProps, IState> {
@@ -31,13 +35,19 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
     super(props)
 
     this.state = {
-      nodeData: this.props.data.data,
+      nodeData: this.props.data,
       activeTab: 'Properties',
-      minimizedDetails: false
+      minimizedDetails: false,
+      subTypeDesc: [],
+      metadataElements: null
     }
   }
 
-  componentWillMount () {}
+  componentWillMount () {
+    this._requestMetadata().then(() => {
+      this._processMetaData()
+    })
+  }
 
   componentDidMount () {}
 
@@ -69,6 +79,7 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
                   <tr>
                     <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Name</th>
                     <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Code</th>
+                    <th style={{ fontSize: 'small', fontWeight: 'bold' }}>Description</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -169,12 +180,16 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
   _createSTList = () => {
     const arrList = []
     this.props.data.nodes.forEach((ar: any, i: number) => {
+      const subDesc: any = this.state.subTypeDesc.filter((std: any) => {
+        return (parseInt(std.code) === parseInt(ar.data.subtypeCode))
+      })
       arrList.push(
           <tr key={i}>
             <td style={{ fontSize: 'small' }}>
             <div onClick={() => { this.props.callbackLinkage(ar.data.subtypeName, 'Subtype', this.props.panel, this.props.data.parent) }} style={{ display: 'inline-block', verticalAlign: 'top', paddingRight: 5, cursor: 'pointer' }}><Icon icon={linkIcon} size='12' color='#333' /> {ar.data.subtypeName} </div>
             </td>
             <td style={{ fontSize: 'small' }}>{ar.data.subtypeCode}</td>
+            <td style={{ fontSize: 'small' }}>{subDesc.length > 0 ? subDesc[0].description : ''}</td>
           </tr>
       )
     })
@@ -183,4 +198,51 @@ export default class SubTypesCard extends React.Component <IProps, IState> {
 
   //****** helper functions and request functions
   //********************************************
+  _requestMetadata = async () => {
+    if (this.props.config.useCache) {
+      const data = this.props.cacheData.metadata[this.props.data.layerId]
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(data, 'text/xml')
+      this.setState({ metadataElements: xmlDoc })
+    } else {
+      const url = this.props.requestURL + '/' + this.props.data.parentId + '/metadata'
+      await fetch(url, {
+        method: 'GET'
+      })
+        .then((response) => { return response.text() })
+        .then((data) => {
+          const parser = new DOMParser()
+          const xmlDoc = parser.parseFromString(data, 'text/xml')
+          this.setState({ metadataElements: xmlDoc })
+        })
+    }
+  }
+
+  _processMetaData =() => {
+    const description = []
+    const metadata = this.state.metadataElements
+    const metaLevel = metadata.getElementsByTagName('metadata')
+    if (metaLevel.length > 0) {
+      const eaInfoLevel = metaLevel[0].getElementsByTagName('eainfo')
+      if (eaInfoLevel.length > 0) {
+        const detailedLevel = eaInfoLevel[0].getElementsByTagName('detailed')
+        if (detailedLevel.length > 0) {
+          for (let i = 0; i < detailedLevel.length; i++) {
+            const subTypeCodeLevel = detailedLevel[i].getElementsByTagName('enttypdv')
+            if (subTypeCodeLevel.length > 0) {
+              //loop thorugh details and get code node and see if it's the current code card is on.
+              //if (parseInt(subTypeCodeLevel[0].innerHTML) === parseInt(this.state.nodeData.layerId)) {
+              //this tag stores the descriptions
+              const subTypeDescLevel = detailedLevel[i].getElementsByTagName('enttypd')
+              if (subTypeDescLevel.length > 0) {
+                description.push({ code: parseInt(subTypeCodeLevel[0].innerHTML), description: subTypeDescLevel[0].innerHTML })
+              }
+              //}
+            }
+          }
+        }
+      }
+    }
+    this.setState({ subTypeDesc: description })
+  }
 }
