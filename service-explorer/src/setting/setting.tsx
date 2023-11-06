@@ -316,7 +316,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       const domains = []
       const promises = response.layers.map(async (lyr: any, i: number) => {
         const newURL = url + '/' + lyr.id + '/?f=json'
-        const lyrData = await this.fetchRequestNoProcess(newURL, { type: 'layers' }, itemId, '')
+        const lyrData: any = await this.fetchRequestNoProcess(newURL, { type: 'layers' }, itemId, '')
         const currStruct = { ...this.state.cacheStructure }
         if (currStruct.layers.hasOwnProperty(lyr.id)) {
           currStruct.layers[lyr.id] = lyrData
@@ -342,6 +342,9 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
         } else {
           //const tempArray = [...currStruct.relationships.relationships]
           lyrData.relationships.forEach((rel) => {
+            if(rel.name === '') {
+              rel.name = lyrData.name
+            }
             currStruct.relationships.relationships.push(rel)
             currStruct.relationships.relationships = [...new Set(currStruct.relationships.relationships.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
           })
@@ -369,7 +372,7 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
       if (response.tables.length > 0) {
         const tableDatapromise = response.tables.map(async (tbl: any, i: number) => {
           const newURL = url + '/' + tbl.id + '/?f=json'
-          const tblData = await this.fetchRequestNoProcess(newURL, { type: 'tables' }, itemId, '')
+          const tblData:any = await this.fetchRequestNoProcess(newURL, { type: 'tables' }, itemId, '')
           const currStruct = { ...this.state.cacheStructure }
           if (currStruct.tables.hasOwnProperty(tbl.id)) {
             currStruct.tables[tbl.id] = tblData
@@ -383,6 +386,9 @@ export default class Setting extends BaseWidgetSetting<AllWidgetSettingProps<IMC
           } else {
             //const tempArray = [...currStruct.relationships.relationships]
             tblData.relationships.forEach((rel) => {
+              if(rel.name === '') {
+                rel.name = tblData.name
+              }
               currStruct.relationships.relationships.push(rel)
               currStruct.relationships.relationships = [...new Set(currStruct.relationships.relationships.map(o => JSON.stringify(o)))].map(s => JSON.parse(s))
             })
